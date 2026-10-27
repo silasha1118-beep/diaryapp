@@ -1,0 +1,71 @@
+/* Brand */
+"brand.name" = "Diary Vault";
+
+/* Common */
+"common.back" = "Back";
+"common.continue" = "Continue";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.edit" = "Edit";
+
+/* Tabs */
+"tab.vault" = "Vault";
+"tab.mirror" = "Mirror";
+"tab.settings" = "Settings";
+
+/* Onboarding */
+"onboarding.welcome.headline" = "Your own diary vault.";
+"onboarding.welcome.body" = "Write what only you would write. Over time, a gentle mirror learns your words — reflecting them back with questions, never prescribing what you should do.";
+"onboarding.privacy.title" = "Yours to keep";
+"onboarding.privacy.point1" = "Your entries stay in your vault. Export and leave anytime.";
+"onboarding.privacy.point2" = "AI learns only to understand you better — not to train a public model.";
+"onboarding.privacy.point3" = "Gentle reminders can be turned off. Mirror tone only: reflect + ask.";
+"onboarding.privacy.residency" = "Data residency narrative: Taiwan (TW). Cloud AI only — no on-device model in MVP.";
+"onboarding.name.title" = "What should we call you?";
+"onboarding.name.body" = "Optional. Used only inside your vault.";
+"onboarding.name.placeholder" = "Your name";
+"onboarding.enter" = "Enter vault";
+
+/* Diary */
+"diary.subtitle" = "Private entries in your vault";
+"diary.subtitle.named" = "%@’s vault";
+"diary.new" = "New entry";
+"diary.empty.title" = "The vault is quiet";
+"diary.empty.body" = "Write a first page — one sentence is enough.";
+"diary.emptyBody" = "(empty)";
+"diary.field.title" = "Title (optional)";
+"diary.field.mood" = "Mood tag (optional)";
+"diary.detail.owned" = "This page belongs to you.";
+"diary.missing" = "This entry is no longer in the vault.";
+
+/* Mirror */
+"mirror.title" = "Mirror";
+"mirror.intro" = "I’m a mirror grounded in what you’ve written. I’ll reflect and ask — I won’t tell you what to do. (Placeholder AI for this scaffold.)";
+"mirror.mode.mock" = "Mock mirror";
+"mirror.mode.cloud" = "Cloud mirror";
+"mirror.style.hint" = "Reflect · ask — not coach";
+"mirror.placeholder" = "Say what’s on your mind…";
+"mirror.send" = "Send";
+"mirror.thinking" = "Listening…";
+"mirror.cited" = "Grounded in your entries";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.section.language" = "Language";
+"settings.language" = "App language";
+"settings.language.footer" = "繁中 / 簡中 / English — switch anytime.";
+"settings.section.advice" = "Advice";
+"settings.reminders" = "Gentle contextual reminders";
+"settings.reminders.footer" = "When on, the mirror may softly surface reflections at relevant moments. Never high-frequency or pushy.";
+"settings.section.ai" = "AI";
+"settings.ai.mode" = "Client";
+"settings.ai.mock" = "Mock (local)";
+"settings.ai.cloud" = "Cloud API";
+"settings.ai.residency" = "Data residency";
+"settings.ai.footer" = "Set DIARY_AI_BASE_URL and DIARY_AI_API_KEY in the Xcode scheme to enable the cloud stub. No secrets in the repo.";
+"settings.section.legacy" = "Legacy";
+"settings.legacy.stub" = "Memorial / voice clone / executor settings — not in Phase 1 UI.";
+"settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";
+"settings.section.vault" = "Vault";
+"settings.name" = "Display name";
+"settings.resetOnboarding" = "Show onboarding again";

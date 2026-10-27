@@ -1,0 +1,71 @@
+/* Brand */
+"brand.name" = "日记金库";
+
+/* Common */
+"common.back" = "返回";
+"common.continue" = "继续";
+"common.cancel" = "取消";
+"common.save" = "保存";
+"common.edit" = "编辑";
+
+/* Tabs */
+"tab.vault" = "金库";
+"tab.mirror" = "镜子";
+"tab.settings" = "设置";
+
+/* Onboarding */
+"onboarding.welcome.headline" = "属于你自己的日记金库。";
+"onboarding.welcome.body" = "写下只属于你的文字。一面温柔的镜子会渐渐学会你的语气——以反映与提问相伴，而不是教你该怎么做。";
+"onboarding.privacy.title" = "资料属于你";
+"onboarding.privacy.point1" = "日记留在你的金库；可随时导出、带走。";
+"onboarding.privacy.point2" = "AI 只为更理解你而学习——不拿去训练公开模型。";
+"onboarding.privacy.point3" = "温和提醒可关闭。镜子口吻：反映＋提问。";
+"onboarding.privacy.residency" = "数据落地叙事：台湾（Taiwan）。AI 仅云端 API——MVP 不含设备端模型。";
+"onboarding.name.title" = "我们该怎么称呼你？";
+"onboarding.name.body" = "可选。只用于你的金库内。";
+"onboarding.name.placeholder" = "你的名字";
+"onboarding.enter" = "进入金库";
+
+/* Diary */
+"diary.subtitle" = "你的私密日记";
+"diary.subtitle.named" = "%@ 的金库";
+"diary.new" = "新日记";
+"diary.empty.title" = "金库还很安静";
+"diary.empty.body" = "写下第一页——一句话就够。";
+"diary.emptyBody" = "（空白）";
+"diary.field.title" = "标题（可选）";
+"diary.field.mood" = "心情标签（可选）";
+"diary.detail.owned" = "这一页属于你。";
+"diary.missing" = "这篇日记已不在金库中。";
+
+/* Mirror */
+"mirror.title" = "镜子";
+"mirror.intro" = "我是一面以你写过的内容为依据的镜子。我会反映与提问——不会告诉你「该做什么」。（此骨架为占位 AI。）";
+"mirror.mode.mock" = "模拟镜子";
+"mirror.mode.cloud" = "云端镜子";
+"mirror.style.hint" = "反映 · 提问 — 非教练";
+"mirror.placeholder" = "说说此刻在想什么…";
+"mirror.send" = "发送";
+"mirror.thinking" = "正在倾听…";
+"mirror.cited" = "依据你的日记";
+
+/* Settings */
+"settings.title" = "设置";
+"settings.section.language" = "语言";
+"settings.language" = "App 语言";
+"settings.language.footer" = "繁中／简中／English——可随时切换。";
+"settings.section.advice" = "建议";
+"settings.reminders" = "温和情境提醒";
+"settings.reminders.footer" = "开启时，镜子可在相关节点温柔浮现反映。不做高频或操控式推送。";
+"settings.section.ai" = "AI";
+"settings.ai.mode" = "客户端";
+"settings.ai.mock" = "模拟（本地）";
+"settings.ai.cloud" = "云端 API";
+"settings.ai.residency" = "数据落地";
+"settings.ai.footer" = "在 Xcode Scheme 设置 DIARY_AI_BASE_URL 与 DIARY_AI_API_KEY 以启用云端 stub。仓库不含密钥。";
+"settings.section.legacy" = "遗产／纪念";
+"settings.legacy.stub" = "纪念模式／语音克隆／执行人设置——非 Phase 1 UI。";
+"settings.legacy.footer" = "仅路线图。本 MVP 骨架刻意省略。";
+"settings.section.vault" = "金库";
+"settings.name" = "显示名称";
+"settings.resetOnboarding" = "重新显示导览";

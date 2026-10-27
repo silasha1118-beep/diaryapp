@@ -1,0 +1,71 @@
+/* Brand */
+"brand.name" = "日記金庫";
+
+/* Common */
+"common.back" = "返回";
+"common.continue" = "繼續";
+"common.cancel" = "取消";
+"common.save" = "儲存";
+"common.edit" = "編輯";
+
+/* Tabs */
+"tab.vault" = "金庫";
+"tab.mirror" = "鏡子";
+"tab.settings" = "設定";
+
+/* Onboarding */
+"onboarding.welcome.headline" = "屬於你自己的日記金庫。";
+"onboarding.welcome.body" = "寫下只屬於你的文字。一面溫柔的鏡子會漸漸學會你的語氣——以反映與提問相伴，而不是教你該怎麼做。";
+"onboarding.privacy.title" = "資料屬於你";
+"onboarding.privacy.point1" = "日記留在你的金庫；可隨時匯出、帶走。";
+"onboarding.privacy.point2" = "AI 只為更理解你而學習——不拿去訓練公開模型。";
+"onboarding.privacy.point3" = "溫和提醒可關閉。鏡子口吻：反映＋提問。";
+"onboarding.privacy.residency" = "資料落地敘事：台灣（Taiwan）。AI 僅雲端 API——MVP 不含裝置端模型。";
+"onboarding.name.title" = "我們該怎麼稱呼你？";
+"onboarding.name.body" = "可選。只用於你的金庫內。";
+"onboarding.name.placeholder" = "你的名字";
+"onboarding.enter" = "進入金庫";
+
+/* Diary */
+"diary.subtitle" = "你的私密日記";
+"diary.subtitle.named" = "%@ 的金庫";
+"diary.new" = "新日記";
+"diary.empty.title" = "金庫還很安靜";
+"diary.empty.body" = "寫下第一頁——一句話就夠。";
+"diary.emptyBody" = "（空白）";
+"diary.field.title" = "標題（可選）";
+"diary.field.mood" = "心情標籤（可選）";
+"diary.detail.owned" = "這一頁屬於你。";
+"diary.missing" = "這篇日記已不在金庫中。";
+
+/* Mirror */
+"mirror.title" = "鏡子";
+"mirror.intro" = "我是一面以你寫過的內容為依據的鏡子。我會反映與提問——不會告訴你「該做什麼」。（此骨架為佔位 AI。）";
+"mirror.mode.mock" = "模擬鏡子";
+"mirror.mode.cloud" = "雲端鏡子";
+"mirror.style.hint" = "反映 · 提問 — 非教練";
+"mirror.placeholder" = "說說此刻在想什麼…";
+"mirror.send" = "送出";
+"mirror.thinking" = "正在傾聽…";
+"mirror.cited" = "依據你的日記";
+
+/* Settings */
+"settings.title" = "設定";
+"settings.section.language" = "語言";
+"settings.language" = "App 語言";
+"settings.language.footer" = "繁中／簡中／English——可隨時切換。";
+"settings.section.advice" = "建議";
+"settings.reminders" = "溫和情境提醒";
+"settings.reminders.footer" = "開啟時，鏡子可在相關節點溫柔浮現反映。不做高頻或操控式推播。";
+"settings.section.ai" = "AI";
+"settings.ai.mode" = "用戶端";
+"settings.ai.mock" = "模擬（本機）";
+"settings.ai.cloud" = "雲端 API";
+"settings.ai.residency" = "資料落地";
+"settings.ai.footer" = "在 Xcode Scheme 設定 DIARY_AI_BASE_URL 與 DIARY_AI_API_KEY 以啟用雲端 stub。倉庫不含密鑰。";
+"settings.section.legacy" = "遺產／紀念";
+"settings.legacy.stub" = "紀念模式／語音克隆／執行人設定——非 Phase 1 UI。";
+"settings.legacy.footer" = "僅路線圖。本 MVP 骨架刻意省略。";
+"settings.section.vault" = "金庫";
+"settings.name" = "顯示名稱";
+"settings.resetOnboarding" = "重新顯示導覽";
