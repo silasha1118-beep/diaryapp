@@ -11,6 +11,7 @@ import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.MirrorContext
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
+import com.diaryvault.app.service.MirrorAIError
 import com.diaryvault.app.service.createMirrorAIService
 import com.diaryvault.app.service.localeForLanguageTag
 import kotlinx.coroutines.Dispatchers
@@ -22,12 +23,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = AppPreferences(application)
     private val store = DiaryStore(application)
-    private val ai = createMirrorAIService()
+    private val ai = createMirrorAIService(application)
 
     private val _language = MutableStateFlow(AppLanguage.fromTag(prefs.languageTag))
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
@@ -120,6 +120,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                     recentEntries = store.sortedEntries,
                     userDisplayName = _displayName.value,
                     localeTag = _language.value.tag,
+                    conversation = _mirrorMessages.value,
                 )
                 val reply = withContext(Dispatchers.IO) {
                     ai.reply(trimmed, context) { resId, args ->
@@ -128,11 +129,16 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 _mirrorMessages.value = _mirrorMessages.value + reply
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                val fallbackText = when (e) {
+                    is MirrorAIError.RateLimited, is MirrorAIError.Network, is MirrorAIError.NotConfigured ->
+                        e.message ?: e.toString()
+                    else ->
+                        string(R.string.mirror_mock_no_cite) + "\n\n" + string(R.string.mirror_mock_question)
+                }
                 val fallback = MirrorMessage(
                     role = MirrorRole.Mirror,
-                    text = string(R.string.mirror_mock_no_cite) + "\n\n" +
-                        string(R.string.mirror_mock_question),
+                    text = fallbackText,
                 )
                 _mirrorMessages.value = _mirrorMessages.value + fallback
             } finally {

@@ -43,12 +43,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!-- Optional cloud AI stubs — leave empty in repo; set via scheme env instead. -->
+	<!-- Optional cloud AI — leave empty in repo; set via Xcode scheme env instead. -->
 	<key>DIARY_AI_BASE_URL</key>
 	<string></string>
 	<key>DIARY_AI_API_KEY</key>
 	<string></string>
 	<key>DIARY_AI_MODEL</key>
-	<string>mirror-v0</string>
+	<string></string>
+	<key>DIARY_AI_MAX_TOKENS</key>
+	<string></string>
+	<key>DIARY_AI_MAX_CONTEXT_ENTRIES</key>
+	<string></string>
+	<key>DIARY_AI_DAILY_REQUEST_LIMIT</key>
+	<string></string>
 </dict>
 </plist>

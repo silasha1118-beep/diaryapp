@@ -31,6 +31,7 @@ data class MirrorContext(
     val recentEntries: List<DiaryEntry>,
     val userDisplayName: String,
     val localeTag: String,
+    val conversation: List<MirrorMessage> = emptyList(),
 )
 
 enum class AppLanguage(val tag: String, val shortLabelRes: Int) {
