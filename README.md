@@ -23,17 +23,29 @@ See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :
 3. Select an iPhone Simulator (or device), then **Run** (⌘R).
 4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team.
 
-### Optional: enable cloud AI stub
+### Enable cloud Mirror AI (OpenAI-compatible)
 
-By default the Mirror tab uses a **local mock**. To point at a real cloud endpoint (no secrets in git):
+By default the Mirror tab uses a **local mock**. To call a real cloud chat API (**no secrets in git**):
 
-1. In Xcode → Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables, add:
-   - `DIARY_AI_BASE_URL` — e.g. `https://your-api.example.com`
-   - `DIARY_AI_API_KEY` — your secret (scheme-local / CI secret only)
-   - `DIARY_AI_MODEL` — optional (default `mirror-v0`)
-2. Restart the app. Settings → AI should show **Cloud API**.
+1. In Xcode → **Product → Scheme → Edit Scheme… → Run → Arguments → Environment Variables**, add:
 
-The stub client `POST`s to `{baseURL}/v1/mirror` with mirror-style constraints and expects JSON `{ "text": "...", "citedEntryIds": ["…"] }`. Data residency narrative: **Taiwan (TW)**.
+   | Variable | Required | Example / default |
+   |----------|----------|-------------------|
+   | `DIARY_AI_API_KEY` | **Yes** (to leave mock) | `sk-…` (scheme-local only) |
+   | `DIARY_AI_BASE_URL` | No | `https://api.openai.com` (default) |
+   | `DIARY_AI_MODEL` | No | `gpt-4o-mini` (default) |
+   | `DIARY_AI_MAX_TOKENS` | No | `400` |
+   | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
+   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `40` (`0` = unlimited) |
+
+2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
+3. Restart the app. Settings → AI should show **Cloud API**.
+
+The client `POST`s to `{baseURL}/v1/chat/completions` (OpenAI-compatible). The system prompt enforces **mirror style** (reflect + guiding questions, no coach prescriptions) and injects recent diary excerpts (**RAG-lite**, not fine-tuning). Data residency narrative: **Taiwan (TW)**.
+
+Compatible hosts: OpenAI, Azure OpenAI (chat path), or any provider that speaks the same `/v1/chat/completions` shape — set `DIARY_AI_BASE_URL` accordingly.
+
+Cost / billing notes for later App Store pricing: see project doc `docs/ai-cost-and-billing.md` (workspace).
 
 ## What works in this scaffold
 
@@ -41,16 +53,18 @@ The stub client `POST`s to `{baseURL}/v1/mirror` with mirror-style constraints a
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
 | Vault list / create / detail / edit | Works — JSON on device |
-| Mirror chat | Works with **mock** replies; cloud path gated by env |
+| Mirror chat | **Mock** by default; **OpenAI-compatible cloud** when `DIARY_AI_API_KEY` is set |
+| Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
+| Usage safeguards | Max context entries, max tokens, local daily request counter stub |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
 
 ## What is stubbed / omitted
 
-- **Cloud LLM** — protocol + `CloudMirrorAIClient` stub; no production backend or keys in repo
+- **App Store IAP / user billing** — not in this PR; provider keys are developer-local only
 - **Account / sync / Taiwan server** — local vault only; residency is narrative + config label
-- **Style learning / RAG / “like me?” feedback** — not built yet
+- **Fine-tuning / private model training** — not used; learning = prompt context only
 - **Voice input / transcription** — omitted
 - **Memorial mode, voice clone, legacy executor** — Settings stub copy only; no Phase 1 UI
 - **Push / contextual reminder scheduling** — toggle only
@@ -65,10 +79,11 @@ DiaryVault/
   DiaryVault/
     DiaryVaultApp.swift
     Models/          # AppState, DiaryEntry, MirrorMessage
-    Services/        # DiaryStore, Mirror AI protocol/mock/cloud, LocalizationManager
+    Services/        # DiaryStore, Mirror AI (mock/cloud/prompt/usage), LocalizationManager
     Config/          # AIConfig (env / Info.plist — no secrets)
     Views/           # Onboarding, Diary, Mirror, Settings + vault theme
     Resources/       # en, zh-Hant, zh-Hans Localizable.strings
+android/             # Near-term runnable Compose MVP (same Mirror AI contract)
 ```
 
 ## Languages

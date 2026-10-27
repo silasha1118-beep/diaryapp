@@ -31,18 +31,23 @@ app/build/outputs/apk/debug/app-debug.apk
 
 Other useful tasks: `./gradlew :app:assembleRelease` (unsigned), `./gradlew clean`.
 
-### Optional: enable cloud AI stub
+### Enable cloud Mirror AI (OpenAI-compatible)
 
-By default Mirror uses a **local mock**. To point at a real cloud endpoint (no secrets in git), export before Gradle assemble / run:
+By default Mirror uses a **local mock**. To call a real cloud chat API (**no secrets in git**), export before Gradle assemble / run:
 
 ```bash
-export DIARY_AI_BASE_URL="https://your-api.example.com"
-export DIARY_AI_API_KEY="…"          # CI / local env only
-export DIARY_AI_MODEL="mirror-v0"    # optional
+export DIARY_AI_API_KEY="sk-…"           # required to leave mock; CI / local env only
+export DIARY_AI_BASE_URL="https://api.openai.com"   # optional (this is the default)
+export DIARY_AI_MODEL="gpt-4o-mini"      # optional
+export DIARY_AI_MAX_TOKENS="400"         # optional
+export DIARY_AI_MAX_CONTEXT_ENTRIES="8"  # optional
+export DIARY_AI_DAILY_REQUEST_LIMIT="40" # optional; 0 = unlimited
 ./gradlew :app:assembleDebug
 ```
 
-The stub `POST`s to `{baseURL}/v1/mirror` and expects JSON `{ "text": "...", "citedEntryIds": ["…"] }`. Data residency narrative: **Taiwan (TW)**.
+Values are baked into `BuildConfig` at assemble time. Rebuild after changing env vars.
+
+The client `POST`s to `{baseURL}/v1/chat/completions` (OpenAI-compatible). System prompt = mirror style + recent diary excerpts (**RAG-lite**). Data residency narrative: **Taiwan (TW)**.
 
 ## What works
 
@@ -50,16 +55,18 @@ The stub `POST`s to `{baseURL}/v1/mirror` and expects JSON `{ "text": "...", "ci
 |------|--------|
 | Onboarding (brand, privacy, optional name, language) | Works (local) |
 | Vault list / create / detail / edit | Works — JSON on device |
-| Mirror chat | Works with **mock** replies; cloud path gated by env |
+| Mirror chat | **Mock** by default; **OpenAI-compatible cloud** when `DIARY_AI_API_KEY` is set |
+| Diary → Mirror context | Recent entries as prompt excerpts (RAG-lite) |
+| Usage safeguards | Max context entries, max tokens, local daily request counter stub |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
 
 ## Stubbed / omitted
 
-- Cloud LLM — `CloudMirrorAIClient` stub; no production backend or keys in repo
+- App Store IAP / end-user billing — not in this PR
 - Account / sync / Taiwan server — local vault only
-- Style learning / RAG / “like me?” feedback
+- Fine-tuning — not used; learning = prompt context only
 - Voice input / memorial mode / voice clone / legacy executor UI
 - Push / contextual reminder scheduling — toggle only
 - Unit / UI tests
@@ -72,7 +79,7 @@ android/
     config/       # AIConfig (env / BuildConfig — no secrets)
     data/         # AppPreferences, DiaryStore
     model/        # DiaryEntry, MirrorMessage, AppLanguage
-    service/      # Mirror AI protocol / mock / cloud
+    service/      # Mirror AI protocol / mock / cloud / prompt / usage
     ui/           # Onboarding, Diary, Mirror, Settings, theme
   app/src/main/res/values{,-zh-rTW,-zh-rCN}/
 ```

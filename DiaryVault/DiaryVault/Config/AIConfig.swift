@@ -1,17 +1,34 @@
 import Foundation
 
-/// Cloud LLM configuration stub. No secrets belong in the repo.
+/// Cloud LLM configuration. No secrets belong in the repo.
 ///
-/// Wire a real provider by setting Info.plist keys or scheme environment variables:
-/// - `DIARY_AI_BASE_URL` — API base URL (e.g. https://api.example.com)
-/// - `DIARY_AI_API_KEY` — secret key (use Xcode scheme env / CI secrets, never commit)
-/// - `DIARY_AI_MODEL` — optional model id
+/// Wire an OpenAI-compatible chat API via scheme env / Info.plist:
+/// - `DIARY_AI_API_KEY` — required to leave mock mode (never commit)
+/// - `DIARY_AI_BASE_URL` — optional; defaults to `https://api.openai.com`
+/// - `DIARY_AI_MODEL` — optional; defaults to `gpt-4o-mini`
+/// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 400)
+/// - `DIARY_AI_MAX_CONTEXT_ENTRIES` — optional; diary excerpts in prompt (default 8)
+/// - `DIARY_AI_DAILY_REQUEST_LIMIT` — optional; local daily cap stub (default 40; `0` = off)
 ///
-/// Data residency narrative for this product: Taiwan (TW). MVP scaffold does not
-/// ship a production endpoint; `CloudMirrorAIClient` remains a stub until keys exist.
+/// Data residency narrative for this product: Taiwan (TW).
 enum AIConfig {
+    static let defaultBaseURLString = "https://api.openai.com"
+    static let defaultModel = "gpt-4o-mini"
+    static let defaultMaxTokens = 400
+    static let defaultMaxContextEntries = 8
+    static let defaultDailyRequestLimit = 40
+    /// Soft cap on characters per diary body in the prompt (RAG-lite).
+    static let maxEntryBodyCharacters = 600
+    /// Soft cap on prior chat turns sent to the model.
+    static let maxConversationTurns = 8
+
     static var baseURL: URL? {
-        value(for: "DIARY_AI_BASE_URL").flatMap(URL.init(string:))
+        if let raw = value(for: "DIARY_AI_BASE_URL"), let url = URL(string: raw) {
+            return url
+        }
+        // Key alone is enough; default to OpenAI-compatible host.
+        guard apiKey != nil else { return nil }
+        return URL(string: defaultBaseURLString)
     }
 
     static var apiKey: String? {
@@ -19,12 +36,25 @@ enum AIConfig {
     }
 
     static var model: String {
-        value(for: "DIARY_AI_MODEL") ?? "mirror-v0"
+        value(for: "DIARY_AI_MODEL") ?? defaultModel
     }
 
-    /// Prefer mock unless both base URL and API key are present.
+    static var maxTokens: Int {
+        intValue(for: "DIARY_AI_MAX_TOKENS", default: defaultMaxTokens)
+    }
+
+    static var maxContextEntries: Int {
+        intValue(for: "DIARY_AI_MAX_CONTEXT_ENTRIES", default: defaultMaxContextEntries)
+    }
+
+    /// Local stub counter. `0` disables the cap.
+    static var dailyRequestLimit: Int {
+        intValue(for: "DIARY_AI_DAILY_REQUEST_LIMIT", default: defaultDailyRequestLimit)
+    }
+
+    /// Prefer mock unless an API key is present.
     static var useCloudClient: Bool {
-        baseURL != nil && !(apiKey?.isEmpty ?? true)
+        !(apiKey?.isEmpty ?? true)
     }
 
     static var dataResidencyLabel: String { "Taiwan (TW)" }
@@ -37,5 +67,10 @@ enum AIConfig {
             return plist
         }
         return nil
+    }
+
+    private static func intValue(for key: String, default defaultValue: Int) -> Int {
+        guard let raw = value(for: key), let parsed = Int(raw) else { return defaultValue }
+        return max(0, parsed)
     }
 }

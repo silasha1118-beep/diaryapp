@@ -13,9 +13,13 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
+        // Cloud AI — set via env at assemble time; never commit real keys.
         buildConfigField("String", "DIARY_AI_BASE_URL", "\"${System.getenv("DIARY_AI_BASE_URL") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_API_KEY", "\"${System.getenv("DIARY_AI_API_KEY") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_MODEL", "\"${System.getenv("DIARY_AI_MODEL") ?: "mirror-v0"}\"")
+        buildConfigField("String", "DIARY_AI_MODEL", "\"${System.getenv("DIARY_AI_MODEL") ?: ""}\"")
+        buildConfigField("String", "DIARY_AI_MAX_TOKENS", "\"${System.getenv("DIARY_AI_MAX_TOKENS") ?: ""}\"")
+        buildConfigField("String", "DIARY_AI_MAX_CONTEXT_ENTRIES", "\"${System.getenv("DIARY_AI_MAX_CONTEXT_ENTRIES") ?: ""}\"")
+        buildConfigField("String", "DIARY_AI_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_DAILY_REQUEST_LIMIT") ?: ""}\"")
     }
 
     buildTypes {

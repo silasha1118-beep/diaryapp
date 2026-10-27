@@ -1,6 +1,6 @@
 package com.diaryvault.app.service
 
-import com.diaryvault.app.BuildConfig
+import android.content.Context
 import com.diaryvault.app.R
 import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.model.MirrorContext
@@ -14,7 +14,11 @@ import java.net.URL
 import java.util.Locale
 
 interface MirrorAIService {
-    suspend fun reply(userText: String, context: MirrorContext, stringLookup: (Int, Array<out Any>?) -> String): MirrorMessage
+    suspend fun reply(
+        userText: String,
+        context: MirrorContext,
+        stringLookup: (Int, Array<out Any>?) -> String,
+    ): MirrorMessage
 }
 
 sealed class MirrorAIError(message: String) : Exception(message) {
@@ -22,6 +26,9 @@ sealed class MirrorAIError(message: String) : Exception(message) {
     data object NotConfigured : MirrorAIError("not configured")
     data object Decoding : MirrorAIError("decoding")
     class Network(detail: String) : MirrorAIError(detail)
+    class RateLimited(limit: Int) : MirrorAIError(
+        "Daily Mirror request limit reached ($limit). Try again tomorrow, raise DIARY_AI_DAILY_REQUEST_LIMIT, or unset the key to use mock.",
+    )
 }
 
 /** Local placeholder that demonstrates mirror tone without calling a network API. */
@@ -53,10 +60,13 @@ class MockMirrorAIClient : MirrorAIService {
 }
 
 /**
- * Stub cloud client. Activated only when [AIConfig.useCloudClient] is true.
+ * OpenAI-compatible chat completions client.
+ * Activated when [AIConfig.useCloudClient] is true (API key set).
  * Does not embed secrets; reads DIARY_AI_* from BuildConfig / process env.
  */
-class CloudMirrorAIClient : MirrorAIService {
+class CloudMirrorAIClient(
+    private val appContext: Context,
+) : MirrorAIService {
     private val gson = Gson()
 
     override suspend fun reply(
@@ -70,22 +80,14 @@ class CloudMirrorAIClient : MirrorAIService {
         val baseUrl = AIConfig.baseUrl ?: throw MirrorAIError.NotConfigured
         val apiKey = AIConfig.apiKey ?: throw MirrorAIError.NotConfigured
 
-        val endpoint = baseUrl.trimEnd('/') + "/v1/mirror"
+        MirrorUsageGuard.checkAndIncrement(appContext)
+
+        val endpoint = baseUrl.trimEnd('/') + "/v1/chat/completions"
         val payload = mapOf(
             "model" to AIConfig.model,
-            "locale" to context.localeTag,
-            "dataResidency" to AIConfig.dataResidencyLabel,
-            "style" to "mirror",
-            "message" to trimmed,
-            "displayName" to context.userDisplayName,
-            "entries" to context.recentEntries.take(12).map { entry ->
-                mapOf(
-                    "id" to entry.id,
-                    "title" to entry.title,
-                    "body" to entry.body,
-                    "createdAt" to entry.createdAt,
-                )
-            },
+            "max_tokens" to AIConfig.maxTokens,
+            "temperature" to 0.7,
+            "messages" to MirrorPromptBuilder.chatMessages(trimmed, context),
         )
 
         val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
@@ -100,15 +102,29 @@ class CloudMirrorAIClient : MirrorAIService {
         try {
             connection.outputStream.use { it.write(gson.toJson(payload).toByteArray(Charsets.UTF_8)) }
             val code = connection.responseCode
-            if (code !in 200..299) {
-                throw MirrorAIError.Network("Cloud AI HTTP $code")
+            val responseBody = if (code in 200..299) {
+                connection.inputStream.bufferedReader().readText()
+            } else {
+                connection.errorStream?.bufferedReader()?.readText().orEmpty()
             }
-            val body = connection.inputStream.bufferedReader().readText()
-            val json = gson.fromJson(body, JsonObject::class.java)
-            val text = json.get("text")?.asString ?: throw MirrorAIError.Decoding
-            val cited = json.getAsJsonArray("citedEntryIds")
-                ?.mapNotNull { it.asString }
-                ?: emptyList()
+            if (code !in 200..299) {
+                val snippet = responseBody.trim().take(180).ifBlank { "HTTP $code" }
+                throw MirrorAIError.Network("Cloud AI $snippet")
+            }
+            val json = gson.fromJson(responseBody, JsonObject::class.java)
+            val text = json
+                .getAsJsonArray("choices")
+                ?.firstOrNull()
+                ?.asJsonObject
+                ?.getAsJsonObject("message")
+                ?.get("content")
+                ?.asString
+                ?.trim()
+                ?: throw MirrorAIError.Decoding
+            if (text.isEmpty()) throw MirrorAIError.Decoding
+
+            val contextEntries = context.recentEntries.take(AIConfig.maxContextEntries)
+            val cited = MirrorPromptBuilder.citedIds(text, contextEntries)
             return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
         } finally {
             connection.disconnect()
@@ -116,12 +132,12 @@ class CloudMirrorAIClient : MirrorAIService {
     }
 }
 
-fun createMirrorAIService(): MirrorAIService =
-    if (AIConfig.useCloudClient) CloudMirrorAIClient() else MockMirrorAIClient()
-
-/** Suppress unused BuildConfig warning when cloud keys are empty at compile time. */
-@Suppress("unused")
-private fun touchBuildConfig() = BuildConfig.BUILD_TYPE
+fun createMirrorAIService(context: Context): MirrorAIService =
+    if (AIConfig.useCloudClient) {
+        CloudMirrorAIClient(context.applicationContext)
+    } else {
+        MockMirrorAIClient()
+    }
 
 fun localeForLanguageTag(tag: String): Locale =
     when {
