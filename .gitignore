@@ -34,3 +34,11 @@ Secrets.xcconfig
 # IDEs
 .idea/
 *.swp
+
+# Android
+android/.gradle/
+android/**/build/
+android/local.properties
+*.apk
+*.aab
+.cxx/
