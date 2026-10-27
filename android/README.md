@@ -31,23 +31,39 @@ app/build/outputs/apk/debug/app-debug.apk
 
 Other useful tasks: `./gradlew :app:assembleRelease` (unsigned), `./gradlew clean`.
 
-### Enable cloud Mirror AI (OpenAI-compatible)
+### Enable cloud Mirror AI
 
 By default Mirror uses a **local mock**. To call a real cloud chat API (**no secrets in git**), export before Gradle assemble / run:
 
+**Anthropic (Claude):**
+
 ```bash
-export DIARY_AI_API_KEY="sk-…"           # required to leave mock; CI / local env only
-export DIARY_AI_BASE_URL="https://api.openai.com"   # optional (this is the default)
-export DIARY_AI_MODEL="gpt-4o-mini"      # optional
+export DIARY_AI_API_KEY="sk-ant-…"       # required; CI / local env only — never commit
+export DIARY_AI_PROVIDER=anthropic
+export DIARY_AI_MODEL="claude-sonnet-4-5"              # optional (default when provider=anthropic)
+export DIARY_AI_BASE_URL="https://api.anthropic.com"   # optional
 export DIARY_AI_MAX_TOKENS="400"         # optional
 export DIARY_AI_MAX_CONTEXT_ENTRIES="8"  # optional
 export DIARY_AI_DAILY_REQUEST_LIMIT="40" # optional; 0 = unlimited
 ./gradlew :app:assembleDebug
 ```
 
+**OpenAI-compatible** (default — Groq / DeepSeek / OpenAI):
+
+```bash
+export DIARY_AI_API_KEY="sk-…"           # required to leave mock
+export DIARY_AI_PROVIDER=openai          # optional (default)
+export DIARY_AI_BASE_URL="https://api.openai.com"   # Groq: https://api.groq.com/openai
+export DIARY_AI_MODEL="gpt-4o-mini"      # optional
+./gradlew :app:assembleDebug
+```
+
 Values are baked into `BuildConfig` at assemble time. Rebuild after changing env vars.
 
-The client `POST`s to `{baseURL}/v1/chat/completions` (OpenAI-compatible). System prompt = mirror style + recent diary excerpts (**RAG-lite**). Data residency narrative: **Taiwan (TW)**.
+- Anthropic → `POST {baseURL}/v1/messages` (`x-api-key` + `anthropic-version`)
+- OpenAI-compatible → `POST {baseURL}/v1/chat/completions` (`Authorization: Bearer …`)
+
+Same mirror system prompt + diary excerpts (**RAG-lite**) + usage guards. Data residency narrative: **Taiwan (TW)**. Provider also auto-detects when `DIARY_AI_BASE_URL` contains `anthropic`.
 
 ## What works
 
@@ -55,7 +71,7 @@ The client `POST`s to `{baseURL}/v1/chat/completions` (OpenAI-compatible). Syste
 |------|--------|
 | Onboarding (brand, privacy, optional name, language) | Works (local) |
 | Vault list / create / detail / edit | Works — JSON on device |
-| Mirror chat | **Mock** by default; **OpenAI-compatible cloud** when `DIARY_AI_API_KEY` is set |
+| Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, local daily request counter stub |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |

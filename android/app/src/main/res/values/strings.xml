@@ -55,8 +55,11 @@
     <string name="settings_ai_mode">Client</string>
     <string name="settings_ai_mock">Mock (local)</string>
     <string name="settings_ai_cloud">Cloud API</string>
+    <string name="settings_ai_provider">Provider</string>
+    <string name="settings_ai_provider_openai">OpenAI-compatible</string>
+    <string name="settings_ai_provider_anthropic">Anthropic</string>
     <string name="settings_ai_residency">Data residency</string>
-    <string name="settings_ai_footer">Set DIARY_AI_BASE_URL and DIARY_AI_API_KEY as Gradle/env vars to enable the cloud stub. No secrets in the repo.</string>
+    <string name="settings_ai_footer">Set DIARY_AI_API_KEY and optionally DIARY_AI_PROVIDER=anthropic|openai as Gradle/env vars. No secrets in the repo.</string>
     <string name="settings_section_legacy">Legacy</string>
     <string name="settings_legacy_stub">Memorial / voice clone / executor settings — not in Phase 1 UI.</string>
     <string name="settings_legacy_footer">Roadmap only. Omitted from this MVP scaffold.</string>

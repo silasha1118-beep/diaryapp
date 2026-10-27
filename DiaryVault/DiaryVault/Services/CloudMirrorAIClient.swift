@@ -1,7 +1,8 @@
 import Foundation
 
-/// OpenAI-compatible chat completions client.
-/// Activated when `AIConfig.useCloudClient` is true (API key set).
+/// OpenAI-compatible chat completions client (`POST /v1/chat/completions`).
+/// Activated when `AIConfig.useCloudClient` is true and provider is openai
+/// (Groq, DeepSeek, Azure OpenAI chat path, etc.).
 /// Does not embed secrets; reads `DIARY_AI_*` from environment / Info.plist.
 struct CloudMirrorAIClient: MirrorAIService {
     func reply(to userText: String, context: MirrorContext) async throws -> MirrorMessage {

@@ -55,25 +55,38 @@ enum MirrorPromptBuilder {
         """
     }
 
-    /// OpenAI chat message dictionaries (`role` + `content`).
+    /// OpenAI chat message dictionaries (`role` + `content`), including system.
     static func chatMessages(userText: String, context: MirrorContext) -> [[String: String]] {
         let entries = Array(context.recentEntries.prefix(AIConfig.maxContextEntries))
         var messages: [[String: String]] = [
             ["role": "system", "content": systemPrompt(context: context, entries: entries)]
         ]
+        messages.append(contentsOf: conversationTurns(userText: userText, context: context))
+        messages.append(["role": "user", "content": userText])
+        return messages
+    }
 
+    /// Anthropic Messages API shape: top-level `system` + user/assistant turns only.
+    static func anthropicPrompt(userText: String, context: MirrorContext) -> (system: String, messages: [[String: String]]) {
+        let entries = Array(context.recentEntries.prefix(AIConfig.maxContextEntries))
+        var messages = conversationTurns(userText: userText, context: context)
+        messages.append(["role": "user", "content": userText])
+        return (systemPrompt(context: context, entries: entries), messages)
+    }
+
+    /// Prior user/assistant turns (no system); skips the trailing duplicate of `userText`.
+    private static func conversationTurns(userText: String, context: MirrorContext) -> [[String: String]] {
         let prior = context.conversation
             .filter { $0.role == .user || $0.role == .mirror }
             .suffix(AIConfig.maxConversationTurns)
 
+        var messages: [[String: String]] = []
         for message in prior {
             // Skip the just-appended user turn if the UI already added it; we send `userText` last.
             if message.role == .user && message.text == userText { continue }
             let role = message.role == .user ? "user" : "assistant"
             messages.append(["role": role, "content": message.text])
         }
-
-        messages.append(["role": "user", "content": userText])
         return messages
     }
 

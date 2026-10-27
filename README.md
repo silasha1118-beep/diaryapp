@@ -23,7 +23,7 @@ See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :
 3. Select an iPhone Simulator (or device), then **Run** (⌘R).
 4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team.
 
-### Enable cloud Mirror AI (OpenAI-compatible)
+### Enable cloud Mirror AI
 
 By default the Mirror tab uses a **local mock**. To call a real cloud chat API (**no secrets in git**):
 
@@ -31,19 +31,31 @@ By default the Mirror tab uses a **local mock**. To call a real cloud chat API (
 
    | Variable | Required | Example / default |
    |----------|----------|-------------------|
-   | `DIARY_AI_API_KEY` | **Yes** (to leave mock) | `sk-…` (scheme-local only) |
-   | `DIARY_AI_BASE_URL` | No | `https://api.openai.com` (default) |
-   | `DIARY_AI_MODEL` | No | `gpt-4o-mini` (default) |
+   | `DIARY_AI_API_KEY` | **Yes** (to leave mock) | Anthropic `sk-ant-…` or OpenAI-compatible key (scheme-local only) |
+   | `DIARY_AI_PROVIDER` | No | `openai` (default) or `anthropic`. Auto-detects `anthropic` if `DIARY_AI_BASE_URL` contains `anthropic`. |
+   | `DIARY_AI_BASE_URL` | No | OpenAI: `https://api.openai.com` · Anthropic: `https://api.anthropic.com` |
+   | `DIARY_AI_MODEL` | No | OpenAI: `gpt-4o-mini` · Anthropic: `claude-sonnet-4-5` |
    | `DIARY_AI_MAX_TOKENS` | No | `400` |
    | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
    | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `40` (`0` = unlimited) |
 
 2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
-3. Restart the app. Settings → AI should show **Cloud API**.
+3. Restart the app. Settings → AI should show **Cloud API** and the resolved provider.
 
-The client `POST`s to `{baseURL}/v1/chat/completions` (OpenAI-compatible). The system prompt enforces **mirror style** (reflect + guiding questions, no coach prescriptions) and injects recent diary excerpts (**RAG-lite**, not fine-tuning). Data residency narrative: **Taiwan (TW)**.
+**Anthropic (Claude)** — exact Xcode scheme env vars for Silas:
 
-Compatible hosts: OpenAI, Azure OpenAI (chat path), or any provider that speaks the same `/v1/chat/completions` shape — set `DIARY_AI_BASE_URL` accordingly.
+```text
+DIARY_AI_API_KEY=<your-anthropic-key>   # never commit
+DIARY_AI_PROVIDER=anthropic
+DIARY_AI_MODEL=claude-sonnet-4-5        # optional (this is the default when provider=anthropic)
+DIARY_AI_BASE_URL=https://api.anthropic.com   # optional
+```
+
+The Anthropic client `POST`s to `{baseURL}/v1/messages` with headers `x-api-key` + `anthropic-version: 2023-06-01`.
+
+**OpenAI-compatible** (Groq / DeepSeek / OpenAI, default) — `POST`s to `{baseURL}/v1/chat/completions` with `Authorization: Bearer …`. Groq host quirk: set `DIARY_AI_BASE_URL=https://api.groq.com/openai` (app appends `/v1/chat/completions`).
+
+Same **mirror-style** system prompt + diary excerpts (**RAG-lite**) + usage guards for both providers. Data residency narrative: **Taiwan (TW)**.
 
 Cost / billing notes for later App Store pricing: see project doc `docs/ai-cost-and-billing.md` (workspace).
 
@@ -53,7 +65,7 @@ Cost / billing notes for later App Store pricing: see project doc `docs/ai-cost-
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
 | Vault list / create / detail / edit | Works — JSON on device |
-| Mirror chat | **Mock** by default; **OpenAI-compatible cloud** when `DIARY_AI_API_KEY` is set |
+| Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, local daily request counter stub |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |

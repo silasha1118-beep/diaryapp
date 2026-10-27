@@ -16,6 +16,7 @@
 		A10000000000000000000007 /* MirrorAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* MirrorAIService.swift */; };
 		A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* MockMirrorAIClient.swift */; };
 		A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* CloudMirrorAIClient.swift */; };
+		A1000000000000000000001B /* AnthropicMirrorAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001B /* AnthropicMirrorAIClient.swift */; };
 		A10000000000000000000019 /* MirrorPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000019 /* MirrorPromptBuilder.swift */; };
 		A1000000000000000000001A /* MirrorUsageGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001A /* MirrorUsageGuard.swift */; };
 		A1000000000000000000000A /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* LocalizationManager.swift */; };
@@ -41,6 +42,7 @@
 		B10000000000000000000007 /* MirrorAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorAIService.swift; sourceTree = "<group>"; };
 		B10000000000000000000008 /* MockMirrorAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMirrorAIClient.swift; sourceTree = "<group>"; };
 		B10000000000000000000009 /* CloudMirrorAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudMirrorAIClient.swift; sourceTree = "<group>"; };
+		B1000000000000000000001B /* AnthropicMirrorAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicMirrorAIClient.swift; sourceTree = "<group>"; };
 		B10000000000000000000019 /* MirrorPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorPromptBuilder.swift; sourceTree = "<group>"; };
 		B1000000000000000000001A /* MirrorUsageGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorUsageGuard.swift; sourceTree = "<group>"; };
 		B1000000000000000000000A /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				B10000000000000000000007 /* MirrorAIService.swift */,
 				B10000000000000000000008 /* MockMirrorAIClient.swift */,
 				B10000000000000000000009 /* CloudMirrorAIClient.swift */,
+				B1000000000000000000001B /* AnthropicMirrorAIClient.swift */,
 				B10000000000000000000019 /* MirrorPromptBuilder.swift */,
 				B1000000000000000000001A /* MirrorUsageGuard.swift */,
 				B1000000000000000000000A /* LocalizationManager.swift */,
@@ -270,6 +273,7 @@
 				A10000000000000000000007 /* MirrorAIService.swift in Sources */,
 				A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */,
 				A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */,
+				A1000000000000000000001B /* AnthropicMirrorAIClient.swift in Sources */,
 				A10000000000000000000019 /* MirrorPromptBuilder.swift in Sources */,
 				A1000000000000000000001A /* MirrorUsageGuard.swift in Sources */,
 				A1000000000000000000000A /* LocalizationManager.swift in Sources */,

@@ -61,8 +61,11 @@
 "settings.ai.mode" = "Client";
 "settings.ai.mock" = "Mock (local)";
 "settings.ai.cloud" = "Cloud API";
+"settings.ai.provider" = "Provider";
+"settings.ai.provider.openai" = "OpenAI-compatible";
+"settings.ai.provider.anthropic" = "Anthropic";
 "settings.ai.residency" = "Data residency";
-"settings.ai.footer" = "Set DIARY_AI_BASE_URL and DIARY_AI_API_KEY in the Xcode scheme to enable the cloud stub. No secrets in the repo.";
+"settings.ai.footer" = "Set DIARY_AI_API_KEY and optionally DIARY_AI_PROVIDER=anthropic|openai in the Xcode scheme. No secrets in the repo.";
 "settings.section.legacy" = "Legacy";
 "settings.legacy.stub" = "Memorial / voice clone / executor settings — not in Phase 1 UI.";
 "settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";

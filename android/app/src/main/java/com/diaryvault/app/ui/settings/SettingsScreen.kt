@@ -82,6 +82,19 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     localizedString(if (viewModel.useCloudClient) R.string.settings_ai_cloud else R.string.settings_ai_mock),
                 style = MaterialTheme.typography.bodyLarge,
             )
+            if (viewModel.useCloudClient) {
+                Text(
+                    localizedString(R.string.settings_ai_provider) + ": " +
+                        localizedString(
+                            if (viewModel.isAnthropicProvider) {
+                                R.string.settings_ai_provider_anthropic
+                            } else {
+                                R.string.settings_ai_provider_openai
+                            },
+                        ),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
             Text(
                 localizedString(R.string.settings_ai_residency) + ": " + viewModel.dataResidency,
                 style = MaterialTheme.typography.bodyLarge,
