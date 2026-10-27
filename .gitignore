@@ -1,0 +1,36 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+*.xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# CocoaPods / Carthage (unused but ignored if added later)
+Pods/
+Carthage/Build/
+
+# Secrets — never commit API keys
+Secrets.xcconfig
+*.secret
+.env
+.env.*
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDEs
+.idea/
+*.swp
