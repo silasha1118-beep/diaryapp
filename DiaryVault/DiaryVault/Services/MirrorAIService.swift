@@ -1,6 +1,6 @@
 import Foundation
 
-struct MirrorContext: Sendable {
+struct MirrorContext {
     var userDisplayName: String
     var recentEntries: [DiaryEntry]
     var conversation: [MirrorMessage]
