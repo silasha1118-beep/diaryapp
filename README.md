@@ -1,8 +1,15 @@
 # Diary Vault（日記金庫）
 
-iOS-first personal diary vault MVP scaffold. Living-author loop: **write → AI learns → gentle mirror-style advice** (reflect + guiding questions, not coach prescriptions). Memorial / voice clone / legacy executor UI is **out of Phase 1** and only mentioned as a stub in Settings.
+Personal diary vault MVP scaffold (iOS + Android). Near-term runnable target: **Android** (no Mac required). Living-author loop: **write → AI learns → gentle mirror-style advice** (reflect + guiding questions, not coach prescriptions). Memorial / voice clone / legacy executor UI is **out of Phase 1** and only mentioned as a stub in Settings.
 
 Product plan (source of truth for decisions): kept in the project workspace docs — not duplicated here.
+
+
+## Android (near-term runnable)
+
+> **No Mac / Xcode for now** — the Kotlin + Jetpack Compose app under [`android/`](android/) is the **near-term build & run target** on Linux/Windows. The iOS project in `DiaryVault/` stays intact for when a Mac is available.
+
+See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :app:assembleDebug`.
 
 ## Open in Xcode
 
