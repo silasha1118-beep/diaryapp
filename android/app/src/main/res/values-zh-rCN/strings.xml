@@ -55,8 +55,11 @@
     <string name="settings_ai_mode">客户端</string>
     <string name="settings_ai_mock">模拟（本地）</string>
     <string name="settings_ai_cloud">云端 API</string>
+    <string name="settings_ai_provider">供应商</string>
+    <string name="settings_ai_provider_openai">OpenAI 兼容</string>
+    <string name="settings_ai_provider_anthropic">Anthropic</string>
     <string name="settings_ai_residency">数据落地</string>
-    <string name="settings_ai_footer">以 Gradle／环境变量设置 DIARY_AI_BASE_URL 与 DIARY_AI_API_KEY 以启用云端 stub。仓库不含密钥。</string>
+    <string name="settings_ai_footer">以 Gradle／环境变量设置 DIARY_AI_API_KEY，可选 DIARY_AI_PROVIDER=anthropic|openai。仓库不含密钥。</string>
     <string name="settings_section_legacy">遗产／纪念</string>
     <string name="settings_legacy_stub">纪念模式／语音克隆／执行人设置——非 Phase 1 UI。</string>
     <string name="settings_legacy_footer">仅路线图。本 MVP 骨架刻意省略。</string>

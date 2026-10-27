@@ -61,8 +61,11 @@
 "settings.ai.mode" = "用戶端";
 "settings.ai.mock" = "模擬（本機）";
 "settings.ai.cloud" = "雲端 API";
+"settings.ai.provider" = "供應商";
+"settings.ai.provider.openai" = "OpenAI 相容";
+"settings.ai.provider.anthropic" = "Anthropic";
 "settings.ai.residency" = "資料落地";
-"settings.ai.footer" = "在 Xcode Scheme 設定 DIARY_AI_BASE_URL 與 DIARY_AI_API_KEY 以啟用雲端 stub。倉庫不含密鑰。";
+"settings.ai.footer" = "在 Xcode Scheme 設定 DIARY_AI_API_KEY，可選 DIARY_AI_PROVIDER=anthropic|openai。倉庫不含密鑰。";
 "settings.section.legacy" = "遺產／紀念";
 "settings.legacy.stub" = "紀念模式／語音克隆／執行人設定——非 Phase 1 UI。";
 "settings.legacy.footer" = "僅路線圖。本 MVP 骨架刻意省略。";

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.diaryvault.app.config.AIConfig
+import com.diaryvault.app.config.AIProvider
 import com.diaryvault.app.data.AppPreferences
 import com.diaryvault.app.data.DiaryStore
 import com.diaryvault.app.model.AppLanguage
@@ -52,6 +53,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     val mirrorThinking: StateFlow<Boolean> = _mirrorThinking.asStateFlow()
 
     val useCloudClient: Boolean get() = AIConfig.useCloudClient
+    val isAnthropicProvider: Boolean get() = AIConfig.provider == AIProvider.ANTHROPIC
     val dataResidency: String get() = AIConfig.dataResidencyLabel
 
     fun setLanguage(lang: AppLanguage) {

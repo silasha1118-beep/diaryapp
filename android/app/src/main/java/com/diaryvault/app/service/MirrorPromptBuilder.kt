@@ -3,10 +3,9 @@ package com.diaryvault.app.service
 import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.MirrorContext
-import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
 
-/** Builds the mirror-style system prompt and OpenAI-compatible message list (RAG-lite). */
+/** Builds the mirror-style system prompt and provider message lists (RAG-lite). */
 object MirrorPromptBuilder {
     fun systemPrompt(context: MirrorContext, entries: List<DiaryEntry>): String {
         val name = context.userDisplayName.trim()
@@ -63,23 +62,41 @@ object MirrorPromptBuilder {
         """.trimIndent()
     }
 
+    /** OpenAI chat message dictionaries (`role` + `content`), including system. */
     fun chatMessages(userText: String, context: MirrorContext): List<Map<String, String>> {
         val entries = context.recentEntries.take(AIConfig.maxContextEntries)
         val messages = mutableListOf(
             mapOf("role" to "system", "content" to systemPrompt(context, entries)),
         )
+        messages += conversationTurns(userText, context)
+        messages += mapOf("role" to "user", "content" to userText)
+        return messages
+    }
 
+    /** Anthropic Messages API shape: top-level system + user/assistant turns only. */
+    data class AnthropicPrompt(
+        val system: String,
+        val messages: List<Map<String, String>>,
+    )
+
+    fun anthropicPrompt(userText: String, context: MirrorContext): AnthropicPrompt {
+        val entries = context.recentEntries.take(AIConfig.maxContextEntries)
+        val messages = conversationTurns(userText, context).toMutableList()
+        messages += mapOf("role" to "user", "content" to userText)
+        return AnthropicPrompt(system = systemPrompt(context, entries), messages = messages)
+    }
+
+    private fun conversationTurns(userText: String, context: MirrorContext): List<Map<String, String>> {
         val prior = context.conversation
             .filter { it.role == MirrorRole.User || it.role == MirrorRole.Mirror }
             .takeLast(AIConfig.MAX_CONVERSATION_TURNS)
 
+        val messages = mutableListOf<Map<String, String>>()
         for (message in prior) {
             if (message.role == MirrorRole.User && message.text == userText) continue
             val role = if (message.role == MirrorRole.User) "user" else "assistant"
             messages += mapOf("role" to role, "content" to message.text)
         }
-
-        messages += mapOf("role" to "user", "content" to userText)
         return messages
     }
 

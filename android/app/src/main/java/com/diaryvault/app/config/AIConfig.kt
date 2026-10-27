@@ -2,13 +2,21 @@ package com.diaryvault.app.config
 
 import com.diaryvault.app.BuildConfig
 
+/** Supported cloud LLM providers for Mirror. */
+enum class AIProvider {
+    OPENAI,
+    ANTHROPIC,
+}
+
 /**
  * Cloud LLM configuration. No secrets belong in the repo.
  *
- * Wire an OpenAI-compatible chat API at build/run time:
+ * Wire a cloud chat API at build/run time:
  * - DIARY_AI_API_KEY — required to leave mock mode (never commit)
- * - DIARY_AI_BASE_URL — optional; defaults to https://api.openai.com
- * - DIARY_AI_MODEL — optional; defaults to gpt-4o-mini
+ * - DIARY_AI_PROVIDER — optional; openai (default) or anthropic.
+ *   Auto-detects anthropic when DIARY_AI_BASE_URL contains "anthropic".
+ * - DIARY_AI_BASE_URL — optional; defaults to OpenAI or Anthropic host by provider
+ * - DIARY_AI_MODEL — optional; defaults to gpt-4o-mini (openai) or claude-sonnet-4-5 (anthropic)
  * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 400)
  * - DIARY_AI_MAX_CONTEXT_ENTRIES — optional; diary excerpts in prompt (default 8)
  * - DIARY_AI_DAILY_REQUEST_LIMIT — optional; local daily cap stub (default 40; 0 = off)
@@ -16,8 +24,12 @@ import com.diaryvault.app.BuildConfig
  * Data residency narrative: Taiwan (TW).
  */
 object AIConfig {
-    const val DEFAULT_BASE_URL = "https://api.openai.com"
-    const val DEFAULT_MODEL = "gpt-4o-mini"
+    const val DEFAULT_OPENAI_BASE_URL = "https://api.openai.com"
+    const val DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
+    const val DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+    const val DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5"
+    /** Anthropic Messages API version header value. */
+    const val ANTHROPIC_API_VERSION = "2023-06-01"
     const val DEFAULT_MAX_TOKENS = 400
     const val DEFAULT_MAX_CONTEXT_ENTRIES = 8
     const val DEFAULT_DAILY_REQUEST_LIMIT = 40
@@ -28,18 +40,47 @@ object AIConfig {
         get() = BuildConfig.DIARY_AI_API_KEY.takeIf { it.isNotBlank() }
             ?: System.getenv("DIARY_AI_API_KEY")?.takeIf { it.isNotBlank() }
 
+    /** Resolved provider: explicit DIARY_AI_PROVIDER, else auto-detect from BASE_URL, else openai. */
+    val provider: AIProvider
+        get() {
+            val raw = BuildConfig.DIARY_AI_PROVIDER.takeIf { it.isNotBlank() }
+                ?: System.getenv("DIARY_AI_PROVIDER")?.takeIf { it.isNotBlank() }
+            when (raw?.trim()?.lowercase()) {
+                "anthropic" -> return AIProvider.ANTHROPIC
+                "openai" -> return AIProvider.OPENAI
+            }
+            val base = BuildConfig.DIARY_AI_BASE_URL.takeIf { it.isNotBlank() }
+                ?: System.getenv("DIARY_AI_BASE_URL")?.takeIf { it.isNotBlank() }
+            if (base?.contains("anthropic", ignoreCase = true) == true) {
+                return AIProvider.ANTHROPIC
+            }
+            return AIProvider.OPENAI
+        }
+
     val baseUrl: String?
         get() {
             val configured = BuildConfig.DIARY_AI_BASE_URL.takeIf { it.isNotBlank() }
                 ?: System.getenv("DIARY_AI_BASE_URL")?.takeIf { it.isNotBlank() }
             if (!configured.isNullOrBlank()) return configured.trimEnd('/')
-            return if (apiKey != null) DEFAULT_BASE_URL else null
+            if (apiKey == null) return null
+            return if (provider == AIProvider.ANTHROPIC) {
+                DEFAULT_ANTHROPIC_BASE_URL
+            } else {
+                DEFAULT_OPENAI_BASE_URL
+            }
         }
 
     val model: String
-        get() = BuildConfig.DIARY_AI_MODEL.takeIf { it.isNotBlank() }
-            ?: System.getenv("DIARY_AI_MODEL")?.takeIf { it.isNotBlank() }
-            ?: DEFAULT_MODEL
+        get() {
+            val explicit = BuildConfig.DIARY_AI_MODEL.takeIf { it.isNotBlank() }
+                ?: System.getenv("DIARY_AI_MODEL")?.takeIf { it.isNotBlank() }
+            if (!explicit.isNullOrBlank()) return explicit
+            return if (provider == AIProvider.ANTHROPIC) {
+                DEFAULT_ANTHROPIC_MODEL
+            } else {
+                DEFAULT_OPENAI_MODEL
+            }
+        }
 
     val maxTokens: Int
         get() = intFromBuildOrEnv("DIARY_AI_MAX_TOKENS", BuildConfig.DIARY_AI_MAX_TOKENS, DEFAULT_MAX_TOKENS)

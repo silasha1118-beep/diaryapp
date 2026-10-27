@@ -44,6 +44,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<!-- Optional cloud AI — leave empty in repo; set via Xcode scheme env instead. -->
+	<key>DIARY_AI_PROVIDER</key>
+	<string></string>
 	<key>DIARY_AI_BASE_URL</key>
 	<string></string>
 	<key>DIARY_AI_API_KEY</key>

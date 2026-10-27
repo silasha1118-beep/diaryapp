@@ -1,19 +1,31 @@
 import Foundation
 
+/// Supported cloud LLM providers for Mirror.
+enum AIProvider: String {
+    case openai
+    case anthropic
+}
+
 /// Cloud LLM configuration. No secrets belong in the repo.
 ///
-/// Wire an OpenAI-compatible chat API via scheme env / Info.plist:
+/// Wire a cloud chat API via scheme env / Info.plist:
 /// - `DIARY_AI_API_KEY` — required to leave mock mode (never commit)
-/// - `DIARY_AI_BASE_URL` — optional; defaults to `https://api.openai.com`
-/// - `DIARY_AI_MODEL` — optional; defaults to `gpt-4o-mini`
+/// - `DIARY_AI_PROVIDER` — optional; `openai` (default) or `anthropic`.
+///   Auto-detects `anthropic` when `DIARY_AI_BASE_URL` contains `anthropic`.
+/// - `DIARY_AI_BASE_URL` — optional; defaults to OpenAI or Anthropic host by provider
+/// - `DIARY_AI_MODEL` — optional; defaults to `gpt-4o-mini` (openai) or `claude-sonnet-4-5` (anthropic)
 /// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 400)
 /// - `DIARY_AI_MAX_CONTEXT_ENTRIES` — optional; diary excerpts in prompt (default 8)
 /// - `DIARY_AI_DAILY_REQUEST_LIMIT` — optional; local daily cap stub (default 40; `0` = off)
 ///
 /// Data residency narrative for this product: Taiwan (TW).
 enum AIConfig {
-    static let defaultBaseURLString = "https://api.openai.com"
-    static let defaultModel = "gpt-4o-mini"
+    static let defaultOpenAIBaseURLString = "https://api.openai.com"
+    static let defaultAnthropicBaseURLString = "https://api.anthropic.com"
+    static let defaultOpenAIModel = "gpt-4o-mini"
+    static let defaultAnthropicModel = "claude-sonnet-4-5"
+    /// Anthropic Messages API version header value.
+    static let anthropicAPIVersion = "2023-06-01"
     static let defaultMaxTokens = 400
     static let defaultMaxContextEntries = 8
     static let defaultDailyRequestLimit = 40
@@ -22,13 +34,28 @@ enum AIConfig {
     /// Soft cap on prior chat turns sent to the model.
     static let maxConversationTurns = 8
 
+    /// Resolved provider: explicit `DIARY_AI_PROVIDER`, else auto-detect from BASE_URL, else openai.
+    static var provider: AIProvider {
+        if let raw = value(for: "DIARY_AI_PROVIDER")?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            if raw == AIProvider.anthropic.rawValue { return .anthropic }
+            if raw == AIProvider.openai.rawValue { return .openai }
+        }
+        if let base = value(for: "DIARY_AI_BASE_URL")?.lowercased(), base.contains("anthropic") {
+            return .anthropic
+        }
+        return .openai
+    }
+
     static var baseURL: URL? {
         if let raw = value(for: "DIARY_AI_BASE_URL"), let url = URL(string: raw) {
             return url
         }
-        // Key alone is enough; default to OpenAI-compatible host.
+        // Key alone is enough; default host depends on provider.
         guard apiKey != nil else { return nil }
-        return URL(string: defaultBaseURLString)
+        let fallback = provider == .anthropic
+            ? defaultAnthropicBaseURLString
+            : defaultOpenAIBaseURLString
+        return URL(string: fallback)
     }
 
     static var apiKey: String? {
@@ -36,7 +63,10 @@ enum AIConfig {
     }
 
     static var model: String {
-        value(for: "DIARY_AI_MODEL") ?? defaultModel
+        if let explicit = value(for: "DIARY_AI_MODEL") {
+            return explicit
+        }
+        return provider == .anthropic ? defaultAnthropicModel : defaultOpenAIModel
     }
 
     static var maxTokens: Int {

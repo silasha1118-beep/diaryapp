@@ -14,6 +14,7 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         // Cloud AI — set via env at assemble time; never commit real keys.
+        buildConfigField("String", "DIARY_AI_PROVIDER", "\"${System.getenv("DIARY_AI_PROVIDER") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_BASE_URL", "\"${System.getenv("DIARY_AI_BASE_URL") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_API_KEY", "\"${System.getenv("DIARY_AI_API_KEY") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_MODEL", "\"${System.getenv("DIARY_AI_MODEL") ?: ""}\"")

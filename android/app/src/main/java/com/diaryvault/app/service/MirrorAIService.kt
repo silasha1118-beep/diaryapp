@@ -3,6 +3,7 @@ package com.diaryvault.app.service
 import android.content.Context
 import com.diaryvault.app.R
 import com.diaryvault.app.config.AIConfig
+import com.diaryvault.app.config.AIProvider
 import com.diaryvault.app.model.MirrorContext
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
@@ -60,8 +61,9 @@ class MockMirrorAIClient : MirrorAIService {
 }
 
 /**
- * OpenAI-compatible chat completions client.
- * Activated when [AIConfig.useCloudClient] is true (API key set).
+ * OpenAI-compatible chat completions client (`POST /v1/chat/completions`).
+ * Activated when [AIConfig.useCloudClient] is true and provider is openai
+ * (Groq, DeepSeek, Azure OpenAI chat path, etc.).
  * Does not embed secrets; reads DIARY_AI_* from BuildConfig / process env.
  */
 class CloudMirrorAIClient(
@@ -132,11 +134,88 @@ class CloudMirrorAIClient(
     }
 }
 
+/**
+ * Anthropic Messages API client (`POST /v1/messages`).
+ * Headers: `x-api-key`, `anthropic-version`. Does not embed secrets.
+ */
+class AnthropicMirrorAIClient(
+    private val appContext: Context,
+) : MirrorAIService {
+    private val gson = Gson()
+
+    override suspend fun reply(
+        userText: String,
+        context: MirrorContext,
+        stringLookup: (Int, Array<out Any>?) -> String,
+    ): MirrorMessage {
+        val trimmed = userText.trim()
+        if (trimmed.isEmpty()) throw MirrorAIError.EmptyInput
+
+        val baseUrl = AIConfig.baseUrl ?: throw MirrorAIError.NotConfigured
+        val apiKey = AIConfig.apiKey ?: throw MirrorAIError.NotConfigured
+
+        MirrorUsageGuard.checkAndIncrement(appContext)
+
+        val endpoint = baseUrl.trimEnd('/') + "/v1/messages"
+        val prompt = MirrorPromptBuilder.anthropicPrompt(trimmed, context)
+        val payload = mapOf(
+            "model" to AIConfig.model,
+            "max_tokens" to AIConfig.maxTokens,
+            "temperature" to 0.7,
+            "system" to prompt.system,
+            "messages" to prompt.messages,
+        )
+
+        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("x-api-key", apiKey)
+            setRequestProperty("anthropic-version", AIConfig.ANTHROPIC_API_VERSION)
+            doOutput = true
+            connectTimeout = 30_000
+            readTimeout = 60_000
+        }
+
+        try {
+            connection.outputStream.use { it.write(gson.toJson(payload).toByteArray(Charsets.UTF_8)) }
+            val code = connection.responseCode
+            val responseBody = if (code in 200..299) {
+                connection.inputStream.bufferedReader().readText()
+            } else {
+                connection.errorStream?.bufferedReader()?.readText().orEmpty()
+            }
+            if (code !in 200..299) {
+                val snippet = responseBody.trim().take(180).ifBlank { "HTTP $code" }
+                throw MirrorAIError.Network("Cloud AI $snippet")
+            }
+            val json = gson.fromJson(responseBody, JsonObject::class.java)
+            val content = json.getAsJsonArray("content") ?: throw MirrorAIError.Decoding
+            val text = content
+                .mapNotNull { el ->
+                    val obj = el.asJsonObject
+                    if (obj.get("type")?.asString == "text") obj.get("text")?.asString else null
+                }
+                .joinToString("\n")
+                .trim()
+            if (text.isEmpty()) throw MirrorAIError.Decoding
+
+            val contextEntries = context.recentEntries.take(AIConfig.maxContextEntries)
+            val cited = MirrorPromptBuilder.citedIds(text, contextEntries)
+            return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
+
 fun createMirrorAIService(context: Context): MirrorAIService =
-    if (AIConfig.useCloudClient) {
-        CloudMirrorAIClient(context.applicationContext)
-    } else {
+    if (!AIConfig.useCloudClient) {
         MockMirrorAIClient()
+    } else {
+        when (AIConfig.provider) {
+            AIProvider.ANTHROPIC -> AnthropicMirrorAIClient(context.applicationContext)
+            AIProvider.OPENAI -> CloudMirrorAIClient(context.applicationContext)
+        }
     }
 
 fun localeForLanguageTag(tag: String): Locale =

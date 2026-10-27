@@ -38,9 +38,14 @@ enum MirrorAIError: LocalizedError {
 enum MirrorAIClientFactory {
     @MainActor
     static func make() -> any MirrorAIService {
-        if AIConfig.useCloudClient {
+        guard AIConfig.useCloudClient else {
+            return MockMirrorAIClient()
+        }
+        switch AIConfig.provider {
+        case .anthropic:
+            return AnthropicMirrorAIClient()
+        case .openai:
             return CloudMirrorAIClient()
         }
-        return MockMirrorAIClient()
     }
 }

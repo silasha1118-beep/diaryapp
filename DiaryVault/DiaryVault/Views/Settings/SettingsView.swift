@@ -42,6 +42,16 @@ struct SettingsView: View {
                             )
                             .foregroundStyle(VaultTheme.inkMuted)
                         }
+                        if AIConfig.useCloudClient {
+                            LabeledContent(localization.text("settings.ai.provider")) {
+                                Text(
+                                    AIConfig.provider == .anthropic
+                                        ? localization.text("settings.ai.provider.anthropic")
+                                        : localization.text("settings.ai.provider.openai")
+                                )
+                                .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                        }
                         LabeledContent(localization.text("settings.ai.residency")) {
                             Text(AIConfig.dataResidencyLabel)
                                 .foregroundStyle(VaultTheme.inkMuted)
