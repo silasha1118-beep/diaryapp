@@ -1,7 +1,11 @@
 import SwiftUI
+import FirebaseCore
+import FirebaseAuth
 
 @main
 struct DiaryVaultApp: App {
+    @UIApplicationDelegateAdaptor(FirebaseAppDelegate.self) private var appDelegate
+
     @StateObject private var appState = AppState()
     @StateObject private var diaryStore = DiaryStore()
     @StateObject private var localization = LocalizationManager()
@@ -18,6 +22,12 @@ struct DiaryVaultApp: App {
                 .environmentObject(subscriptions)
                 .environment(\.locale, localization.locale)
                 .preferredColorScheme(.light)
+                .onOpenURL { url in
+                    // reCAPTCHA custom-scheme callback for Phone Auth (SwiftUI path).
+                    if FirebaseApp.app() != nil {
+                        _ = Auth.auth().canHandle(url)
+                    }
+                }
         }
     }
 }

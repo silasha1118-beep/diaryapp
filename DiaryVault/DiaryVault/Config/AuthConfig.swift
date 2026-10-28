@@ -2,8 +2,10 @@ import Foundation
 
 /// SMS / phone auth configuration. Override via scheme env or Info.plist — **never commit secrets**.
 ///
-/// - `DIARY_SMS_PROVIDER` — `stub` (default) | `firebase` | `twilio`
-/// - Firebase / Twilio keys are read only when that provider is selected; empty means “not wired yet”.
+/// - `DIARY_SMS_PROVIDER` — `stub` | `firebase` | `twilio`
+///   Empty / unset: **firebase** when `GoogleService-Info.plist` is in the bundle, else **stub**.
+/// - Firebase uses the local plist (gitignored). Optional `DIARY_FIREBASE_PROJECT_ID` is a label only.
+/// - Twilio keys are read only when that provider is selected.
 enum AuthConfig {
     enum SMSProviderKind: String {
         case stub
@@ -11,15 +13,21 @@ enum AuthConfig {
         case twilio
     }
 
-    /// Active SMS backend. Defaults to local stub (no network, no secrets).
+    /// Active SMS backend.
     static var smsProvider: SMSProviderKind {
-        let raw = (value(for: "DIARY_SMS_PROVIDER") ?? "stub").lowercased()
-        return SMSProviderKind(rawValue: raw) ?? .stub
+        if let raw = value(for: "DIARY_SMS_PROVIDER")?.lowercased(), !raw.isEmpty {
+            return SMSProviderKind(rawValue: raw) ?? .stub
+        }
+        // Auto-select Firebase once the (gitignored) plist is in the app target.
+        if FirebaseBootstrap.hasGoogleServiceInfoPlist {
+            return .firebase
+        }
+        return .stub
     }
 
-    // MARK: - Firebase-ready (placeholders — leave empty in git)
+    // MARK: - Firebase (plist is source of truth — leave secrets out of git)
 
-    /// Firebase / GoogleService project id (optional label only; SDK plist stays out of git).
+    /// Optional project id label (e.g. `diaryappsilas`). Not required when plist is present.
     static var firebaseProjectID: String? { value(for: "DIARY_FIREBASE_PROJECT_ID") }
 
     // MARK: - Twilio-ready (placeholders — leave empty in git)
@@ -36,7 +44,7 @@ enum AuthConfig {
         case .stub:
             return true
         case .firebase:
-            return firebaseProjectID != nil
+            return FirebaseBootstrap.hasGoogleServiceInfoPlist || firebaseProjectID != nil
         case .twilio:
             return twilioAccountSID != nil
                 && twilioAuthToken != nil

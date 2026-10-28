@@ -256,9 +256,10 @@ struct AuthGateView: View {
         defer { isVerifying = false }
 
         do {
-            try await sms.verify(code: otpCode, session: session)
+            let user = try await sms.verify(code: otpCode, session: session)
             account.signInWithPhone(
-                phoneE164: session.phoneE164,
+                userID: user.userID,
+                phoneE164: user.phoneE164,
                 displayName: appState.displayName.isEmpty ? nil : appState.displayName
             )
         } catch let error as SMSAuthError {
@@ -278,8 +279,12 @@ struct AuthGateView: View {
             return localization.text("auth.sms.notConfigured")
         case .rateLimited:
             return localization.text("auth.sms.rateLimited")
-        case .underlying:
+        case .underlying(let detail):
+            #if DEBUG
+            return detail.isEmpty ? localization.text("auth.error") : detail
+            #else
             return localization.text("auth.error")
+            #endif
         }
     }
 

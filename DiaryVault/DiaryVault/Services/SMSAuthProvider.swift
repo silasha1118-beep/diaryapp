@@ -1,4 +1,6 @@
 import Foundation
+import FirebaseCore
+import FirebaseAuth
 
 /// Result of requesting an SMS OTP. `verificationID` is opaque (Firebase session / Twilio SID / stub id).
 struct SMSCodeSession: Equatable, Sendable {
@@ -6,6 +8,13 @@ struct SMSCodeSession: Equatable, Sendable {
     let phoneE164: String
     /// Stub-only hint for DEBUG UI; always nil for real providers.
     let stubDebugHint: String?
+}
+
+/// Signed-in identity after a successful OTP verify.
+struct SMSAuthUser: Equatable, Sendable {
+    /// Stable user id (Firebase UID when using Firebase; synthetic for stub).
+    let userID: String
+    let phoneE164: String
 }
 
 enum SMSAuthError: LocalizedError, Equatable {
@@ -26,10 +35,10 @@ enum SMSAuthError: LocalizedError, Equatable {
     }
 }
 
-/// Pluggable SMS OTP backend. Stub by default; Firebase Auth Phone / Twilio Verify can implement the same API.
+/// Pluggable SMS OTP backend. Stub by default; Firebase Auth Phone is wired; Twilio remains a shell.
 protocol SMSAuthProviding: Sendable {
     func sendCode(toPhoneE164 phone: String) async throws -> SMSCodeSession
-    func verify(code: String, session: SMSCodeSession) async throws
+    func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser
 }
 
 enum SMSAuthProviderFactory {
@@ -39,14 +48,14 @@ enum SMSAuthProviderFactory {
         case .stub:
             return StubSMSAuthProvider()
         case .firebase:
-            return FirebaseReadySMSAuthProvider()
+            return FirebasePhoneSMSAuthProvider()
         case .twilio:
             return TwilioReadySMSAuthProvider()
         }
     }
 }
 
-// MARK: - Stub (default · no secrets · no real SMS)
+// MARK: - Stub (default when no GoogleService-Info.plist · no secrets · no real SMS)
 
 /// Local OTP stub for simulator / CI. Does **not** send SMS.
 ///
@@ -78,7 +87,7 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
         return SMSCodeSession(verificationID: verificationID, phoneE164: normalized, stubDebugHint: hint)
     }
 
-    func verify(code: String, session: SMSCodeSession) async throws {
+    func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
         let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count == 6, trimmed.allSatisfy(\.isNumber) else {
             throw SMSAuthError.invalidCode
@@ -87,7 +96,10 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
 
         if let fixed = AuthConfig.stubAcceptCode {
             guard trimmed == fixed else { throw SMSAuthError.invalidCode }
-            return
+            return SMSAuthUser(
+                userID: "phone-" + session.phoneE164.filter(\.isNumber),
+                phoneE164: session.phoneE164
+            )
         }
 
         lock.lock()
@@ -97,6 +109,10 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
         if let expected, trimmed != expected {
             throw SMSAuthError.invalidCode
         }
+        return SMSAuthUser(
+            userID: "phone-" + session.phoneE164.filter(\.isNumber),
+            phoneE164: session.phoneE164
+        )
     }
 
     private static func generateDebugCode() -> String {
@@ -104,30 +120,114 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     }
 }
 
-// MARK: - Firebase-ready shell (no SDK · no secrets in repo)
+// MARK: - Firebase Auth Phone
 
-/// Placeholder for Firebase Auth phone verification.
-/// Selecting `DIARY_SMS_PROVIDER=firebase` without project config fails closed.
-final class FirebaseReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
+/// Real Firebase Phone Auth: send SMS OTP → verify code → `Auth.auth().signIn`.
+/// Requires `GoogleService-Info.plist` in the app target (gitignored) and Phone provider enabled in Console.
+final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     func sendCode(toPhoneE164 phone: String) async throws -> SMSCodeSession {
         let normalized = PhoneNumberNormalizer.normalizeToE164(phone)
         guard PhoneNumberNormalizer.isPlausibleE164(normalized) else {
             throw SMSAuthError.invalidPhone
         }
-        guard AuthConfig.firebaseProjectID != nil else {
+
+        FirebaseBootstrap.configureIfNeeded()
+        guard FirebaseBootstrap.hasGoogleServiceInfoPlist, FirebaseApp.app() != nil else {
             throw SMSAuthError.notConfigured(
-                "Firebase SMS not configured. Set DIARY_FIREBASE_PROJECT_ID and add GoogleService-Info.plist locally (gitignored). Or use DIARY_SMS_PROVIDER=stub."
+                "GoogleService-Info.plist missing from the app bundle. Add it in Xcode (target membership on), keep it out of git. Or set DIARY_SMS_PROVIDER=stub."
             )
         }
-        throw SMSAuthError.notConfigured(
-            "Firebase Auth Phone SDK is not linked in this MVP. Keep DIARY_SMS_PROVIDER=stub until the SDK is added."
-        )
+
+        applySMSLanguageCode()
+
+        do {
+            let verificationID = try await PhoneAuthProvider.provider()
+                .verifyPhoneNumber(normalized, uiDelegate: nil)
+            UserDefaults.standard.set(verificationID, forKey: Self.verificationIDDefaultsKey)
+            return SMSCodeSession(
+                verificationID: verificationID,
+                phoneE164: normalized,
+                stubDebugHint: nil
+            )
+        } catch {
+            throw mapFirebaseError(error)
+        }
     }
 
-    func verify(code: String, session: SMSCodeSession) async throws {
-        throw SMSAuthError.notConfigured(
-            "Firebase Auth Phone SDK is not linked in this MVP."
+    func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 4, trimmed.allSatisfy(\.isNumber) else {
+            throw SMSAuthError.invalidCode
+        }
+
+        FirebaseBootstrap.configureIfNeeded()
+        guard FirebaseApp.app() != nil else {
+            throw SMSAuthError.notConfigured(
+                "Firebase is not configured. Add GoogleService-Info.plist to the DiaryVault target."
+            )
+        }
+
+        let verificationID = session.verificationID.isEmpty
+            ? (UserDefaults.standard.string(forKey: Self.verificationIDDefaultsKey) ?? "")
+            : session.verificationID
+        guard !verificationID.isEmpty else {
+            throw SMSAuthError.underlying("Missing verification session. Request a new code.")
+        }
+
+        let credential = PhoneAuthProvider.provider().credential(
+            withVerificationID: verificationID,
+            verificationCode: trimmed
         )
+
+        do {
+            let result = try await Auth.auth().signIn(with: credential)
+            UserDefaults.standard.removeObject(forKey: Self.verificationIDDefaultsKey)
+            let phone = result.user.phoneNumber ?? session.phoneE164
+            return SMSAuthUser(userID: result.user.uid, phoneE164: phone)
+        } catch {
+            throw mapFirebaseError(error)
+        }
+    }
+
+    private static let verificationIDDefaultsKey = "diary.firebase.authVerificationID"
+
+    private func applySMSLanguageCode() {
+        let stored = UserDefaults.standard.string(forKey: "appLanguage") ?? ""
+        switch stored {
+        case "zh-Hant":
+            Auth.auth().languageCode = "zh-TW"
+        case "zh-Hans":
+            Auth.auth().languageCode = "zh-CN"
+        default:
+            Auth.auth().languageCode = "en"
+        }
+    }
+
+    private func mapFirebaseError(_ error: Error) -> SMSAuthError {
+        let ns = error as NSError
+        let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowered = message.lowercased()
+
+        // Stable FIRAuthErrorCode integers (invalid/missing phone, bad OTP, quota).
+        switch ns.code {
+        case 17041, 17042:
+            return .invalidPhone
+        case 17043, 17044, 17051:
+            return .invalidCode
+        case 17010, 17052:
+            return .rateLimited
+        default:
+            break
+        }
+
+        if lowered.contains("invalid phone") { return .invalidPhone }
+        if lowered.contains("verification code") || lowered.contains("invalid code") {
+            return .invalidCode
+        }
+        if lowered.contains("too many") || lowered.contains("quota") {
+            return .rateLimited
+        }
+        return .underlying(message.isEmpty ? "Firebase Auth error (\(ns.code))" : message)
     }
 }
 
@@ -147,13 +247,13 @@ final class TwilioReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
             )
         }
         throw SMSAuthError.notConfigured(
-            "Twilio Verify client is not linked in this MVP. Keep DIARY_SMS_PROVIDER=stub until the backend/SDK is added."
+            "Twilio Verify client is not linked. Keep DIARY_SMS_PROVIDER=stub or firebase."
         )
     }
 
-    func verify(code: String, session: SMSCodeSession) async throws {
+    func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
         throw SMSAuthError.notConfigured(
-            "Twilio Verify client is not linked in this MVP."
+            "Twilio Verify client is not linked."
         )
     }
 }
