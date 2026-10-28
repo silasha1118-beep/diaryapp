@@ -28,7 +28,7 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "Sign in to keep your vault yours.";
-"auth.body" = "Use your phone number and a one-time SMS code. Works in Taiwan, Hong Kong, and Mainland China — any phone that can receive SMS. No password is stored. Cloud sync is not in this MVP.";
+"auth.body" = "Use your phone number and a one-time SMS code (primary). Works in Taiwan, Hong Kong, and Mainland China — any phone that can receive SMS. Sign in with Apple is an optional backup. No password is stored. Cloud sync is not in this MVP.";
 "auth.error" = "Sign in could not finish. Try again.";
 "auth.phone.label" = "Phone number";
 "auth.phone.region" = "Region";
@@ -54,6 +54,9 @@
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again. Spark plan allows about 10 real SMS per day — use a Firebase test number to save quota.";
 "auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, and Mainland China.";
 "auth.sms.appVerification" = "App verification failed (reCAPTCHA). In Xcode → Target → Info → URL Types, add REVERSED_CLIENT_ID from GoogleService-Info.plist, then rebuild.";
+"auth.apple.backup" = "Or use Sign in with Apple";
+"auth.apple.error" = "Sign in with Apple could not finish. Try again.";
+"auth.apple.paidNote" = "Requires a paid Apple Developer team ($99/yr). Free Personal Team cannot enable this capability.";
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */
@@ -121,15 +124,15 @@
 "settings.section.accountPhone" = "Account / Phone login";
 "settings.account.status" = "Status";
 "settings.account.signedIn" = "Signed in";
-"settings.account.signedOut" = "Not signed in with phone yet.";
+"settings.account.signedOut" = "Not signed in yet.";
 "settings.account.identity" = "Identity";
 "settings.account.provider" = "Provider";
 "settings.account.provider.phone" = "Phone (SMS OTP)";
 "settings.account.provider.apple" = "Sign in with Apple";
 "settings.account.provider.local" = "Local (dev)";
 "settings.account.signOut" = "Sign out";
-"settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions. Sign out returns you to the account gate.";
-"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). The banner above shows Firebase vs Stub — same provider as the launch gate.";
+"settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions; Sign in with Apple is optional backup. Sign out returns you to the account gate.";
+"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). Optional: expand Sign in with Apple below (paid Apple Developer required). The banner shows Firebase vs Stub — same as the launch gate.";
 "settings.account.phone.success" = "Phone sign-in succeeded.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";

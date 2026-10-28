@@ -25,13 +25,13 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
 3. Wait for Swift Package Manager to fetch **Firebase** (`firebase-ios-sdk` → FirebaseAuth + FirebaseCore). If needed: **File → Packages → Resolve Package Versions**.
 4. Add your local **`GoogleService-Info.plist`** to the DiaryVault target (gitignored — see Firebase Phone Auth below). Bundle ID is **`com.silasha.diaryvault`**.
 5. Select an iPhone Simulator (or **device** for real SMS), then **Run** (⌘R).
-6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. A free **Personal Team** works for device runs (Sign in with Apple is not required). Simulator needs no team for basic runs.
+6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Free **Personal Team** can still run basic builds **only if** you temporarily remove Push / Sign in with Apple from entitlements. **APNs (no reCAPTCHA) and Sign in with Apple require a paid Apple Developer team ($99/yr).** Simulator needs no team for basic runs.
 
 ### Account (phone SMS OTP — all regions)
 
 Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 
-- **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). WeChat / Google / Sign in with Apple are **not** used.
+- **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). **Sign in with Apple** is an optional backup (paid Apple Developer). WeChat / Google are **not** used.
 - With Firebase: session UID comes from Firebase Auth; diary data stays on device for this MVP.
 - Settings shows signed-in identity / provider and **Sign out** (also signs out of Firebase Auth).
 - **DEBUG** builds also offer “Dev: continue with local session”.
@@ -60,15 +60,22 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
    - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then copy the new value.
    - Xcode → DiaryVault **target** → **Info** tab → **URL Types** → **+** → **URL Schemes** = paste `REVERSED_CLIENT_ID`. Leave Identifier / Role blank.
    - Rebuild after changing URL Types.
-5. Optional but recommended for silent push (fewer reCAPTCHA prompts on device):
-   - Signing & Capabilities → **Push Notifications**
-   - **Background Modes** → Remote notifications
-   - Apple Developer → create APNs key → Firebase Console → Project settings → Cloud Messaging → upload APNs key  
-   **APNs is optional for testing** — without it, Phone Auth uses **reCAPTCHA** (needs the URL scheme above).
-6. No extra Info.plist privacy usage strings are required for SMS OTP (no camera / mic / contacts).
-7. **Scheme env — leave `DIARY_SMS_PROVIDER` empty.** Empty + plist on disk → **Firebase** auto-select. Set `stub` only to force local OTP without SMS. If you previously added `DIARY_SMS_PROVIDER=stub` under Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables, **delete that row** and rebuild.
-8. Run on a **physical iPhone** for real SMS. Simulator can still drive the flow via reCAPTCHA + Firebase **test phone numbers** (no SMS charged).
-9. On the login / Settings phone form, confirm the banner says **簡訊後端：Firebase** (not Stub).
+5. **APNs (recommended before launch — especially CN):** silent push avoids Google reCAPTCHA.
+   - Repo already sets Push + `registerForRemoteNotifications` + `Auth.setAPNSToken`.
+   - **Paid Apple Developer required** to create an APNs Auth Key (.p8) and to sign with the Push capability.
+   - Apple Developer → Keys → APNs → download `.p8` → Firebase → Project settings → **Cloud Messaging** → upload for `com.silasha.diaryvault`.
+   - Without APNs, Phone Auth falls back to **reCAPTCHA** (needs the URL scheme above). Personal Team cannot finish APNs.
+6. **Sign in with Apple (optional backup):** SMS stays primary; gate / Settings can expand Apple sign-in.
+   - Repo entitlements include `com.apple.developer.applesignin`; UI is wired.
+   - **Paid team required.** Developer portal → App ID `com.silasha.diaryvault` → enable Sign in with Apple; Firebase → Authentication → Sign-in method → enable **Apple**.
+7. No extra Info.plist privacy usage strings are required for SMS OTP (no camera / mic / contacts).
+8. **Scheme env — leave `DIARY_SMS_PROVIDER` empty.** Empty + plist on disk → **Firebase** auto-select. Set `stub` only to force local OTP without SMS. If you previously added `DIARY_SMS_PROVIDER=stub` under Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables, **delete that row** and rebuild.
+9. Run on a **physical iPhone** for real SMS without reCAPTCHA. Simulator can still drive phone via reCAPTCHA + Firebase **test phone numbers**, and can try Sign in with Apple after the paid capability is enabled.
+10. On the login / Settings phone form, confirm the banner says **簡訊後端：Firebase** (not Stub).
+
+Beginner Mac / Developer / Firebase click-path (APNs + Apple): project Context doc  
+`/cursor/stores/self/docs/apns-firebase-phone-auth.md`  
+(also linked from the PR for this change).
 
 See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders only).
 
@@ -190,7 +197,7 @@ When you upgrade to a paid account later: create subscription group **Author Plu
 
 #### Capabilities
 
-- Sign in with Apple is **not** required (removed so free Personal Team signing works).
+- **Push Notifications** + **Sign in with Apple** are in `DiaryVault.entitlements` (paid Apple Developer). Personal Team often cannot provision them — temporarily remove those keys to keep a free-team device build, or enroll in the paid program.
 - StoreKit 2 needs no extra capability checkbox for local `.storekit` testing. Before shipping with Connect products, enable **In-App Purchase** on the App ID in the Developer portal (paid account).
 
 ### Enable cloud Mirror AI
@@ -235,7 +242,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Area | Status |
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
-| **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; DEBUG local session available; Settings also has phone login |
+| **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; **Sign in with Apple** optional backup (paid team); DEBUG local session; Settings has the same |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
@@ -266,7 +273,7 @@ DiaryVault/
   DiaryVault.xcodeproj
   DiaryVault/
     DiaryVaultApp.swift
-    DiaryVault.entitlements   # Empty (no paid-capability entitlements)
+    DiaryVault.entitlements   # Push (aps-environment) + Sign in with Apple (paid team)
     Models/          # AppState, DiaryEntry, MirrorMessage
     Services/        # DiaryStore, AccountSession, SMSAuthProvider, SubscriptionStore, Mirror AI, Localization
     Config/          # AIConfig, BillingConfig, AuthConfig (env / Info.plist — no secrets)

@@ -34,11 +34,13 @@ struct AuthGateView: View {
 
                     PhoneOTPLoginForm(chrome: .gate)
 
-                    #if DEBUG
                     Divider()
                         .overlay(VaultTheme.line)
                         .padding(.vertical, 4)
 
+                    AppleSignInBackupView(chrome: .gate)
+
+                    #if DEBUG
                     Button {
                         account.signInLocally(displayName: appState.displayName.isEmpty ? nil : appState.displayName)
                     } label: {

@@ -5,12 +5,19 @@ import FirebaseAuth
 
 /// Bridges APNs + reCAPTCHA URL callbacks into Firebase Auth.
 /// Required for SwiftUI apps (Auth docs: pass token / notification / URL explicitly).
+///
+/// Phone Auth prefers a **silent APNs** challenge when an APNs Auth Key is uploaded in
+/// Firebase Console → Project settings → Cloud Messaging. Without APNs (or on Simulator),
+/// Firebase falls back to **Google reCAPTCHA** — often blocked or awkward for CN users.
 final class FirebaseAppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseBootstrap.configureIfNeeded()
+        // Register early so Phone Auth can use silent push instead of reCAPTCHA.
+        // Safe on Personal Team / Simulator: failure is logged; Auth still works via reCAPTCHA.
+        application.registerForRemoteNotifications()
         return true
     }
 
@@ -19,14 +26,19 @@ final class FirebaseAppDelegate: NSObject, UIApplicationDelegate {
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         guard FirebaseApp.app() != nil else { return }
+        // `.unknown` lets Firebase pick sandbox vs production from the provisioning profile.
         Auth.auth().setAPNSToken(deviceToken, type: .unknown)
+        #if DEBUG
+        print("APNs device token forwarded to Firebase Auth (\(deviceToken.count) bytes)")
+        #endif
     }
 
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        // Simulator / missing APNs key: Firebase falls back to reCAPTCHA — not fatal.
+        // Simulator / Personal Team without Push / missing APNs key:
+        // Firebase Phone Auth falls back to reCAPTCHA — not fatal for non-CN testing.
         #if DEBUG
         print("APNs registration failed (reCAPTCHA fallback OK): \(error.localizedDescription)")
         #endif
