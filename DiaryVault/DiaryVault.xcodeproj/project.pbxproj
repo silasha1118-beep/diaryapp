@@ -262,6 +262,7 @@
 				F10000000000000000000002 /* Sources */,
 				D10000000000000000000001 /* Frameworks */,
 				F10000000000000000000003 /* Resources */,
+				F10000000000000000000007 /* Copy GoogleService-Info.plist */,
 			);
 			buildRules = (
 			);
@@ -326,6 +327,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F10000000000000000000007 /* Copy GoogleService-Info.plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/DiaryVault/GoogleService-Info.plist",
+			);
+			name = "Copy GoogleService-Info.plist";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Gitignored Firebase plist — copy into the app bundle when present on disk.\n# Beginners: drop GoogleService-Info.plist next to Info.plist; no Target Membership required.\n# Leave DIARY_SMS_PROVIDER empty to auto-select Firebase once this file is bundled.\nset -e\nSRC=\"${SRCROOT}/DiaryVault/GoogleService-Info.plist\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nDEST=\"${DEST_DIR}/GoogleService-Info.plist\"\nif [ -f \"$SRC\" ]; then\n  mkdir -p \"$DEST_DIR\"\n  cp -f \"$SRC\" \"$DEST\"\n  echo \"note: Bundled GoogleService-Info.plist → Firebase Phone Auth auto-select\"\nelse\n  echo \"warning: $SRC not found — SMS OTP stays on stub until you add the gitignored plist\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F10000000000000000000002 /* Sources */ = {

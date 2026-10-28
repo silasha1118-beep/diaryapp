@@ -31,6 +31,8 @@ struct PhoneOTPLoginForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
+            providerBanner
+
             phoneStep
 
             if session != nil {
@@ -51,6 +53,45 @@ struct PhoneOTPLoginForm: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: session != nil)
+    }
+
+    /// Always show Firebase vs Stub so a misconfigured local plist / scheme is obvious.
+    private var providerBanner: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(providerTitle)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(AuthConfig.smsProvider == .stub ? VaultTheme.seal : VaultTheme.ink)
+            if AuthConfig.smsProvider == .stub {
+                Text(stubHelpText)
+                    .font(.system(size: 12))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(providerTitle)
+    }
+
+    private var providerTitle: String {
+        switch AuthConfig.smsProvider {
+        case .firebase:
+            return localization.text("auth.sms.provider.firebase")
+        case .stub:
+            return localization.text("auth.sms.provider.stub")
+        case .twilio:
+            return localization.text("auth.sms.provider.twilio")
+        }
+    }
+
+    private var stubHelpText: String {
+        switch AuthConfig.smsProviderResolution {
+        case .explicitEnvOrPlist:
+            return localization.text("auth.sms.provider.stub.explicit")
+        case .autoStubNoPlist:
+            return localization.text("auth.sms.provider.stub.missingPlist")
+        case .autoFirebasePlistPresent:
+            return localization.text("auth.sms.provider.stub.missingPlist")
+        }
     }
 
     // MARK: - Phone

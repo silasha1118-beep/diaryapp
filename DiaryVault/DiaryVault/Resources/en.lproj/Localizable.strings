@@ -45,7 +45,12 @@
 "auth.dial.hk" = "+852 Hong Kong";
 "auth.dial.tw" = "+886 Taiwan";
 "auth.stub.hint" = "Stub SMS (no real text): use code %@";
-"auth.sms.notConfigured" = "SMS is not ready. Add GoogleService-Info.plist to the DiaryVault target (keep it out of git), or set DIARY_SMS_PROVIDER=stub.";
+"auth.sms.provider.firebase" = "SMS provider: Firebase (real text)";
+"auth.sms.provider.stub" = "SMS provider: Stub (local, no real text)";
+"auth.sms.provider.twilio" = "SMS provider: Twilio";
+"auth.sms.provider.stub.missingPlist" = "Put GoogleService-Info.plist at DiaryVault/DiaryVault/ (gitignored), rebuild — leave DIARY_SMS_PROVIDER empty.";
+"auth.sms.provider.stub.explicit" = "Scheme/Info has DIARY_SMS_PROVIDER=stub. Clear that env var (or set firebase) and rebuild for real SMS.";
+"auth.sms.notConfigured" = "SMS is not ready. Place GoogleService-Info.plist at DiaryVault/DiaryVault/ (gitignored) and rebuild, or set DIARY_SMS_PROVIDER=stub.";
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again. Spark plan allows about 10 real SMS per day — use a Firebase test number to save quota.";
 "auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, and Mainland China.";
 "auth.sms.appVerification" = "App verification failed (reCAPTCHA). In Xcode → Target → Info → URL Types, add REVERSED_CLIENT_ID from GoogleService-Info.plist, then rebuild.";
@@ -119,7 +124,7 @@
 "settings.account.provider.local" = "Local (dev)";
 "settings.account.signOut" = "Sign out";
 "settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions. Sign out returns you to the account gate.";
-"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). Same Firebase phone auth as the launch gate.";
+"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). The banner above shows Firebase vs Stub — same provider as the launch gate.";
 "settings.account.phone.success" = "Phone sign-in succeeded.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
