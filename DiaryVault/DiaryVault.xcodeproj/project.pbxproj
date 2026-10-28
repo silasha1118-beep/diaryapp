@@ -262,7 +262,7 @@
 				F10000000000000000000002 /* Sources */,
 				D10000000000000000000001 /* Frameworks */,
 				F10000000000000000000003 /* Resources */,
-				F10000000000000000000007 /* Copy GoogleService-Info.plist */,
+				F1000000000000000000000B /* Copy GoogleService-Info.plist */,
 			);
 			buildRules = (
 			);
@@ -329,7 +329,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		F10000000000000000000007 /* Copy GoogleService-Info.plist */ = {
+		F1000000000000000000000B /* Copy GoogleService-Info.plist */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
