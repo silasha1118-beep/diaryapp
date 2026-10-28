@@ -3,6 +3,10 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var account: AccountSession
+    @EnvironmentObject private var subscriptions: SubscriptionStore
+
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -10,6 +14,62 @@ struct SettingsView: View {
                 VaultBackground()
 
                 Form {
+                    Section {
+                        LabeledContent(localization.text("settings.account.status")) {
+                            Text(localization.text("settings.account.signedIn"))
+                                .foregroundStyle(VaultTheme.inkMuted)
+                        }
+                        if !account.displayLabel.isEmpty {
+                            LabeledContent(localization.text("settings.account.identity")) {
+                                Text(account.displayLabel)
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .lineLimit(1)
+                            }
+                        }
+                        LabeledContent(localization.text("settings.account.provider")) {
+                            Text(providerLabel)
+                                .foregroundStyle(VaultTheme.inkMuted)
+                        }
+                        Button(role: .destructive) {
+                            account.signOut()
+                        } label: {
+                            Text(localization.text("settings.account.signOut"))
+                        }
+                    } header: {
+                        Text(localization.text("settings.section.account"))
+                    } footer: {
+                        Text(localization.text("settings.account.footer"))
+                    }
+
+                    Section {
+                        LabeledContent(localization.text("settings.billing.plan")) {
+                            Text(
+                                subscriptions.isSubscribed
+                                    ? localization.text("settings.billing.active")
+                                    : localization.text("settings.billing.free")
+                            )
+                            .foregroundStyle(VaultTheme.inkMuted)
+                        }
+                        if let productID = subscriptions.activeProductID {
+                            LabeledContent(localization.text("settings.billing.product")) {
+                                Text(productID)
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .lineLimit(1)
+                            }
+                        }
+                        Button {
+                            showPaywall = true
+                        } label: {
+                            Text(localization.text("settings.billing.manage"))
+                                .foregroundStyle(VaultTheme.seal)
+                        }
+                    } header: {
+                        Text(localization.text("settings.section.billing"))
+                    } footer: {
+                        Text(localization.text("settings.billing.footer"))
+                    }
+
                     Section {
                         Picker(localization.text("settings.language"), selection: $localization.language) {
                             ForEach(AppLanguage.allCases) { lang in
@@ -88,6 +148,22 @@ struct SettingsView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle(localization.text("settings.title"))
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+                    .environmentObject(localization)
+                    .environmentObject(subscriptions)
+            }
+        }
+    }
+
+    private var providerLabel: String {
+        switch account.provider {
+        case .apple:
+            return localization.text("settings.account.provider.apple")
+        case .local:
+            return localization.text("settings.account.provider.local")
+        case .none:
+            return "—"
         }
     }
 }

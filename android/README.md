@@ -80,9 +80,10 @@ Same mirror system prompt + diary excerpts (**RAG-lite**) + usage guards. Data r
 
 ## Stubbed / omitted
 
-- App Store IAP / end-user billing — not in this PR
-- Account / sync / Taiwan server — local vault only
+- **Account / Play Billing** — `account/AccountSession` + `billing/BillingConfig` + Settings stubs only; no Google Sign-In / BillingClient (iOS SIWA + StoreKit first)
+- Cloud sync / Taiwan server — local vault only
 - Fine-tuning — not used; learning = prompt context only
+- Voice / video diary — deferred
 - Voice input / memorial mode / voice clone / legacy executor UI
 - Push / contextual reminder scheduling — toggle only
 - Unit / UI tests
@@ -92,6 +93,8 @@ Same mirror system prompt + diary excerpts (**RAG-lite**) + usage guards. Data r
 ```text
 android/
   app/src/main/java/com/diaryvault/app/
+    account/      # AccountSession stub (local prefs)
+    billing/      # BillingConfig + BillingStub (no Play Billing yet)
     config/       # AIConfig (env / BuildConfig — no secrets)
     data/         # AppPreferences, DiaryStore
     model/        # DiaryEntry, MirrorMessage, AppLanguage

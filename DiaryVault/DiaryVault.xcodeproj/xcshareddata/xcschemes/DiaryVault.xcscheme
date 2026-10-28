@@ -50,6 +50,9 @@
             ReferencedContainer = "container:DiaryVault.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <StoreKitConfigurationFileReference
+         identifier = "../DiaryVault/Configuration/DiaryVault.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

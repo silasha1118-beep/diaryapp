@@ -1,0 +1,133 @@
+{
+  "identifier" : "DiaryVaultStore",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21370001",
+      "localizations" : [
+        {
+          "description" : "Living-author Plus: mirror advice and your vault.",
+          "displayName" : "Author Plus",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "在世 Author Plus：鏡子建議與你的金庫。",
+          "displayName" : "Author Plus",
+          "locale" : "zh_Hant"
+        }
+      ],
+      "name" : "Author Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21370002",
+          "localizations" : [
+            {
+              "description" : "Unlimited diary narrative and mirror advice quota.",
+              "displayName" : "Author Plus Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.diaryvault.author.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Author Plus Monthly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "currentprice" : "4.99"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21370003",
+          "localizations" : [
+            {
+              "description" : "Yearly Author Plus — better value for your vault.",
+              "displayName" : "Author Plus Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.diaryvault.author.plus.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Author Plus Yearly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "currentprice" : "39.99"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

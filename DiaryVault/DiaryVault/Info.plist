@@ -58,5 +58,10 @@
 	<string></string>
 	<key>DIARY_AI_DAILY_REQUEST_LIMIT</key>
 	<string></string>
+	<!-- Optional IAP product ID overrides — leave empty to use BillingConfig defaults. Never put secrets here. -->
+	<key>DIARY_IAP_MONTHLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_YEARLY_PRODUCT_ID</key>
+	<string></string>
 </dict>
 </plist>

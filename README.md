@@ -2,7 +2,7 @@
 
 Personal diary vault MVP scaffold (iOS + Android). Near-term runnable target: **Android** (no Mac required). Living-author loop: **write → AI learns → gentle mirror-style advice** (reflect + guiding questions, not coach prescriptions). Memorial / voice clone / legacy executor UI is **out of Phase 1** and only mentioned as a stub in Settings.
 
-Product plan (source of truth for decisions): kept in the project workspace docs — not duplicated here.
+Product plan (source of truth for decisions): kept in the project workspace docs — not duplicated here. Account / billing sketch: `docs/account-and-billing-plan.md` (workspace).
 
 
 ## Android (near-term runnable)
@@ -10,6 +10,8 @@ Product plan (source of truth for decisions): kept in the project workspace docs
 > **No Mac / Xcode for now** — the Kotlin + Jetpack Compose app under [`android/`](android/) is the **near-term build & run target** on Linux/Windows. The iOS project in `DiaryVault/` stays intact for when a Mac is available.
 
 See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :app:assembleDebug`.
+
+Android **account / Play Billing** in this PR: **stub hooks only** (Settings shows local session stub + Author Plus product ID placeholders). Full Sign-In / Play Billing is deferred — iOS StoreKit + Sign in with Apple is the first path.
 
 ## Open in Xcode
 
@@ -21,7 +23,46 @@ See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :
    ```
 
 3. Select an iPhone Simulator (or device), then **Run** (⌘R).
-4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team.
+4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team for basic runs; **Sign in with Apple** needs the capability enabled for your Team (entitlements file is already in the project).
+
+### Account (Sign in with Apple)
+
+Flow: **Onboarding → Auth gate (SIWA) → main tabs**.
+
+- Session is **local** (`AccountSession` in UserDefaults). No auth backend in this MVP.
+- Settings shows signed-in identity / provider and **Sign out** (returns to the auth gate).
+- **DEBUG** builds also offer “Dev: continue with local session” so Simulator work is possible without Apple ID.
+- Do **not** commit secrets. Identity tokens are not sent anywhere yet.
+
+### Subscriptions (StoreKit 2 stub)
+
+Author Plus product IDs (override via scheme env or Info.plist — **no secrets**):
+
+| Variable | Default |
+|----------|---------|
+| `DIARY_IAP_MONTHLY_PRODUCT_ID` | `com.diaryvault.author.plus.monthly` |
+| `DIARY_IAP_YEARLY_PRODUCT_ID` | `com.diaryvault.author.plus.yearly` |
+
+- Settings → **View plans / restore** opens the paywall placeholder (load products, purchase when available, **Restore purchases**).
+- Shared scheme points at `DiaryVault/Configuration/DiaryVault.storekit` for local StoreKit testing.
+- Estate / legacy custody products are **not** in this paywall (later).
+
+### Sandbox / StoreKit testing (iOS)
+
+1. **Local StoreKit (no App Store Connect yet)**  
+   - Scheme → Run → Options → StoreKit Configuration = `DiaryVault.storekit` (already set on the shared scheme).  
+   - Run on Simulator → sign in (SIWA or DEBUG local) → Settings → View plans → purchase / restore against the local config.
+
+2. **App Store Connect Sandbox (real products)**  
+   - Create an auto-renewable subscription group **Author Plus** with the monthly / yearly product IDs above (or override IDs to match Connect).  
+   - Availability: start with **Taiwan, Hong Kong, Mainland China** per product plan.  
+   - Create a Sandbox Apple ID (Users and Access → Sandbox).  
+   - On a **device**: Settings → App Store → Sandbox Account; run a development build; purchase / restore.  
+   - Clear the local StoreKit config from the scheme when testing against Sandbox / TestFlight, or products may come from the `.storekit` file instead.
+
+3. **Capabilities**  
+   - Target → Signing & Capabilities → **Sign in with Apple**.  
+   - In-App Purchase capability is provided by StoreKit linkage; ensure the App ID has IAP enabled in the Developer portal before shipping.
 
 ### Enable cloud Mirror AI
 
@@ -53,17 +94,19 @@ DIARY_AI_BASE_URL=https://api.anthropic.com   # optional
 
 The Anthropic client `POST`s to `{baseURL}/v1/messages` with headers `x-api-key` + `anthropic-version: 2023-06-01`.
 
-**OpenAI-compatible** (Groq / DeepSeek / OpenAI, default) — `POST`s to `{baseURL}/v1/chat/completions` with `Authorization: Bearer …`. Groq host quirk: set `DIARY_AI_BASE_URL=https://api.groq.com/openai` (app appends `/v1/chat/completions`).
+**OpenAI-compatible** (Groq / DeepSeek / OpenAI / xAI, default) — `POST`s to `{baseURL}/v1/chat/completions` with `Authorization: Bearer …`. Groq host quirk: set `DIARY_AI_BASE_URL=https://api.groq.com/openai` (app appends `/v1/chat/completions`).
 
 Same **mirror-style** system prompt + diary excerpts (**RAG-lite**) + usage guards for both providers. Data residency narrative: **Taiwan (TW)**.
 
-Cost / billing notes for later App Store pricing: see project doc `docs/ai-cost-and-billing.md` (workspace).
+Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-billing.md` and `account-and-billing-plan.md` (workspace).
 
 ## What works in this scaffold
 
 | Area | Status |
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
+| **Account gate (Sign in with Apple + local session)** | Works on iOS; DEBUG local session available |
+| **StoreKit 2 Author Plus stub + paywall / restore** | Works against local `.storekit` or Sandbox products |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
@@ -71,13 +114,17 @@ Cost / billing notes for later App Store pricing: see project doc `docs/ai-cost-
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
+| Android account / billing | **Stub hooks** in Settings only |
 
 ## What is stubbed / omitted
 
-- **App Store IAP / user billing** — not in this PR; provider keys are developer-local only
-- **Account / sync / Taiwan server** — local vault only; residency is narrative + config label
+- **App Store Connect live products / prices** — create in Connect; IDs are configurable here
+- **Auth / receipt backend** — local session + StoreKit only; server verify later
+- **Android Google Sign-In / Play Billing** — stubs only this PR
+- **Free vs Plus Mirror quotas** — not yet wired to `MirrorUsageGuard`
+- **Voice / video diary** — deferred (out of this PR)
+- **Taiwan sync server** — local vault only; residency is narrative + config label
 - **Fine-tuning / private model training** — not used; learning = prompt context only
-- **Voice input / transcription** — omitted
 - **Memorial mode, voice clone, legacy executor** — Settings stub copy only; no Phase 1 UI
 - **Push / contextual reminder scheduling** — toggle only
 - **App Store assets / App Icon art** — placeholder asset catalog slot
@@ -90,12 +137,14 @@ DiaryVault/
   DiaryVault.xcodeproj
   DiaryVault/
     DiaryVaultApp.swift
+    DiaryVault.entitlements   # Sign in with Apple
     Models/          # AppState, DiaryEntry, MirrorMessage
-    Services/        # DiaryStore, Mirror AI (mock/cloud/prompt/usage), LocalizationManager
-    Config/          # AIConfig (env / Info.plist — no secrets)
-    Views/           # Onboarding, Diary, Mirror, Settings + vault theme
+    Services/        # DiaryStore, AccountSession, SubscriptionStore, Mirror AI, Localization
+    Config/          # AIConfig, BillingConfig (env / Info.plist — no secrets)
+    Configuration/   # DiaryVault.storekit (local IAP)
+    Views/           # Onboarding, Auth, Diary, Mirror, Paywall, Settings + vault theme
     Resources/       # en, zh-Hant, zh-Hans Localizable.strings
-android/             # Near-term runnable Compose MVP (same Mirror AI contract)
+android/             # Near-term runnable Compose MVP (+ account/billing stubs)
 ```
 
 ## Languages
@@ -108,4 +157,4 @@ In-app switchable (not only system locale):
 
 ## License / secrets
 
-Do not commit API keys. Prefer Xcode scheme environment variables or a gitignored `Secrets.xcconfig`.
+Do not commit API keys or signing secrets. Prefer Xcode scheme environment variables or a gitignored `Secrets.xcconfig`. IAP product IDs are public identifiers, not secrets.
