@@ -21,11 +21,15 @@ Package.resolved
 Pods/
 Carthage/Build/
 
-# Secrets — never commit API keys
+# Secrets — never commit API keys / SMS provider credentials
 Secrets.xcconfig
 *.secret
 .env
 .env.*
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+google-services.json
+**/google-services.json
 
 # macOS
 .DS_Store

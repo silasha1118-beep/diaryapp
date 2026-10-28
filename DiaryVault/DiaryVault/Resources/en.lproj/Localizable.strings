@@ -26,10 +26,29 @@
 "onboarding.name.placeholder" = "Your name";
 "onboarding.enter" = "Enter vault";
 
-/* Auth */
+/* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "Sign in to keep your vault yours.";
-"auth.body" = "Sign in with Apple creates a private local session on this device. No password is stored in the app. Cloud sync is not in this MVP.";
-"auth.error" = "Sign in with Apple could not finish. Try again.";
+"auth.body" = "Use your phone number and a one-time SMS code. Works in Taiwan, Hong Kong, and Mainland China — any phone that can receive SMS. No password is stored. Cloud sync is not in this MVP.";
+"auth.error" = "Sign in could not finish. Try again.";
+"auth.phone.label" = "Phone number";
+"auth.phone.region" = "Region";
+"auth.phone.placeholder" = "Mobile number";
+"auth.phone.send" = "Send verification code";
+"auth.phone.resend" = "Resend code";
+"auth.phone.sent" = "Code sent. Check your messages.";
+"auth.phone.invalid" = "Enter a valid mobile number for the selected region.";
+"auth.otp.label" = "Verification code";
+"auth.otp.placeholder" = "6-digit code";
+"auth.otp.verify" = "Verify and continue";
+"auth.otp.error" = "That code did not match. Try again.";
+"auth.dial.cn" = "+86 Mainland China";
+"auth.dial.hk" = "+852 Hong Kong";
+"auth.dial.tw" = "+886 Taiwan";
+"auth.stub.hint" = "Stub SMS (no real text): use code %@";
+"auth.sms.notConfigured" = "SMS provider is not configured. Use stub (default) or set Firebase/Twilio env vars locally — never commit secrets.";
+"auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again.";
+"auth.apple.backup" = "Or use Sign in with Apple";
+"auth.apple.error" = "Sign in with Apple could not finish. Try again.";
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */
@@ -84,10 +103,11 @@
 "settings.account.signedIn" = "Signed in";
 "settings.account.identity" = "Identity";
 "settings.account.provider" = "Provider";
+"settings.account.provider.phone" = "Phone (SMS OTP)";
 "settings.account.provider.apple" = "Sign in with Apple";
 "settings.account.provider.local" = "Local (dev)";
 "settings.account.signOut" = "Sign out";
-"settings.account.footer" = "Session is local to this device. Sign out returns you to the account gate.";
+"settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions. Sign out returns you to the account gate.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";

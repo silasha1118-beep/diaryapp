@@ -11,7 +11,7 @@ Product plan (source of truth for decisions): kept in the project workspace docs
 
 See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :app:assembleDebug`.
 
-Android **account / Play Billing** in this PR: **stub hooks only** (Settings shows local session stub + Author Plus product ID placeholders). Full Sign-In / Play Billing is deferred — iOS StoreKit + Sign in with Apple is the first path.
+Android **account / Play Billing** in this PR: **stub hooks only** (Settings shows local session / phone stub + Author Plus product ID placeholders). Full SMS OTP / Play Billing is deferred — iOS phone OTP + StoreKit is the first path.
 
 ## Open in Xcode
 
@@ -25,14 +25,27 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
 3. Select an iPhone Simulator (or device), then **Run** (⌘R).
 4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team for basic runs; **Sign in with Apple** needs the capability enabled for your Team (entitlements file is already in the project).
 
-### Account (Sign in with Apple)
+### Account (phone SMS OTP — all regions)
 
-Flow: **Onboarding → Auth gate (SIWA) → main tabs**.
+Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 
+- **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). WeChat / Google are **not** primary.
+- **Optional backup**: Sign in with Apple (collapsed under “Or use Sign in with Apple”).
 - Session is **local** (`AccountSession` in UserDefaults). No auth backend in this MVP.
 - Settings shows signed-in identity / provider and **Sign out** (returns to the auth gate).
-- **DEBUG** builds also offer “Dev: continue with local session” so Simulator work is possible without Apple ID.
-- Do **not** commit secrets. Identity tokens are not sent anywhere yet.
+- **DEBUG** builds also offer “Dev: continue with local session”.
+- Do **not** commit secrets. OTP / identity tokens are not sent to a real backend yet.
+
+#### SMS provider (stub · Firebase / Twilio ready)
+
+| Variable | Purpose |
+|----------|---------|
+| `DIARY_SMS_PROVIDER` | `stub` (default) · `firebase` · `twilio` |
+| `DIARY_SMS_STUB_CODE` | Optional fixed 6-digit code for stub; if empty, stub accepts the DEBUG-hinted code (or any 6-digit if session was lost) |
+| `DIARY_FIREBASE_PROJECT_ID` | Firebase-ready placeholder — keep empty in git; add `GoogleService-Info.plist` locally only |
+| `DIARY_TWILIO_ACCOUNT_SID` / `DIARY_TWILIO_AUTH_TOKEN` / `DIARY_TWILIO_VERIFY_SERVICE_SID` | Twilio Verify placeholders — **scheme env only**, never commit |
+
+Default provider is **stub**: no real SMS is sent. In DEBUG, the gate shows the stub code after “Send”. Selecting `firebase` / `twilio` without local config fails closed with a clear message (SDK not linked in this MVP).
 
 ### Subscriptions (StoreKit 2 stub)
 
@@ -51,7 +64,7 @@ Author Plus product IDs (override via scheme env or Info.plist — **no secrets*
 
 1. **Local StoreKit (no App Store Connect yet)**  
    - Scheme → Run → Options → StoreKit Configuration = `DiaryVault.storekit` (already set on the shared scheme).  
-   - Run on Simulator → sign in (SIWA or DEBUG local) → Settings → View plans → purchase / restore against the local config.
+   - Run on Simulator → sign in (phone OTP stub or DEBUG local) → Settings → View plans → purchase / restore against the local config.
 
 2. **App Store Connect Sandbox (real products)**  
    - Create an auto-renewable subscription group **Author Plus** with the monthly / yearly product IDs above (or override IDs to match Connect).  
@@ -105,7 +118,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Area | Status |
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
-| **Account gate (Sign in with Apple + local session)** | Works on iOS; DEBUG local session available |
+| **Account gate (phone SMS OTP + optional Apple)** | Works on iOS with stub SMS; DEBUG local session available |
 | **StoreKit 2 Author Plus stub + paywall / restore** | Works against local `.storekit` or Sandbox products |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
@@ -119,8 +132,8 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 ## What is stubbed / omitted
 
 - **App Store Connect live products / prices** — create in Connect; IDs are configurable here
-- **Auth / receipt backend** — local session + StoreKit only; server verify later
-- **Android Google Sign-In / Play Billing** — stubs only this PR
+- **Auth / receipt backend / real SMS** — local session + SMS stub + StoreKit; Firebase/Twilio wiring later
+- **Android SMS OTP / Play Billing** — stubs only this PR
 - **Free vs Plus Mirror quotas** — not yet wired to `MirrorUsageGuard`
 - **Voice / video diary** — deferred (out of this PR)
 - **Taiwan sync server** — local vault only; residency is narrative + config label
@@ -137,10 +150,10 @@ DiaryVault/
   DiaryVault.xcodeproj
   DiaryVault/
     DiaryVaultApp.swift
-    DiaryVault.entitlements   # Sign in with Apple
+    DiaryVault.entitlements   # Sign in with Apple (optional backup)
     Models/          # AppState, DiaryEntry, MirrorMessage
-    Services/        # DiaryStore, AccountSession, SubscriptionStore, Mirror AI, Localization
-    Config/          # AIConfig, BillingConfig (env / Info.plist — no secrets)
+    Services/        # DiaryStore, AccountSession, SMSAuthProvider, SubscriptionStore, Mirror AI, Localization
+    Config/          # AIConfig, BillingConfig, AuthConfig (env / Info.plist — no secrets)
     Configuration/   # DiaryVault.storekit (local IAP)
     Views/           # Onboarding, Auth, Diary, Mirror, Paywall, Settings + vault theme
     Resources/       # en, zh-Hant, zh-Hans Localizable.strings

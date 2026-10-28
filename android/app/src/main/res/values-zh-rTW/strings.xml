@@ -52,7 +52,7 @@
     <string name="settings_account_identity">身分</string>
     <string name="settings_account_sign_out">登出</string>
     <string name="settings_account_dev_sign_in">開發：本機會話 stub</string>
-    <string name="settings_account_footer">iOS 使用 Sign in with Apple。Android 僅保留會話鉤子——本 PR 不含 Google 登入／Play Billing。</string>
+    <string name="settings_account_footer">iOS 主登入為全區手機 SMS OTP。Android 僅保留會話／手機 stub——本 PR 不含真實簡訊 SDK／Play Billing。</string>
     <string name="settings_section_billing">訂閱</string>
     <string name="settings_billing_plan">方案</string>
     <string name="settings_billing_free">免費</string>

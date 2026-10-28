@@ -158,6 +158,8 @@ struct SettingsView: View {
 
     private var providerLabel: String {
         switch account.provider {
+        case .phone:
+            return localization.text("settings.account.provider.phone")
         case .apple:
             return localization.text("settings.account.provider.apple")
         case .local:

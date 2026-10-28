@@ -52,7 +52,7 @@
     <string name="settings_account_identity">Identity</string>
     <string name="settings_account_sign_out">Sign out</string>
     <string name="settings_account_dev_sign_in">Dev: local session stub</string>
-    <string name="settings_account_footer">iOS uses Sign in with Apple. Android keeps session hooks only — no Google Sign-In / Play Billing in this PR.</string>
+    <string name="settings_account_footer">iOS primary auth is phone SMS OTP (all regions). Android keeps session / phone stubs only — no real SMS SDK / Play Billing in this PR.</string>
     <string name="settings_section_billing">Subscription</string>
     <string name="settings_billing_plan">Plan</string>
     <string name="settings_billing_free">Free</string>
