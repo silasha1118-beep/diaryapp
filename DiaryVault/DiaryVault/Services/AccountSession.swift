@@ -3,7 +3,7 @@ import Combine
 import FirebaseCore
 import FirebaseAuth
 
-/// Local account session for phone SMS OTP (primary) and optional Apple / DEBUG local.
+/// Local account session for phone SMS OTP (primary) and DEBUG local.
 /// When Firebase Phone Auth succeeds, `userID` is the Firebase UID; diary data stays on device.
 @MainActor
 final class AccountSession: ObservableObject {
@@ -19,6 +19,7 @@ final class AccountSession: ObservableObject {
 
     enum Provider: String {
         case phone
+        /// Legacy sessions from when Sign in with Apple was offered; no longer a sign-in path.
         case apple
         case local
     }
@@ -71,16 +72,6 @@ final class AccountSession: ObservableObject {
             fullName: displayName,
             phoneE164: phoneE164,
             provider: .phone
-        )
-    }
-
-    func signInWithApple(userID: String, email: String?, fullName: String?) {
-        apply(
-            userID: userID,
-            email: email,
-            fullName: fullName,
-            phoneE164: nil,
-            provider: .apple
         )
     }
 

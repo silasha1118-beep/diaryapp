@@ -47,8 +47,6 @@
 "auth.stub.hint" = "Stub SMS (no real text): use code %@";
 "auth.sms.notConfigured" = "SMS is not ready. Add GoogleService-Info.plist to the DiaryVault target (keep it out of git), or set DIARY_SMS_PROVIDER=stub.";
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again.";
-"auth.apple.backup" = "Or use Sign in with Apple";
-"auth.apple.error" = "Sign in with Apple could not finish. Try again.";
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */
