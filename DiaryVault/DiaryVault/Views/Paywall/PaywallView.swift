@@ -23,8 +23,13 @@ struct PaywallView: View {
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
 
+                        freeTierCard
+
                         if subscriptions.isSubscribed {
-                            statusBanner(localization.text("paywall.active"), detail: subscriptions.activeProductID)
+                            statusBanner(
+                                localization.text("paywall.active"),
+                                detail: activeDetail
+                            )
                         }
 
                         if subscriptions.isLoading && subscriptions.products.isEmpty {
@@ -56,9 +61,26 @@ struct PaywallView: View {
                         .buttonStyle(.plain)
                         .disabled(subscriptions.isLoading)
 
+                        Button {
+                            Task { await subscriptions.refresh() }
+                        } label: {
+                            Text(localization.text("paywall.reload"))
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(VaultTheme.seal)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(subscriptions.isLoading)
+
                         if let key = subscriptions.statusMessage {
                             Text(statusText(for: key))
                                 .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.inkMuted)
+                        }
+
+                        if let detail = subscriptions.lastErrorDetail, !detail.isEmpty {
+                            Text(detail)
+                                .font(.system(size: 12, design: .monospaced))
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
 
@@ -81,6 +103,46 @@ struct PaywallView: View {
                 await subscriptions.refresh()
             }
         }
+    }
+
+    private var activeDetail: String? {
+        var parts: [String] = []
+        if let id = subscriptions.activeProductID {
+            parts.append(id)
+        }
+        if let exp = subscriptions.expirationDate {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            parts.append(localization.text("paywall.expires") + " " + formatter.string(from: exp))
+        }
+        if subscriptions.willAutoRenew {
+            parts.append(localization.text("paywall.autoRenewOn"))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private var freeTierCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(localization.text("paywall.free.title"))
+                .font(.system(size: 17, weight: .semibold, design: .serif))
+                .foregroundStyle(VaultTheme.ink)
+            Text(localization.text("paywall.free.body"))
+                .font(.system(size: 14))
+                .foregroundStyle(VaultTheme.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
+            if !subscriptions.isSubscribed {
+                Text(localization.text("paywall.free.current"))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(VaultTheme.seal)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .stroke(VaultTheme.line, lineWidth: 1)
+        )
     }
 
     private var placeholderProducts: some View {
@@ -120,36 +182,58 @@ struct PaywallView: View {
     }
 
     private func productRow(_ product: Product) -> some View {
-        Button {
+        let isActive = subscriptions.activeProductID == product.id
+        return Button {
             Task { await subscriptions.purchase(product) }
         } label: {
-            HStack {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(product.displayName.isEmpty ? product.id : product.displayName)
+                    Text(displayName(for: product))
                         .font(.system(size: 17, weight: .semibold, design: .serif))
                         .foregroundStyle(VaultTheme.ink)
-                    Text(product.description)
+                    Text(product.description.isEmpty
+                         ? localization.text("paywall.plus.blurb")
+                         : product.description)
                         .font(.system(size: 13))
                         .foregroundStyle(VaultTheme.inkMuted)
-                        .lineLimit(2)
+                        .lineLimit(3)
+                    if isActive {
+                        Text(localization.text("paywall.currentPlan"))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(VaultTheme.seal)
+                    }
                 }
-                Spacer()
-                Text(product.displayPrice)
+                Spacer(minLength: 8)
+                Text(isActive ? localization.text("paywall.owned") : product.displayPrice)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(VaultTheme.paper)
+                    .foregroundStyle(isActive ? VaultTheme.ink : VaultTheme.paper)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(VaultTheme.ink)
+                    .background(isActive ? VaultTheme.seal.opacity(0.18) : VaultTheme.ink)
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             }
             .padding(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .stroke(VaultTheme.line, lineWidth: 1)
+                    .stroke(isActive ? VaultTheme.seal.opacity(0.55) : VaultTheme.line, lineWidth: isActive ? 1.5 : 1)
             )
         }
         .buttonStyle(.plain)
-        .disabled(subscriptions.isLoading || subscriptions.isSubscribed)
+        .disabled(subscriptions.isLoading || isActive)
+        .accessibilityLabel(displayName(for: product))
+    }
+
+    private func displayName(for product: Product) -> String {
+        if !product.displayName.isEmpty {
+            return product.displayName
+        }
+        if product.id == BillingConfig.monthlyProductID {
+            return localization.text("paywall.monthly")
+        }
+        if product.id == BillingConfig.yearlyProductID {
+            return localization.text("paywall.yearly")
+        }
+        return product.id
     }
 
     private func statusBanner(_ title: String, detail: String?) -> some View {
@@ -161,6 +245,7 @@ struct PaywallView: View {
                 Text(detail)
                     .font(.system(size: 12, design: .monospaced))
                     .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(14)

@@ -52,24 +52,33 @@
 /* Paywall */
 "paywall.title" = "Author Plus";
 "paywall.headline" = "A mirror that knows your words.";
-"paywall.body" = "Author Plus is the living-author plan: your vault narrative plus mirror advice quota. Prices come from the App Store — nothing is hardcoded here.";
+"paywall.body" = "Choose Free or Author Plus. Prices come from StoreKit (local config or App Store) — nothing is hardcoded here.";
+"paywall.free.title" = "Free";
+"paywall.free.body" = "Write in your vault and try the mirror. Quotas stay limited until you upgrade.";
+"paywall.free.current" = "Your current plan";
+"paywall.plus.blurb" = "Unlimited diary narrative + mirror advice quota.";
 "paywall.monthly" = "Author Plus · Monthly";
 "paywall.yearly" = "Author Plus · Yearly";
 "paywall.restore" = "Restore purchases";
+"paywall.reload" = "Reload products";
 "paywall.active" = "Subscription active on this Apple ID";
+"paywall.currentPlan" = "Current plan";
+"paywall.owned" = "Active";
+"paywall.expires" = "Renews / ends";
+"paywall.autoRenewOn" = "Auto-renew on";
 "paywall.unavailable" = "Product not loaded yet";
-"paywall.productsMissing" = "Create these product IDs in App Store Connect (or enable the local StoreKit config in the scheme) to purchase in Sandbox.";
+"paywall.productsMissing" = "No products loaded. On Mac: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit, then Run again. Paid Apple Developer is required for real App Store Connect products.";
 "paywall.footer" = "Subscriptions renew until cancelled in Settings → Apple ID. Estate / legacy custody products are later — not in this paywall.";
-"paywall.status.productsEmpty" = "No products returned. Check product IDs and StoreKit / Sandbox setup.";
+"paywall.status.productsEmpty" = "No products returned. Confirm the scheme StoreKit Configuration file, then Reload products.";
 "paywall.status.productsError" = "Could not load products from StoreKit.";
-"paywall.status.purchaseSuccess" = "Purchase recorded.";
+"paywall.status.purchaseSuccess" = "Purchase recorded. Author Plus is active.";
 "paywall.status.purchaseCancelled" = "Purchase cancelled.";
 "paywall.status.purchasePending" = "Purchase pending approval.";
 "paywall.status.purchaseUnknown" = "Purchase ended in an unknown state.";
 "paywall.status.purchaseError" = "Purchase failed.";
 "paywall.status.restoreSuccess" = "Purchases restored.";
 "paywall.status.restoreNone" = "No active subscription found for this Apple ID.";
-"paywall.status.restoreError" = "Restore failed. Check network and Sandbox account.";
+"paywall.status.restoreError" = "Restore failed. With the local StoreKit config, buy once first; for Sandbox, sign in with a Sandbox Apple ID.";
 
 /* Diary */
 "diary.subtitle" = "Private entries in your vault";
@@ -115,8 +124,9 @@
 "settings.billing.free" = "Free";
 "settings.billing.active" = "Author Plus";
 "settings.billing.product" = "Product";
+"settings.billing.expires" = "Period end";
 "settings.billing.manage" = "View plans / restore";
-"settings.billing.footer" = "StoreKit 2 stub. Configure product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
+"settings.billing.footer" = "StoreKit 2: purchase and restore against the local DiaryVault.storekit file (or App Store Sandbox). Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
 "settings.section.language" = "Language";
 "settings.language" = "App language";
 "settings.language.footer" = "繁中 / 簡中 / English — switch anytime.";

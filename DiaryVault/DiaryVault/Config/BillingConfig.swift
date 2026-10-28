@@ -1,10 +1,20 @@
 import Foundation
 
-/// StoreKit product IDs for Author Plus. Override via scheme env / Info.plist — never hardcode secrets.
+/// StoreKit product IDs for Author Plus (living-author plan).
+/// Override via scheme env / Info.plist — product IDs are public identifiers, never secrets.
 ///
 /// - `DIARY_IAP_MONTHLY_PRODUCT_ID` — default `com.diaryvault.author.plus.monthly`
 /// - `DIARY_IAP_YEARLY_PRODUCT_ID` — default `com.diaryvault.author.plus.yearly`
+///
+/// Voice / video diary and any higher multimedia tier are **deferred** — not configured here.
 enum BillingConfig {
+    /// Free = local vault + limited mirror (quota wiring later).
+    /// Author Plus = unlimited diary narrative + mirror advice quota story.
+    enum Tier: String, CaseIterable {
+        case free
+        case authorPlus
+    }
+
     static let defaultMonthlyProductID = "com.diaryvault.author.plus.monthly"
     static let defaultYearlyProductID = "com.diaryvault.author.plus.yearly"
 
@@ -16,12 +26,16 @@ enum BillingConfig {
         value(for: "DIARY_IAP_YEARLY_PRODUCT_ID") ?? defaultYearlyProductID
     }
 
+    /// Product IDs loaded / purchasable in this build (Author Plus monthly + yearly).
     static var productIDs: [String] {
         [monthlyProductID, yearlyProductID]
     }
 
-    /// Human label for Settings / paywall when products are not yet loaded from the store.
     static var planName: String { "Author Plus" }
+
+    static func isAuthorPlusProduct(_ productID: String) -> Bool {
+        productIDs.contains(productID)
+    }
 
     private static func value(for key: String) -> String? {
         if let env = ProcessInfo.processInfo.environment[key], !env.isEmpty {
