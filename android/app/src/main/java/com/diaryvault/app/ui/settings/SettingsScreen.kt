@@ -40,6 +40,9 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val language by viewModel.language.collectAsState()
     val reminders by viewModel.gentleReminders.collectAsState()
     val name by viewModel.displayName.collectAsState()
+    val accountSignedIn by viewModel.accountSignedIn.collectAsState()
+    val accountLabel by viewModel.accountLabel.collectAsState()
+    val billingActive by viewModel.billingActive.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -59,6 +62,50 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            SectionTitle(localizedString(R.string.settings_section_account))
+            Text(
+                localizedString(R.string.settings_account_status) + ": " +
+                    localizedString(
+                        if (accountSignedIn) R.string.settings_account_signed_in
+                        else R.string.settings_account_signed_out,
+                    ),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (accountLabel.isNotBlank()) {
+                Text(
+                    localizedString(R.string.settings_account_identity) + ": " + accountLabel,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            if (accountSignedIn) {
+                TextButton(onClick = viewModel::signOutAccount) {
+                    Text(localizedString(R.string.settings_account_sign_out), color = VaultColors.seal)
+                }
+            } else {
+                TextButton(onClick = viewModel::signInLocalStub) {
+                    Text(localizedString(R.string.settings_account_dev_sign_in), color = VaultColors.seal)
+                }
+            }
+            Footer(localizedString(R.string.settings_account_footer))
+
+            Divider()
+
+            SectionTitle(localizedString(R.string.settings_section_billing))
+            Text(
+                localizedString(R.string.settings_billing_plan) + ": " +
+                    if (billingActive) viewModel.billingPlanName
+                    else localizedString(R.string.settings_billing_free),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Text(
+                localizedString(R.string.settings_billing_products) + ": " +
+                    viewModel.billingProductIds.joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Footer(localizedString(R.string.settings_billing_footer))
+
+            Divider()
+
             SectionTitle(localizedString(R.string.settings_section_language))
             Text(localizedString(R.string.settings_language), style = MaterialTheme.typography.bodyLarge)
             LanguageStrip(selected = language, onSelect = viewModel::setLanguage)

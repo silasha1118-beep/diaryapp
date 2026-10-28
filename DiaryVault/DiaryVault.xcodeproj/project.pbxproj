@@ -30,6 +30,12 @@
 		A10000000000000000000012 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* SettingsView.swift */; };
 		A10000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* Assets.xcassets */; };
 		A10000000000000000000014 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* Localizable.strings */; };
+		A1000000000000000000001C /* BillingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001C /* BillingConfig.swift */; };
+		A1000000000000000000001D /* AccountSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001D /* AccountSession.swift */; };
+		A1000000000000000000001E /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001E /* SubscriptionStore.swift */; };
+		A1000000000000000000001F /* AuthGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001F /* AuthGateView.swift */; };
+		A10000000000000000000020 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* PaywallView.swift */; };
+		A10000000000000000000021 /* DiaryVault.storekit in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* DiaryVault.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +65,13 @@
 		B10000000000000000000016 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B10000000000000000000017 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B10000000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1000000000000000000001C /* BillingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingConfig.swift; sourceTree = "<group>"; };
+		B1000000000000000000001D /* AccountSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSession.swift; sourceTree = "<group>"; };
+		B1000000000000000000001E /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
+		B1000000000000000000001F /* AuthGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthGateView.swift; sourceTree = "<group>"; };
+		B10000000000000000000020 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		B10000000000000000000021 /* DiaryVault.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = DiaryVault.storekit; sourceTree = "<group>"; };
+		B10000000000000000000022 /* DiaryVault.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiaryVault.entitlements; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,9 +98,11 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000001 /* DiaryVaultApp.swift */,
+				B10000000000000000000022 /* DiaryVault.entitlements */,
 				E10000000000000000000004 /* Models */,
 				E10000000000000000000005 /* Services */,
 				E10000000000000000000006 /* Config */,
+				E1000000000000000000000D /* Configuration */,
 				E10000000000000000000007 /* Views */,
 				E10000000000000000000008 /* Resources */,
 				B10000000000000000000013 /* Assets.xcassets */,
@@ -125,6 +140,8 @@
 				B10000000000000000000019 /* MirrorPromptBuilder.swift */,
 				B1000000000000000000001A /* MirrorUsageGuard.swift */,
 				B1000000000000000000000A /* LocalizationManager.swift */,
+				B1000000000000000000001D /* AccountSession.swift */,
+				B1000000000000000000001E /* SubscriptionStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -133,8 +150,17 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000006 /* AIConfig.swift */,
+				B1000000000000000000001C /* BillingConfig.swift */,
 			);
 			path = Config;
+			sourceTree = "<group>";
+		};
+		E1000000000000000000000D /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000021 /* DiaryVault.storekit */,
+			);
+			path = Configuration;
 			sourceTree = "<group>";
 		};
 		E10000000000000000000007 /* Views */ = {
@@ -143,8 +169,10 @@
 				B1000000000000000000000B /* Theme.swift */,
 				B1000000000000000000000C /* RootView.swift */,
 				E10000000000000000000009 /* Onboarding */,
+				E1000000000000000000000E /* Auth */,
 				E1000000000000000000000A /* Diary */,
 				E1000000000000000000000B /* Mirror */,
+				E1000000000000000000000F /* Paywall */,
 				E1000000000000000000000C /* Settings */,
 			);
 			path = Views;
@@ -166,6 +194,14 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		E1000000000000000000000E /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B1000000000000000000001F /* AuthGateView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		E1000000000000000000000A /* Diary */ = {
 			isa = PBXGroup;
 			children = (
@@ -182,6 +218,14 @@
 				B10000000000000000000011 /* MirrorChatView.swift */,
 			);
 			path = Mirror;
+			sourceTree = "<group>";
+		};
+		E1000000000000000000000F /* Paywall */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000020 /* PaywallView.swift */,
+			);
+			path = Paywall;
 			sourceTree = "<group>";
 		};
 		E1000000000000000000000C /* Settings */ = {
@@ -254,6 +298,7 @@
 			files = (
 				A10000000000000000000013 /* Assets.xcassets in Resources */,
 				A10000000000000000000014 /* Localizable.strings in Resources */,
+				A10000000000000000000021 /* DiaryVault.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,6 +315,7 @@
 				A10000000000000000000004 /* MirrorMessage.swift in Sources */,
 				A10000000000000000000005 /* DiaryStore.swift in Sources */,
 				A10000000000000000000006 /* AIConfig.swift in Sources */,
+				A1000000000000000000001C /* BillingConfig.swift in Sources */,
 				A10000000000000000000007 /* MirrorAIService.swift in Sources */,
 				A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */,
 				A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */,
@@ -277,13 +323,17 @@
 				A10000000000000000000019 /* MirrorPromptBuilder.swift in Sources */,
 				A1000000000000000000001A /* MirrorUsageGuard.swift in Sources */,
 				A1000000000000000000000A /* LocalizationManager.swift in Sources */,
+				A1000000000000000000001D /* AccountSession.swift in Sources */,
+				A1000000000000000000001E /* SubscriptionStore.swift in Sources */,
 				A1000000000000000000000B /* Theme.swift in Sources */,
 				A1000000000000000000000C /* RootView.swift in Sources */,
 				A1000000000000000000000D /* OnboardingView.swift in Sources */,
+				A1000000000000000000001F /* AuthGateView.swift in Sources */,
 				A1000000000000000000000E /* DiaryListView.swift in Sources */,
 				A1000000000000000000000F /* DiaryComposerView.swift in Sources */,
 				A10000000000000000000010 /* DiaryDetailView.swift in Sources */,
 				A10000000000000000000011 /* MirrorChatView.swift in Sources */,
+				A10000000000000000000020 /* PaywallView.swift in Sources */,
 				A10000000000000000000012 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -343,6 +393,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DiaryVault/DiaryVault.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
@@ -369,6 +420,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DiaryVault/DiaryVault.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";

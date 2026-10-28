@@ -26,6 +26,34 @@
 "onboarding.name.placeholder" = "你的名字";
 "onboarding.enter" = "進入金庫";
 
+/* Auth */
+"auth.headline" = "登入，讓金庫真正屬於你。";
+"auth.body" = "使用 Apple 登入會在本機建立私密會話。App 不存密碼。本 MVP 尚無雲端同步。";
+"auth.error" = "Apple 登入未完成，請再試一次。";
+"auth.devLocal" = "開發：以本機會話繼續";
+
+/* Paywall */
+"paywall.title" = "Author Plus";
+"paywall.headline" = "一面認得你文字的鏡子。";
+"paywall.body" = "Author Plus 是在世作者方案：金庫敘事＋鏡子建議額度。價格由 App Store 提供——此處不硬編碼金額。";
+"paywall.monthly" = "Author Plus · 月訂";
+"paywall.yearly" = "Author Plus · 年訂";
+"paywall.restore" = "恢復購買";
+"paywall.active" = "此 Apple ID 已有有效訂閱";
+"paywall.unavailable" = "商品尚未載入";
+"paywall.productsMissing" = "請在 App Store Connect 建立這些產品 ID（或於 Scheme 啟用本機 StoreKit 設定檔）以便 Sandbox 購買。";
+"paywall.footer" = "訂閱會自動續訂，可於「設定 → Apple ID」取消。遺產／托管商品屬後期——不在此付費牆。";
+"paywall.status.productsEmpty" = "未取得任何商品。請檢查產品 ID 與 StoreKit／Sandbox 設定。";
+"paywall.status.productsError" = "無法從 StoreKit 載入商品。";
+"paywall.status.purchaseSuccess" = "購買已記錄。";
+"paywall.status.purchaseCancelled" = "已取消購買。";
+"paywall.status.purchasePending" = "購買待核准。";
+"paywall.status.purchaseUnknown" = "購買結束於未知狀態。";
+"paywall.status.purchaseError" = "購買失敗。";
+"paywall.status.restoreSuccess" = "已恢復購買。";
+"paywall.status.restoreNone" = "此 Apple ID 沒有有效訂閱。";
+"paywall.status.restoreError" = "恢復失敗。請檢查網路與 Sandbox 帳號。";
+
 /* Diary */
 "diary.subtitle" = "你的私密日記";
 "diary.subtitle.named" = "%@ 的金庫";
@@ -51,6 +79,22 @@
 
 /* Settings */
 "settings.title" = "設定";
+"settings.section.account" = "帳號";
+"settings.account.status" = "狀態";
+"settings.account.signedIn" = "已登入";
+"settings.account.identity" = "身分";
+"settings.account.provider" = "登入方式";
+"settings.account.provider.apple" = "透過 Apple 登入";
+"settings.account.provider.local" = "本機（開發）";
+"settings.account.signOut" = "登出";
+"settings.account.footer" = "會話僅存於此裝置。登出後會回到帳號閘門。";
+"settings.section.billing" = "訂閱";
+"settings.billing.plan" = "方案";
+"settings.billing.free" = "免費";
+"settings.billing.active" = "Author Plus";
+"settings.billing.product" = "產品";
+"settings.billing.manage" = "查看方案／恢復購買";
+"settings.billing.footer" = "StoreKit 2 骨架。可用 DIARY_IAP_* 環境變數或 Info.plist 覆寫產品 ID。倉庫不含密鑰。";
 "settings.section.language" = "語言";
 "settings.language" = "App 語言";
 "settings.language.footer" = "繁中／簡中／English——可隨時切換。";

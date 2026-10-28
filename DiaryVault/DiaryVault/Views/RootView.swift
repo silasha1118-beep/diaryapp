@@ -2,16 +2,20 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var account: AccountSession
 
     var body: some View {
         Group {
-            if appState.didCompleteOnboarding {
-                MainTabView()
-            } else {
+            if !appState.didCompleteOnboarding {
                 OnboardingView()
+            } else if !account.isSignedIn {
+                AuthGateView()
+            } else {
+                MainTabView()
             }
         }
         .animation(.easeInOut(duration: 0.35), value: appState.didCompleteOnboarding)
+        .animation(.easeInOut(duration: 0.35), value: account.isSignedIn)
     }
 }
 

@@ -3,6 +3,9 @@ package com.diaryvault.app
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.diaryvault.app.account.AccountSession
+import com.diaryvault.app.billing.BillingConfig
+import com.diaryvault.app.billing.BillingStub
 import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.config.AIProvider
 import com.diaryvault.app.data.AppPreferences
@@ -29,6 +32,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = AppPreferences(application)
     private val store = DiaryStore(application)
     private val ai = createMirrorAIService(application)
+    private val accountSession = AccountSession(application)
+    private val billingStub = BillingStub()
 
     private val _language = MutableStateFlow(AppLanguage.fromTag(prefs.languageTag))
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
@@ -55,6 +60,33 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     val useCloudClient: Boolean get() = AIConfig.useCloudClient
     val isAnthropicProvider: Boolean get() = AIConfig.provider == AIProvider.ANTHROPIC
     val dataResidency: String get() = AIConfig.dataResidencyLabel
+
+    private val _accountSignedIn = MutableStateFlow(accountSession.isSignedIn)
+    val accountSignedIn: StateFlow<Boolean> = _accountSignedIn.asStateFlow()
+
+    private val _accountLabel = MutableStateFlow(accountSession.displayName.orEmpty())
+    val accountLabel: StateFlow<String> = _accountLabel.asStateFlow()
+
+    private val _billingActive = MutableStateFlow(billingStub.isSubscribed)
+    val billingActive: StateFlow<Boolean> = _billingActive.asStateFlow()
+
+    val billingProductIds: List<String> get() = BillingConfig.productIds
+    val billingPlanName: String get() = BillingConfig.PLAN_NAME
+
+    /** Stub only — creates a local session; not Google Sign-In. */
+    fun signInLocalStub() {
+        accountSession.signInLocally(_displayName.value.ifBlank { null })
+        _accountSignedIn.value = accountSession.isSignedIn
+        _accountLabel.value = accountSession.displayName.orEmpty()
+    }
+
+    fun signOutAccount() {
+        accountSession.signOut()
+        billingStub.clear()
+        _accountSignedIn.value = false
+        _accountLabel.value = ""
+        _billingActive.value = false
+    }
 
     fun setLanguage(lang: AppLanguage) {
         prefs.languageTag = lang.tag
