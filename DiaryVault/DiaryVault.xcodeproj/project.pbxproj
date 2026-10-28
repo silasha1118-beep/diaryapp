@@ -31,7 +31,9 @@
 		A10000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000013 /* Assets.xcassets */; };
 		A10000000000000000000014 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000014 /* Localizable.strings */; };
 		A1000000000000000000001C /* BillingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001C /* BillingConfig.swift */; };
+		A10000000000000000000023 /* AuthConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000023 /* AuthConfig.swift */; };
 		A1000000000000000000001D /* AccountSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001D /* AccountSession.swift */; };
+		A10000000000000000000024 /* SMSAuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000024 /* SMSAuthProvider.swift */; };
 		A1000000000000000000001E /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001E /* SubscriptionStore.swift */; };
 		A1000000000000000000001F /* AuthGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000001F /* AuthGateView.swift */; };
 		A10000000000000000000020 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* PaywallView.swift */; };
@@ -66,7 +68,9 @@
 		B10000000000000000000017 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B10000000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1000000000000000000001C /* BillingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingConfig.swift; sourceTree = "<group>"; };
+		B10000000000000000000023 /* AuthConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfig.swift; sourceTree = "<group>"; };
 		B1000000000000000000001D /* AccountSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSession.swift; sourceTree = "<group>"; };
+		B10000000000000000000024 /* SMSAuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMSAuthProvider.swift; sourceTree = "<group>"; };
 		B1000000000000000000001E /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
 		B1000000000000000000001F /* AuthGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthGateView.swift; sourceTree = "<group>"; };
 		B10000000000000000000020 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -141,6 +145,7 @@
 				B1000000000000000000001A /* MirrorUsageGuard.swift */,
 				B1000000000000000000000A /* LocalizationManager.swift */,
 				B1000000000000000000001D /* AccountSession.swift */,
+				B10000000000000000000024 /* SMSAuthProvider.swift */,
 				B1000000000000000000001E /* SubscriptionStore.swift */,
 			);
 			path = Services;
@@ -151,6 +156,7 @@
 			children = (
 				B10000000000000000000006 /* AIConfig.swift */,
 				B1000000000000000000001C /* BillingConfig.swift */,
+				B10000000000000000000023 /* AuthConfig.swift */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -316,6 +322,7 @@
 				A10000000000000000000005 /* DiaryStore.swift in Sources */,
 				A10000000000000000000006 /* AIConfig.swift in Sources */,
 				A1000000000000000000001C /* BillingConfig.swift in Sources */,
+				A10000000000000000000023 /* AuthConfig.swift in Sources */,
 				A10000000000000000000007 /* MirrorAIService.swift in Sources */,
 				A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */,
 				A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */,
@@ -324,6 +331,7 @@
 				A1000000000000000000001A /* MirrorUsageGuard.swift in Sources */,
 				A1000000000000000000000A /* LocalizationManager.swift in Sources */,
 				A1000000000000000000001D /* AccountSession.swift in Sources */,
+				A10000000000000000000024 /* SMSAuthProvider.swift in Sources */,
 				A1000000000000000000001E /* SubscriptionStore.swift in Sources */,
 				A1000000000000000000000B /* Theme.swift in Sources */,
 				A1000000000000000000000C /* RootView.swift in Sources */,

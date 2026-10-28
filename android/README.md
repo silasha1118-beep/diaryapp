@@ -80,7 +80,7 @@ Same mirror system prompt + diary excerpts (**RAG-lite**) + usage guards. Data r
 
 ## Stubbed / omitted
 
-- **Account / Play Billing** — `account/AccountSession` + `billing/BillingConfig` + Settings stubs only; no Google Sign-In / BillingClient (iOS SIWA + StoreKit first)
+- **Account / Play Billing** — `account/AccountSession` (phone + local stubs) + `billing/BillingConfig` + Settings stubs only; no real SMS SDK / BillingClient (iOS phone OTP + StoreKit first)
 - Cloud sync / Taiwan server — local vault only
 - Fine-tuning — not used; learning = prompt context only
 - Voice / video diary — deferred
