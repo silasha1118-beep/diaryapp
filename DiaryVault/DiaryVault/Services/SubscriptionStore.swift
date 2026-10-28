@@ -141,6 +141,8 @@ final class SubscriptionStore: ObservableObject {
             tier = .free
             willAutoRenew = false
         }
+        // Sync for MirrorUsageGuard (cloud clients read this synchronously).
+        UserDefaults.standard.set(isSubscribed, forKey: BillingConfig.authorPlusEntitlementDefaultsKey)
     }
 
     private func subscriptionWillAutoRenew(for productID: String) async -> Bool {

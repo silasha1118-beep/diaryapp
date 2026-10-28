@@ -61,9 +61,9 @@
 "paywall.headline" = "A mirror that knows your words.";
 "paywall.body" = "Choose Free or Author Plus. Prices come from StoreKit (local config or App Store) — nothing is hardcoded here.";
 "paywall.free.title" = "Free";
-"paywall.free.body" = "Write in your vault and try the mirror. Quotas stay limited until you upgrade.";
+"paywall.free.body" = "Write in your vault and try the mirror. Free cloud Mirror is capped each day until you upgrade.";
 "paywall.free.current" = "Your current plan";
-"paywall.plus.blurb" = "Unlimited diary narrative + mirror advice quota.";
+"paywall.plus.blurb" = "Unlimited diary narrative + higher daily Mirror advice quota.";
 "paywall.monthly" = "Author Plus · Monthly";
 "paywall.yearly" = "Author Plus · Yearly";
 "paywall.restore" = "Restore purchases";
@@ -109,6 +109,11 @@
 "mirror.send" = "Send";
 "mirror.thinking" = "Listening…";
 "mirror.cited" = "Grounded in your entries";
+"mirror.quota.remaining" = "%d of %d Mirror requests left today";
+"mirror.quota.unlimited" = "Author Plus Mirror quota: unlimited today (config)";
+"mirror.quota.exhausted.free" = "Today’s free Mirror limit (%d) is used up. Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
+"mirror.quota.exhausted.plus" = "Today’s Author Plus Mirror limit (%d) is used up. Try again tomorrow.";
+"mirror.quota.upgrade" = "View Author Plus";
 
 /* Settings */
 "settings.title" = "Settings";
@@ -147,8 +152,13 @@
 "settings.ai.provider" = "Provider";
 "settings.ai.provider.openai" = "OpenAI-compatible";
 "settings.ai.provider.anthropic" = "Anthropic";
+"settings.ai.quota" = "Mirror today";
+"settings.ai.quota.value" = "%d / %d requests";
+"settings.ai.quota.unlimited" = "Unlimited (Plus config)";
+"settings.ai.quota.exhausted.free" = "Free daily Mirror quota is used up. Upgrade to Author Plus or wait until tomorrow.";
+"settings.ai.quota.exhausted.plus" = "Author Plus daily Mirror quota is used up. Try again tomorrow.";
 "settings.ai.residency" = "Data residency";
-"settings.ai.footer" = "Set DIARY_AI_API_KEY and optionally DIARY_AI_PROVIDER=anthropic|openai in the Xcode scheme. No secrets in the repo.";
+"settings.ai.footer" = "Cloud Mirror: Free uses DIARY_AI_FREE_DAILY_REQUEST_LIMIT (default 8); Author Plus uses DIARY_AI_DAILY_REQUEST_LIMIT (default 40, 0 = unlimited). Set DIARY_AI_API_KEY in the Xcode scheme. No secrets in the repo.";
 "settings.section.legacy" = "Legacy";
 "settings.legacy.stub" = "Memorial / voice clone / executor settings — not in Phase 1 UI.";
 "settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";

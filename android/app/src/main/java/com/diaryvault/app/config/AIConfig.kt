@@ -19,7 +19,8 @@ enum class AIProvider {
  * - DIARY_AI_MODEL — optional; defaults to gpt-4o-mini (openai) or claude-sonnet-4-5 (anthropic)
  * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 400)
  * - DIARY_AI_MAX_CONTEXT_ENTRIES — optional; diary excerpts in prompt (default 8)
- * - DIARY_AI_DAILY_REQUEST_LIMIT — optional; local daily cap stub (default 40; 0 = off)
+ * - DIARY_AI_FREE_DAILY_REQUEST_LIMIT — Free-tier daily Mirror cap (default 8)
+ * - DIARY_AI_DAILY_REQUEST_LIMIT — Author Plus daily cap (default 40; 0 = unlimited for Plus)
  *
  * Data residency narrative: Taiwan (TW).
  */
@@ -32,6 +33,7 @@ object AIConfig {
     const val ANTHROPIC_API_VERSION = "2023-06-01"
     const val DEFAULT_MAX_TOKENS = 400
     const val DEFAULT_MAX_CONTEXT_ENTRIES = 8
+    const val DEFAULT_FREE_DAILY_REQUEST_LIMIT = 8
     const val DEFAULT_DAILY_REQUEST_LIMIT = 40
     const val MAX_ENTRY_BODY_CHARS = 600
     const val MAX_CONVERSATION_TURNS = 8
@@ -92,7 +94,15 @@ object AIConfig {
             DEFAULT_MAX_CONTEXT_ENTRIES,
         )
 
-    /** Local stub counter. `0` disables the cap. */
+    /** Free-tier local daily Mirror cap. Always at least 1. */
+    val freeDailyRequestLimit: Int
+        get() = intFromBuildOrEnv(
+            "DIARY_AI_FREE_DAILY_REQUEST_LIMIT",
+            BuildConfig.DIARY_AI_FREE_DAILY_REQUEST_LIMIT,
+            DEFAULT_FREE_DAILY_REQUEST_LIMIT,
+        ).coerceAtLeast(1)
+
+    /** Author Plus local daily Mirror cap. `0` disables the Plus-tier cap. */
     val dailyRequestLimit: Int
         get() = intFromBuildOrEnv(
             "DIARY_AI_DAILY_REQUEST_LIMIT",
