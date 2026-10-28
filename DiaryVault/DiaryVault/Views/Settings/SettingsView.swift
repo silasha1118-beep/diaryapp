@@ -125,6 +125,33 @@ struct SettingsView: View {
                                 )
                                 .foregroundStyle(VaultTheme.inkMuted)
                             }
+                            LabeledContent(localization.text("settings.ai.quota")) {
+                                Text(mirrorQuotaLabel)
+                                    .foregroundStyle(
+                                        MirrorUsageGuard.isExhausted(isAuthorPlus: subscriptions.isSubscribed)
+                                            ? VaultTheme.seal
+                                            : VaultTheme.inkMuted
+                                    )
+                            }
+                            if MirrorUsageGuard.isExhausted(isAuthorPlus: subscriptions.isSubscribed) {
+                                Text(
+                                    localization.text(
+                                        subscriptions.isSubscribed
+                                            ? "settings.ai.quota.exhausted.plus"
+                                            : "settings.ai.quota.exhausted.free"
+                                    )
+                                )
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.seal)
+                                if !subscriptions.isSubscribed {
+                                    Button {
+                                        showPaywall = true
+                                    } label: {
+                                        Text(localization.text("mirror.quota.upgrade"))
+                                            .foregroundStyle(VaultTheme.seal)
+                                    }
+                                }
+                            }
                         }
                         LabeledContent(localization.text("settings.ai.residency")) {
                             Text(AIConfig.dataResidencyLabel)
@@ -181,5 +208,15 @@ struct SettingsView: View {
         case .none:
             return "—"
         }
+    }
+
+    private var mirrorQuotaLabel: String {
+        let plus = subscriptions.isSubscribed
+        let used = MirrorUsageGuard.usageCountToday()
+        let limit = MirrorUsageGuard.effectiveLimit(isAuthorPlus: plus)
+        if limit <= 0 {
+            return localization.text("settings.ai.quota.unlimited")
+        }
+        return String(format: localization.text("settings.ai.quota.value"), used, limit)
     }
 }

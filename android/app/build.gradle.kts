@@ -20,6 +20,7 @@ android {
         buildConfigField("String", "DIARY_AI_MODEL", "\"${System.getenv("DIARY_AI_MODEL") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_MAX_TOKENS", "\"${System.getenv("DIARY_AI_MAX_TOKENS") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_MAX_CONTEXT_ENTRIES", "\"${System.getenv("DIARY_AI_MAX_CONTEXT_ENTRIES") ?: ""}\"")
+        buildConfigField("String", "DIARY_AI_FREE_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_FREE_DAILY_REQUEST_LIMIT") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_DAILY_REQUEST_LIMIT") ?: ""}\"")
     }
 

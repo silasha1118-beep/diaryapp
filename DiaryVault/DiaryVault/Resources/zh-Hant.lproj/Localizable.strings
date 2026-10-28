@@ -61,9 +61,9 @@
 "paywall.headline" = "一面認得你文字的鏡子。";
 "paywall.body" = "可選免費或 Author Plus。價格由 StoreKit（本機設定檔或 App Store）提供——此處不硬編碼金額。";
 "paywall.free.title" = "免費";
-"paywall.free.body" = "可寫日記、試用鏡子；額度有限，升級後再擴大。";
+"paywall.free.body" = "可寫日記、試用鏡子；免費雲端鏡子每日有次數上限，升級後提高。";
 "paywall.free.current" = "目前方案";
-"paywall.plus.blurb" = "無限日記敘事＋鏡子建議額度。";
+"paywall.plus.blurb" = "無限日記敘事＋更高每日鏡子建議額度。";
 "paywall.monthly" = "Author Plus · 月訂";
 "paywall.yearly" = "Author Plus · 年訂";
 "paywall.restore" = "恢復購買";
@@ -109,6 +109,11 @@
 "mirror.send" = "送出";
 "mirror.thinking" = "正在傾聽…";
 "mirror.cited" = "依據你的日記";
+"mirror.quota.remaining" = "今日鏡子還剩 %d／%d 次";
+"mirror.quota.unlimited" = "Author Plus 鏡子額度：今日不限（依設定）";
+"mirror.quota.exhausted.free" = "今日免費鏡子次數（%d）已用完。升級 Author Plus 可提高每日額度，或明天再試。";
+"mirror.quota.exhausted.plus" = "今日 Author Plus 鏡子額度（%d）已用完。請明天再試。";
+"mirror.quota.upgrade" = "查看 Author Plus";
 
 /* Settings */
 "settings.title" = "設定";
@@ -147,8 +152,13 @@
 "settings.ai.provider" = "供應商";
 "settings.ai.provider.openai" = "OpenAI 相容";
 "settings.ai.provider.anthropic" = "Anthropic";
+"settings.ai.quota" = "今日鏡子";
+"settings.ai.quota.value" = "%d／%d 次";
+"settings.ai.quota.unlimited" = "不限（Plus 設定）";
+"settings.ai.quota.exhausted.free" = "免費每日鏡子額度已用完。請升級 Author Plus，或等到明天。";
+"settings.ai.quota.exhausted.plus" = "Author Plus 每日鏡子額度已用完。請明天再試。";
 "settings.ai.residency" = "資料落地";
-"settings.ai.footer" = "在 Xcode Scheme 設定 DIARY_AI_API_KEY，可選 DIARY_AI_PROVIDER=anthropic|openai。倉庫不含密鑰。";
+"settings.ai.footer" = "雲端鏡子：免費用 DIARY_AI_FREE_DAILY_REQUEST_LIMIT（預設 8）；Author Plus 用 DIARY_AI_DAILY_REQUEST_LIMIT（預設 40，0＝不限）。請在 Xcode Scheme 設定 DIARY_AI_API_KEY。倉庫不含密鑰。";
 "settings.section.legacy" = "遺產／紀念";
 "settings.legacy.stub" = "紀念模式／語音克隆／執行人設定——非 Phase 1 UI。";
 "settings.legacy.footer" = "僅路線圖。本 MVP 骨架刻意省略。";

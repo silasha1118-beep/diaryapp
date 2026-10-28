@@ -16,7 +16,8 @@ enum AIProvider: String {
 /// - `DIARY_AI_MODEL` — optional; defaults to `gpt-4o-mini` (openai) or `claude-sonnet-4-5` (anthropic)
 /// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 400)
 /// - `DIARY_AI_MAX_CONTEXT_ENTRIES` — optional; diary excerpts in prompt (default 8)
-/// - `DIARY_AI_DAILY_REQUEST_LIMIT` — optional; local daily cap stub (default 40; `0` = off)
+/// - `DIARY_AI_FREE_DAILY_REQUEST_LIMIT` — Free-tier daily Mirror cap (default 8)
+/// - `DIARY_AI_DAILY_REQUEST_LIMIT` — Author Plus daily cap (default 40; `0` = unlimited for Plus)
 ///
 /// Data residency narrative for this product: Taiwan (TW).
 enum AIConfig {
@@ -28,6 +29,9 @@ enum AIConfig {
     static let anthropicAPIVersion = "2023-06-01"
     static let defaultMaxTokens = 400
     static let defaultMaxContextEntries = 8
+    /// Free tier: lower daily Mirror AI requests (cloud only).
+    static let defaultFreeDailyRequestLimit = 8
+    /// Author Plus: higher daily Mirror AI requests; `0` disables the Plus cap.
     static let defaultDailyRequestLimit = 40
     /// Soft cap on characters per diary body in the prompt (RAG-lite).
     static let maxEntryBodyCharacters = 600
@@ -77,7 +81,12 @@ enum AIConfig {
         intValue(for: "DIARY_AI_MAX_CONTEXT_ENTRIES", default: defaultMaxContextEntries)
     }
 
-    /// Local stub counter. `0` disables the cap.
+    /// Free-tier local daily Mirror cap. Always at least 1 when cloud is used without Plus.
+    static var freeDailyRequestLimit: Int {
+        max(1, intValue(for: "DIARY_AI_FREE_DAILY_REQUEST_LIMIT", default: defaultFreeDailyRequestLimit))
+    }
+
+    /// Author Plus local daily Mirror cap. `0` disables the Plus-tier cap (unlimited within this stub).
     static var dailyRequestLimit: Int {
         intValue(for: "DIARY_AI_DAILY_REQUEST_LIMIT", default: defaultDailyRequestLimit)
     }

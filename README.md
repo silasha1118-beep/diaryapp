@@ -166,6 +166,16 @@ You do **not** need a paid Apple Developer account to try purchase + restore on 
    - Tap **Restore purchases** after a purchase (or after deleting/reinstalling the app) to re-sync entitlement.
 6. Optional debug: in Xcode menu **Debug → StoreKit → Manage Transactions…** to expire / refund / renew the local subscription.
 
+#### Beginner Mac steps — Free vs Author Plus Mirror AI quotas
+
+Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 8/day**, **Author Plus = 40/day** (`DIARY_AI_DAILY_REQUEST_LIMIT`; `0` = unlimited for Plus). Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
+
+1. Same as above: StoreKit Configuration = `DiaryVault.storekit`, Simulator Run, cloud AI key in scheme.
+2. Stay on **Free** (do not buy yet). Open **Mirror** → send cloud messages until the quota banner / error shows the free limit is used up (Settings → AI → **Mirror today** also shows `used / limit` and an upgrade CTA).
+3. Open **Settings → View plans / restore** → buy **Author Plus** via the `.storekit` sheet.
+4. Return to **Mirror**: remaining quota should jump to the Plus daily limit (or “unlimited” if Plus limit is `0`). You can send again without waiting for tomorrow.
+5. (Optional) Exhaust the Plus limit the same way, or set `DIARY_AI_DAILY_REQUEST_LIMIT=2` to verify the Plus exhausted copy (no upgrade CTA).
+
 #### Personal Team vs paid Apple Developer
 
 | What | Free Personal Team | Paid Apple Developer ($99/yr) |
@@ -197,7 +207,8 @@ By default the Mirror tab uses a **local mock**. To call a real cloud chat API (
    | `DIARY_AI_MODEL` | No | OpenAI: `gpt-4o-mini` · Anthropic: `claude-sonnet-4-5` |
    | `DIARY_AI_MAX_TOKENS` | No | `400` |
    | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
-   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `40` (`0` = unlimited) |
+   | `DIARY_AI_FREE_DAILY_REQUEST_LIMIT` | No | `8` (Free tier daily Mirror cap) |
+   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `40` (Author Plus daily Mirror cap; `0` = unlimited for Plus) |
 
 2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
 3. Restart the app. Settings → AI should show **Cloud API** and the resolved provider.
@@ -229,7 +240,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
-| Usage safeguards | Max context entries, max tokens, local daily request counter stub |
+| Usage safeguards | Max context entries, max tokens, **Free vs Author Plus** local daily Mirror quotas |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
@@ -240,7 +251,6 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 - **App Store Connect live products / prices** — need paid Apple Developer; IDs are configurable here; local `.storekit` covers Personal Team testing
 - **Auth / receipt backend** — Firebase Phone Auth on iOS (local diary); Twilio / server receipt verify later
 - **Android SMS OTP / Play Billing** — stubs only
-- **Free vs Plus Mirror quotas** — not yet wired to `MirrorUsageGuard`
 - **Voice / video diary** — deferred (no media product tier in this build)
 - **Taiwan sync server** — local vault only; residency is narrative + config label
 - **Fine-tuning / private model training** — not used; learning = prompt context only

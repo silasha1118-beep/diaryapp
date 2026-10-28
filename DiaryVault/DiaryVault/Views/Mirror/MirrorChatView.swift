@@ -4,12 +4,18 @@ struct MirrorChatView: View {
     @EnvironmentObject private var diaryStore: DiaryStore
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var localization: LocalizationManager
+    @EnvironmentObject private var subscriptions: SubscriptionStore
 
     @State private var messages: [MirrorMessage] = []
     @State private var draft = ""
     @State private var isThinking = false
     @State private var errorText: String?
+    @State private var showQuotaUpgrade = false
+    @State private var showPaywall = false
     @State private var client: (any MirrorAIService) = MockMirrorAIClient()
+    @State private var quotaTick = 0
+
+    private var isAuthorPlus: Bool { subscriptions.isSubscribed }
 
     var body: some View {
         NavigationStack {
@@ -18,6 +24,9 @@ struct MirrorChatView: View {
 
                 VStack(spacing: 0) {
                     banner
+                    if showQuotaBanner {
+                        quotaBanner
+                    }
                     messageList
                     composer
                 }
@@ -34,13 +43,32 @@ struct MirrorChatView: View {
                         )
                     ]
                 }
+                quotaTick &+= 1
             }
             .onChange(of: localization.language) { _, _ in
                 if let first = messages.first, first.role == .system {
                     messages[0] = MirrorMessage(role: .system, text: localization.text("mirror.intro"))
                 }
             }
+            .onChange(of: subscriptions.isSubscribed) { _, _ in
+                quotaTick &+= 1
+                if !MirrorUsageGuard.isExhausted(isAuthorPlus: isAuthorPlus) {
+                    showQuotaUpgrade = false
+                    if errorText != nil {
+                        errorText = nil
+                    }
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+                    .environmentObject(localization)
+                    .environmentObject(subscriptions)
+            }
         }
+    }
+
+    private var showQuotaBanner: Bool {
+        AIConfig.useCloudClient
     }
 
     private var banner: some View {
@@ -64,6 +92,61 @@ struct MirrorChatView: View {
         .background(VaultTheme.paperDeep.opacity(0.55))
     }
 
+    private var quotaBanner: some View {
+        let _ = quotaTick
+        let exhausted = MirrorUsageGuard.isExhausted(isAuthorPlus: isAuthorPlus)
+        return HStack(alignment: .center, spacing: 10) {
+            Image(systemName: exhausted ? "exclamationmark.circle" : "chart.bar")
+                .font(.system(size: 13))
+                .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
+
+            Text(quotaStatusText(exhausted: exhausted))
+                .font(.system(size: 12))
+                .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 8)
+
+            if exhausted && !isAuthorPlus {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Text(localization.text("mirror.quota.upgrade"))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(VaultTheme.seal)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .background(
+            exhausted
+                ? VaultTheme.seal.opacity(0.08)
+                : VaultTheme.paper.opacity(0.35)
+        )
+    }
+
+    private func quotaStatusText(exhausted: Bool) -> String {
+        if let remaining = MirrorUsageGuard.remaining(isAuthorPlus: isAuthorPlus) {
+            let limit = MirrorUsageGuard.effectiveLimit(isAuthorPlus: isAuthorPlus)
+            if exhausted {
+                return String(
+                    format: localization.text(
+                        isAuthorPlus ? "mirror.quota.exhausted.plus" : "mirror.quota.exhausted.free"
+                    ),
+                    limit
+                )
+            }
+            return String(
+                format: localization.text("mirror.quota.remaining"),
+                remaining,
+                limit
+            )
+        }
+        return localization.text("mirror.quota.unlimited")
+    }
+
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -81,10 +164,22 @@ struct MirrorChatView: View {
                             .id("thinking")
                     }
                     if let errorText {
-                        Text(errorText)
-                            .font(.system(size: 13))
-                            .foregroundStyle(VaultTheme.seal)
-                            .id("error")
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(errorText)
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.seal)
+                            if showQuotaUpgrade {
+                                Button {
+                                    showPaywall = true
+                                } label: {
+                                    Text(localization.text("mirror.quota.upgrade"))
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(VaultTheme.seal)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .id("error")
                     }
                 }
                 .padding(20)
@@ -167,6 +262,7 @@ struct MirrorChatView: View {
 
         draft = ""
         errorText = nil
+        showQuotaUpgrade = false
         messages.append(MirrorMessage(role: .user, text: text))
         isThinking = true
 
@@ -180,10 +276,22 @@ struct MirrorChatView: View {
         do {
             let reply = try await client.reply(to: text, context: context)
             messages.append(reply)
+        } catch let error as MirrorAIError {
+            switch error {
+            case .rateLimited(let limit, let plus):
+                errorText = String(
+                    format: localization.text(plus ? "mirror.quota.exhausted.plus" : "mirror.quota.exhausted.free"),
+                    limit
+                )
+                showQuotaUpgrade = !plus
+            default:
+                errorText = error.localizedDescription
+            }
         } catch {
             errorText = error.localizedDescription
         }
 
         isThinking = false
+        quotaTick &+= 1
     }
 }

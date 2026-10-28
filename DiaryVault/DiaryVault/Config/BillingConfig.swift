@@ -8,11 +8,19 @@ import Foundation
 ///
 /// Voice / video diary and any higher multimedia tier are **deferred** — not configured here.
 enum BillingConfig {
-    /// Free = local vault + limited mirror (quota wiring later).
-    /// Author Plus = unlimited diary narrative + mirror advice quota story.
+    /// Free = local vault + limited daily Mirror AI.
+    /// Author Plus = higher (or config-unlimited) Mirror advice quota via StoreKit entitlement.
     enum Tier: String, CaseIterable {
         case free
         case authorPlus
+    }
+
+    /// Snapshot written by ``SubscriptionStore`` so ``MirrorUsageGuard`` can read entitlement synchronously.
+    static let authorPlusEntitlementDefaultsKey = "billing.authorPlusActive"
+
+    /// Whether Author Plus is currently entitled (StoreKit snapshot in UserDefaults).
+    static var isAuthorPlusEntitled: Bool {
+        UserDefaults.standard.bool(forKey: authorPlusEntitlementDefaultsKey)
     }
 
     static let defaultMonthlyProductID = "com.diaryvault.author.plus.monthly"

@@ -27,8 +27,12 @@ sealed class MirrorAIError(message: String) : Exception(message) {
     data object NotConfigured : MirrorAIError("not configured")
     data object Decoding : MirrorAIError("decoding")
     class Network(detail: String) : MirrorAIError(detail)
-    class RateLimited(limit: Int) : MirrorAIError(
-        "Daily Mirror request limit reached ($limit). Try again tomorrow, raise DIARY_AI_DAILY_REQUEST_LIMIT, or unset the key to use mock.",
+    class RateLimited(limit: Int, val isAuthorPlus: Boolean = false) : MirrorAIError(
+        if (isAuthorPlus) {
+            "Daily Author Plus Mirror limit reached ($limit). Try again tomorrow."
+        } else {
+            "Daily free Mirror limit reached ($limit). Upgrade to Author Plus for a higher quota, or try again tomorrow."
+        },
     )
 }
 

@@ -17,7 +17,7 @@ enum MirrorAIError: LocalizedError {
     case emptyInput
     case network(String)
     case decoding
-    case rateLimited(Int)
+    case rateLimited(limit: Int, isAuthorPlus: Bool)
 
     var errorDescription: String? {
         switch self {
@@ -29,8 +29,11 @@ enum MirrorAIError: LocalizedError {
             return detail
         case .decoding:
             return "Unexpected response from AI service."
-        case .rateLimited(let limit):
-            return "Daily Mirror request limit reached (\(limit)). Try again tomorrow, raise DIARY_AI_DAILY_REQUEST_LIMIT, or unset the key to use mock."
+        case .rateLimited(let limit, let isAuthorPlus):
+            if isAuthorPlus {
+                return "Daily Author Plus Mirror limit reached (\(limit)). Try again tomorrow."
+            }
+            return "Daily free Mirror limit reached (\(limit)). Upgrade to Author Plus for a higher quota, or try again tomorrow."
         }
     }
 }
