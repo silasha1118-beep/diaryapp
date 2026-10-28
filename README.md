@@ -25,14 +25,13 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
 3. Wait for Swift Package Manager to fetch **Firebase** (`firebase-ios-sdk` → FirebaseAuth + FirebaseCore). If needed: **File → Packages → Resolve Package Versions**.
 4. Add your local **`GoogleService-Info.plist`** to the DiaryVault target (gitignored — see Firebase Phone Auth below). Bundle ID is **`com.silasha.diaryvault`**.
 5. Select an iPhone Simulator (or **device** for real SMS), then **Run** (⌘R).
-6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team for basic runs; **Sign in with Apple** needs the capability enabled for your Team (entitlements file is already in the project).
+6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. A free **Personal Team** works for device runs (Sign in with Apple is not required). Simulator needs no team for basic runs.
 
 ### Account (phone SMS OTP — all regions)
 
 Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 
-- **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). WeChat / Google are **not** primary.
-- **Optional backup**: Sign in with Apple (collapsed under “Or use Sign in with Apple”).
+- **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). WeChat / Google / Sign in with Apple are **not** used.
 - With Firebase: session UID comes from Firebase Auth; diary data stays on device for this MVP.
 - Settings shows signed-in identity / provider and **Sign out** (also signs out of Firebase Auth).
 - **DEBUG** builds also offer “Dev: continue with local session”.
@@ -106,8 +105,8 @@ Author Plus product IDs (override via scheme env or Info.plist — **no secrets*
    - Clear the local StoreKit config from the scheme when testing against Sandbox / TestFlight, or products may come from the `.storekit` file instead.
 
 3. **Capabilities**  
-   - Target → Signing & Capabilities → **Sign in with Apple**.  
-   - In-App Purchase capability is provided by StoreKit linkage; ensure the App ID has IAP enabled in the Developer portal before shipping.
+   - Sign in with Apple is **not** required (removed so free Personal Team signing works).  
+   - In-App Purchase capability is provided by StoreKit linkage; ensure the App ID has IAP enabled in the Developer portal before shipping (paid Apple Developer account).
 
 ### Enable cloud Mirror AI
 
@@ -182,7 +181,7 @@ DiaryVault/
   DiaryVault.xcodeproj
   DiaryVault/
     DiaryVaultApp.swift
-    DiaryVault.entitlements   # Sign in with Apple (optional backup)
+    DiaryVault.entitlements   # Empty (no paid-capability entitlements)
     Models/          # AppState, DiaryEntry, MirrorMessage
     Services/        # DiaryStore, AccountSession, SMSAuthProvider, SubscriptionStore, Mirror AI, Localization
     Config/          # AIConfig, BillingConfig, AuthConfig (env / Info.plist — no secrets)

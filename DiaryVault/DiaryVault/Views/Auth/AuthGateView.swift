@@ -1,5 +1,4 @@
 import SwiftUI
-import AuthenticationServices
 
 struct AuthGateView: View {
     @EnvironmentObject private var localization: LocalizationManager
@@ -7,8 +6,6 @@ struct AuthGateView: View {
     @EnvironmentObject private var appState: AppState
 
     @State private var appeared = false
-    @State private var showAppleBackup = false
-    @State private var appleError: String?
 
     var body: some View {
         ZStack {
@@ -37,39 +34,11 @@ struct AuthGateView: View {
 
                     PhoneOTPLoginForm(chrome: .gate)
 
-                    if let appleError {
-                        Text(appleError)
-                            .font(.system(size: 14))
-                            .foregroundStyle(VaultTheme.seal)
-                    }
-
+                    #if DEBUG
                     Divider()
                         .overlay(VaultTheme.line)
                         .padding(.vertical, 4)
 
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            showAppleBackup.toggle()
-                        }
-                    } label: {
-                        Text(localization.text("auth.apple.backup"))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(VaultTheme.inkMuted)
-                    }
-                    .buttonStyle(.plain)
-
-                    if showAppleBackup {
-                        SignInWithAppleButton(.signIn) { request in
-                            request.requestedScopes = [.fullName, .email]
-                        } onCompletion: { result in
-                            handleApple(result)
-                        }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(height: 48)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                    }
-
-                    #if DEBUG
                     Button {
                         account.signInLocally(displayName: appState.displayName.isEmpty ? nil : appState.displayName)
                     } label: {
@@ -89,35 +58,6 @@ struct AuthGateView: View {
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.7)) { appeared = true }
-        }
-    }
-
-    private func handleApple(_ result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .failure(let error):
-            let ns = error as NSError
-            if ns.domain == ASAuthorizationError.errorDomain,
-               ns.code == ASAuthorizationError.canceled.rawValue {
-                appleError = nil
-                return
-            }
-            appleError = localization.text("auth.apple.error")
-        case .success(let authorization):
-            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
-                appleError = localization.text("auth.apple.error")
-                return
-            }
-            let fullName = PersonNameComponentsFormatter().string(from: credential.fullName ?? PersonNameComponents())
-            let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
-            account.signInWithApple(
-                userID: credential.user,
-                email: credential.email,
-                fullName: trimmedName.isEmpty ? nil : trimmedName
-            )
-            if let name = account.fullName, !name.isEmpty, appState.displayName.isEmpty {
-                appState.displayName = name
-            }
-            appleError = nil
         }
     }
 }
