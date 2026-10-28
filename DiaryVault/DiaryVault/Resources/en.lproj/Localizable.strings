@@ -32,11 +32,11 @@
 "auth.error" = "Sign in could not finish. Try again.";
 "auth.phone.label" = "Phone number";
 "auth.phone.region" = "Region";
-"auth.phone.placeholder" = "Mobile number";
+"auth.phone.placeholder" = "Mobile number (no country code)";
 "auth.phone.send" = "Send verification code";
 "auth.phone.resend" = "Resend code";
 "auth.phone.sent" = "Code sent. Check your messages.";
-"auth.phone.invalid" = "Enter a valid mobile number for the selected region.";
+"auth.phone.invalid" = "Enter a valid mobile number for the selected region (TW 9 digits, HK 8, CN 11 — leading 0 OK).";
 "auth.otp.label" = "Verification code";
 "auth.otp.placeholder" = "6-digit code";
 "auth.otp.verify" = "Verify and continue";
@@ -46,7 +46,9 @@
 "auth.dial.tw" = "+886 Taiwan";
 "auth.stub.hint" = "Stub SMS (no real text): use code %@";
 "auth.sms.notConfigured" = "SMS is not ready. Add GoogleService-Info.plist to the DiaryVault target (keep it out of git), or set DIARY_SMS_PROVIDER=stub.";
-"auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again.";
+"auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again. Spark plan allows about 10 real SMS per day — use a Firebase test number to save quota.";
+"auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, and Mainland China.";
+"auth.sms.appVerification" = "App verification failed (reCAPTCHA). In Xcode → Target → Info → URL Types, add REVERSED_CLIENT_ID from GoogleService-Info.plist, then rebuild.";
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */

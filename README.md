@@ -53,19 +53,75 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
 
 1. Open `DiaryVault/DiaryVault.xcodeproj` in Xcode.
 2. Drag your real `GoogleService-Info.plist` into the **DiaryVault** group (or confirm it is still there).
-3. Select the file → **Target Membership** → check **DiaryVault**. Confirm **Copy Bundle Resources** lists it.
-4. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console app).
-5. **URL scheme (reCAPTCHA fallback):** Target → **Info** → **URL Types** → **+** → paste `REVERSED_CLIENT_ID` from your plist (looks like `com.googleusercontent.apps.…`). Leave other fields blank.
+3. Select the file → **File inspector** → **Target Membership** → check **DiaryVault**. Confirm **Build Phases → Copy Bundle Resources** lists it.
+4. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console iOS app).
+5. **URL scheme (reCAPTCHA fallback — required if APNs is not set up):**
+   - Open the real plist → copy the string for **`REVERSED_CLIENT_ID`** (looks like `com.googleusercontent.apps.…`).
+   - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then copy the new value.
+   - Xcode → DiaryVault **target** → **Info** tab → **URL Types** → **+** → **URL Schemes** = paste `REVERSED_CLIENT_ID`. Leave Identifier / Role blank.
+   - Rebuild after changing URL Types.
 6. Optional but recommended for silent push (fewer reCAPTCHA prompts on device):
    - Signing & Capabilities → **Push Notifications**
    - **Background Modes** → Remote notifications
    - Apple Developer → create APNs key → Firebase Console → Project settings → Cloud Messaging → upload APNs key  
-   **APNs is optional for testing** — Simulator / no APNs still works via **reCAPTCHA**.
-7. Firebase Console project **`diaryappsilas`**: Phone provider **Enabled**. Under Authentication → Settings → **SMS region policy**, allow **TW / HK / CN** (new projects often allow no regions by default).
+   **APNs is optional for testing** — without it, Phone Auth uses **reCAPTCHA** (needs the URL scheme above).
+7. No extra Info.plist privacy usage strings are required for SMS OTP (no camera / mic / contacts).
 8. Scheme env (optional): `DIARY_SMS_PROVIDER=firebase` — or leave empty; with the plist in the bundle the app **auto-selects Firebase**. Use `stub` to force local OTP without SMS.
-9. Run on a **physical iPhone** for real SMS (Simulator uses reCAPTCHA; test numbers can be added in Firebase Auth → Phone → Phone numbers for testing).
+9. Run on a **physical iPhone** for real SMS. Simulator can still drive the flow via reCAPTCHA + Firebase **test phone numbers** (no SMS charged).
 
 See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders only).
+
+#### Tonight: receive a real SMS on your iPhone (beginner click-path)
+
+Do these in order. Phone Auth is already **Enabled** for project **`diaryappsilas`** — focus on regions, URL scheme, and device run.
+
+**A. Firebase Console — allow TW / HK / CN SMS**
+
+1. Open [Firebase Console](https://console.firebase.google.com/) → project **`diaryappsilas`**.
+2. Left menu → **Build** → **Authentication**.
+3. Tab **Sign-in method** → confirm **Phone** is **Enabled** (you already did this).
+4. Tab **Settings** (still under Authentication) → section **SMS region policy** (sometimes labeled “SMS regions”).
+5. Choose **Allow** / allowlist and add at least:
+   - **Taiwan (TW)**
+   - **Hong Kong (HK)**
+   - **China (CN)** / Mainland China  
+   New projects often allow **no** regions by default — if your country is missing, Send code fails with a region error in the app.
+6. Save.
+
+**B. Optional — Firebase test phone numbers (saves Spark quota)**
+
+Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. To verify the app without burning quota:
+
+1. Authentication → **Sign-in method** → **Phone** → open provider settings (or **Phone numbers for testing**).
+2. Add a row: your number in E.164 (e.g. `+886912345678`) + a fixed 6-digit code (e.g. `123456`).
+3. In the app, send code to that number — Firebase **does not** send a real SMS; enter the fixed code.
+4. When ready for a **real** SMS, use a number **not** on the test list (or remove it), still within the daily quota.
+
+**C. Xcode → physical iPhone**
+
+1. Plug in the iPhone → trust the computer → select the **device** (not Simulator) as the run destination.
+2. Target → **Signing & Capabilities** → Team = your free **Personal Team**; Bundle ID `com.silasha.diaryvault`.
+3. Confirm `GoogleService-Info.plist` is in the target + **URL Types** has `REVERSED_CLIENT_ID` (step 5 above).
+4. Leave `DIARY_SMS_PROVIDER` empty (or `firebase`). Do **not** use `stub` if you want a real text.
+5. **Product → Run** (⌘R). If asked, allow the developer app on the phone (Settings → General → VPN & Device Management).
+
+**D. Sign out, then log in with phone**
+
+1. If you previously used DEBUG **“Dev: continue with local session”**, open **Settings** → **帳號 / 手機登入** → **登出** (Sign out). That returns you to the auth gate.
+2. Or stay in Settings and use the same phone + OTP fields under **帳號 / 手機登入**.
+3. Pick region **+886 / +852 / +86** → enter the mobile number **without** the country code (leading `0` is OK; the app strips it) → **傳送驗證碼**.
+4. Complete reCAPTCHA if the phone shows a browser sheet → wait for SMS → enter the 6-digit code → **驗證並繼續**.
+5. Settings should show provider **Phone (SMS OTP)** and a masked number.
+
+**If Send code fails**
+
+| App message / symptom | What to do |
+|----------------------|------------|
+| Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN |
+| App verification / reCAPTCHA | Add `REVERSED_CLIENT_ID` URL scheme, rebuild; or set up APNs |
+| SMS not ready / plist | Target membership on `GoogleService-Info.plist`; Copy Bundle Resources |
+| Too many attempts / quota | Wait, or use a **test phone number**; Spark ≈ **10 real SMS/day** |
+| Stub hint with a code on screen | You are on **stub** (plist missing or `DIARY_SMS_PROVIDER=stub`) — fix plist / env |
 
 #### SMS provider env vars
 
@@ -167,7 +223,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Area | Status |
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
-| **Account gate (phone SMS OTP + optional Apple)** | Firebase Phone Auth when plist present; else stub SMS; DEBUG local session available |
+| **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; DEBUG local session available; Settings also has phone login |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |

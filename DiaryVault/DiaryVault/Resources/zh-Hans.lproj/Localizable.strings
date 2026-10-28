@@ -32,11 +32,11 @@
 "auth.error" = "登录未完成，请再试一次。";
 "auth.phone.label" = "手机号码";
 "auth.phone.region" = "地区";
-"auth.phone.placeholder" = "手机号码";
+"auth.phone.placeholder" = "手机号码（不含国码）";
 "auth.phone.send" = "发送验证码";
 "auth.phone.resend" = "重新发送";
 "auth.phone.sent" = "验证码已发送，请查看短信。";
-"auth.phone.invalid" = "请输入所选地区的有效手机号码。";
+"auth.phone.invalid" = "请输入所选地区的有效手机号码（台湾 9 位、香港 8 位、中国大陆 11 位；开头 0 可保留）。";
 "auth.otp.label" = "验证码";
 "auth.otp.placeholder" = "六位数字";
 "auth.otp.verify" = "验证并继续";
@@ -46,7 +46,9 @@
 "auth.dial.tw" = "+886 台湾";
 "auth.stub.hint" = "Stub 短信（未真实发送）：请使用 %@";
 "auth.sms.notConfigured" = "短信尚未就绪。请将 GoogleService-Info.plist 加入 DiaryVault target（勿提交到 git），或设置 DIARY_SMS_PROVIDER=stub。";
-"auth.sms.rateLimited" = "尝试次数过多，请稍后再试。";
+"auth.sms.rateLimited" = "尝试次数过多，请稍后再试。Spark 方案每天约 10 条真实短信——可用 Firebase 测试号码节省配额。";
+"auth.sms.regionBlocked" = "此电话地区在 Firebase 被封锁。请到 Console → Authentication → Settings → SMS region policy，允许台湾、香港与中国大陆。";
+"auth.sms.appVerification" = "App 验证失败（reCAPTCHA）。请在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然后重新编译。";
 "auth.devLocal" = "开发：以本机会话继续";
 
 /* Paywall */
