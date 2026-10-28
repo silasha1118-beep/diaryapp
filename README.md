@@ -22,8 +22,10 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
    open DiaryVault/DiaryVault.xcodeproj
    ```
 
-3. Select an iPhone Simulator (or device), then **Run** (⌘R).
-4. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team for basic runs; **Sign in with Apple** needs the capability enabled for your Team (entitlements file is already in the project).
+3. Wait for Swift Package Manager to fetch **Firebase** (`firebase-ios-sdk` → FirebaseAuth + FirebaseCore). If needed: **File → Packages → Resolve Package Versions**.
+4. Add your local **`GoogleService-Info.plist`** to the DiaryVault target (gitignored — see Firebase Phone Auth below). Bundle ID is **`com.silasha.diaryvault`**.
+5. Select an iPhone Simulator (or **device** for real SMS), then **Run** (⌘R).
+6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Simulator needs no team for basic runs; **Sign in with Apple** needs the capability enabled for your Team (entitlements file is already in the project).
 
 ### Account (phone SMS OTP — all regions)
 
@@ -31,21 +33,51 @@ Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 
 - **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). WeChat / Google are **not** primary.
 - **Optional backup**: Sign in with Apple (collapsed under “Or use Sign in with Apple”).
-- Session is **local** (`AccountSession` in UserDefaults). No auth backend in this MVP.
-- Settings shows signed-in identity / provider and **Sign out** (returns to the auth gate).
+- With Firebase: session UID comes from Firebase Auth; diary data stays on device for this MVP.
+- Settings shows signed-in identity / provider and **Sign out** (also signs out of Firebase Auth).
 - **DEBUG** builds also offer “Dev: continue with local session”.
-- Do **not** commit secrets. OTP / identity tokens are not sent to a real backend yet.
+- Do **not** commit `GoogleService-Info.plist` or other secrets (already gitignored).
 
-#### SMS provider (stub · Firebase / Twilio ready)
+#### Firebase Phone Auth (iOS · Mac / Xcode steps for Silas)
+
+**SPM (already wired in the Xcode project):**
+
+| Item | Value |
+|------|--------|
+| Package URL | `https://github.com/firebase/firebase-ios-sdk.git` |
+| Products | **FirebaseAuth**, **FirebaseCore** |
+| Version rule | Up to next major from `11.0.0` |
+
+If Xcode does not resolve packages after pull: **File → Packages → Resolve Package Versions**. You should see Firebase under Package Dependencies. (`-ObjC` is already set on the target.)
+
+**You already have `GoogleService-Info.plist` locally — do not commit it.** After merge:
+
+1. Open `DiaryVault/DiaryVault.xcodeproj` in Xcode.
+2. Drag your real `GoogleService-Info.plist` into the **DiaryVault** group (or confirm it is still there).
+3. Select the file → **Target Membership** → check **DiaryVault**. Confirm **Copy Bundle Resources** lists it.
+4. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console app).
+5. **URL scheme (reCAPTCHA fallback):** Target → **Info** → **URL Types** → **+** → paste `REVERSED_CLIENT_ID` from your plist (looks like `com.googleusercontent.apps.…`). Leave other fields blank.
+6. Optional but recommended for silent push (fewer reCAPTCHA prompts on device):
+   - Signing & Capabilities → **Push Notifications**
+   - **Background Modes** → Remote notifications
+   - Apple Developer → create APNs key → Firebase Console → Project settings → Cloud Messaging → upload APNs key  
+   **APNs is optional for testing** — Simulator / no APNs still works via **reCAPTCHA**.
+7. Firebase Console project **`diaryappsilas`**: Phone provider **Enabled**. Under Authentication → Settings → **SMS region policy**, allow **TW / HK / CN** (new projects often allow no regions by default).
+8. Scheme env (optional): `DIARY_SMS_PROVIDER=firebase` — or leave empty; with the plist in the bundle the app **auto-selects Firebase**. Use `stub` to force local OTP without SMS.
+9. Run on a **physical iPhone** for real SMS (Simulator uses reCAPTCHA; test numbers can be added in Firebase Auth → Phone → Phone numbers for testing).
+
+See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders only).
+
+#### SMS provider env vars
 
 | Variable | Purpose |
 |----------|---------|
-| `DIARY_SMS_PROVIDER` | `stub` (default) · `firebase` · `twilio` |
+| `DIARY_SMS_PROVIDER` | `stub` · `firebase` · `twilio`. Empty → **firebase** if plist present, else **stub** |
 | `DIARY_SMS_STUB_CODE` | Optional fixed 6-digit code for stub; if empty, stub accepts the DEBUG-hinted code (or any 6-digit if session was lost) |
-| `DIARY_FIREBASE_PROJECT_ID` | Firebase-ready placeholder — keep empty in git; add `GoogleService-Info.plist` locally only |
+| `DIARY_FIREBASE_PROJECT_ID` | Label only (default `diaryappsilas` in Info.plist); real config is the local plist |
 | `DIARY_TWILIO_ACCOUNT_SID` / `DIARY_TWILIO_AUTH_TOKEN` / `DIARY_TWILIO_VERIFY_SERVICE_SID` | Twilio Verify placeholders — **scheme env only**, never commit |
 
-Default provider is **stub**: no real SMS is sent. In DEBUG, the gate shows the stub code after “Send”. Selecting `firebase` / `twilio` without local config fails closed with a clear message (SDK not linked in this MVP).
+Without a plist, provider stays **stub** (DEBUG shows the stub code). Twilio remains a fail-closed shell.
 
 ### Subscriptions (StoreKit 2 stub)
 
@@ -118,7 +150,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Area | Status |
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
-| **Account gate (phone SMS OTP + optional Apple)** | Works on iOS with stub SMS; DEBUG local session available |
+| **Account gate (phone SMS OTP + optional Apple)** | Firebase Phone Auth when plist present; else stub SMS; DEBUG local session available |
 | **StoreKit 2 Author Plus stub + paywall / restore** | Works against local `.storekit` or Sandbox products |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
@@ -132,7 +164,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 ## What is stubbed / omitted
 
 - **App Store Connect live products / prices** — create in Connect; IDs are configurable here
-- **Auth / receipt backend / real SMS** — local session + SMS stub + StoreKit; Firebase/Twilio wiring later
+- **Auth / receipt backend** — Firebase Phone Auth on iOS (local diary); Twilio / server receipt verify later
 - **Android SMS OTP / Play Billing** — stubs only this PR
 - **Free vs Plus Mirror quotas** — not yet wired to `MirrorUsageGuard`
 - **Voice / video diary** — deferred (out of this PR)

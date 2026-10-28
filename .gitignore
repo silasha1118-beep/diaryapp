@@ -15,7 +15,9 @@ playground.xcworkspace
 .build/
 .swiftpm/
 Packages/
+# Allow the Xcode workspace Package.resolved so Firebase resolves consistently on Mac.
 Package.resolved
+!DiaryVault/**/Package.resolved
 
 # CocoaPods / Carthage (unused but ignored if added later)
 Pods/

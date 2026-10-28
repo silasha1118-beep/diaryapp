@@ -45,7 +45,7 @@
 "auth.dial.hk" = "+852 Hong Kong";
 "auth.dial.tw" = "+886 Taiwan";
 "auth.stub.hint" = "Stub SMS (no real text): use code %@";
-"auth.sms.notConfigured" = "SMS provider is not configured. Use stub (default) or set Firebase/Twilio env vars locally — never commit secrets.";
+"auth.sms.notConfigured" = "SMS is not ready. Add GoogleService-Info.plist to the DiaryVault target (keep it out of git), or set DIARY_SMS_PROVIDER=stub.";
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again.";
 "auth.apple.backup" = "Or use Sign in with Apple";
 "auth.apple.error" = "Sign in with Apple could not finish. Try again.";

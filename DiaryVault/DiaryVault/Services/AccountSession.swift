@@ -1,8 +1,10 @@
 import Foundation
 import Combine
+import FirebaseCore
+import FirebaseAuth
 
 /// Local account session for phone SMS OTP (primary) and optional Apple / DEBUG local.
-/// No backend — credentials stay on device for this MVP gate.
+/// When Firebase Phone Auth succeeds, `userID` is the Firebase UID; diary data stays on device.
 @MainActor
 final class AccountSession: ObservableObject {
     private let defaults = UserDefaults.standard
@@ -47,12 +49,24 @@ final class AccountSession: ObservableObject {
         if let raw = defaults.string(forKey: Keys.provider) {
             provider = Provider(rawValue: raw)
         }
+
+        // Prefer live Firebase session when the SDK is configured and still signed in.
+        FirebaseBootstrap.configureIfNeeded()
+        if FirebaseApp.app() != nil, let fbUser = Auth.auth().currentUser {
+            let phone = fbUser.phoneNumber ?? phoneE164
+            apply(
+                userID: fbUser.uid,
+                email: fbUser.email ?? email,
+                fullName: fullName,
+                phoneE164: phone,
+                provider: .phone
+            )
+        }
     }
 
-    func signInWithPhone(phoneE164: String, displayName: String?) {
-        let id = "phone-" + phoneE164.filter(\.isNumber)
+    func signInWithPhone(userID: String, phoneE164: String, displayName: String?) {
         apply(
-            userID: id,
+            userID: userID,
             email: nil,
             fullName: displayName,
             phoneE164: phoneE164,
@@ -83,6 +97,9 @@ final class AccountSession: ObservableObject {
     }
 
     func signOut() {
+        if FirebaseApp.app() != nil {
+            try? Auth.auth().signOut()
+        }
         userID = nil
         email = nil
         fullName = nil

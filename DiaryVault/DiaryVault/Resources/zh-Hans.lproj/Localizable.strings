@@ -45,7 +45,7 @@
 "auth.dial.hk" = "+852 香港";
 "auth.dial.tw" = "+886 台湾";
 "auth.stub.hint" = "Stub 短信（未真实发送）：请使用 %@";
-"auth.sms.notConfigured" = "SMS 提供者尚未配置。请使用 stub（默认），或在本机设置 Firebase／Twilio 环境变量——密钥永不提交。";
+"auth.sms.notConfigured" = "短信尚未就绪。请将 GoogleService-Info.plist 加入 DiaryVault target（勿提交到 git），或设置 DIARY_SMS_PROVIDER=stub。";
 "auth.sms.rateLimited" = "尝试次数过多，请稍后再试。";
 "auth.apple.backup" = "或以 Apple 登录";
 "auth.apple.error" = "Apple 登录未完成，请再试一次。";

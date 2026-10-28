@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  EXAMPLE ONLY — do NOT rename this file to GoogleService-Info.plist and commit secrets.
+
+  Silas: you already downloaded the real GoogleService-Info.plist for Firebase project
+  `diaryappsilas` (bundle ID com.silasha.diaryvault). Keep that real file LOCAL only:
+
+  1. Copy your real plist next to this example as:
+       DiaryVault/DiaryVault/GoogleService-Info.plist
+     (or drag it into the DiaryVault Xcode group).
+  2. In Xcode → File inspector → Target Membership → check **DiaryVault**.
+  3. Confirm it appears under Build Phases → Copy Bundle Resources.
+  4. From the real plist, copy REVERSED_CLIENT_ID and add it as a URL Type
+     (see README “Firebase Phone Auth” section). That value looks like:
+       com.googleusercontent.apps.1234567890-abcdef
+
+  Real GoogleService-Info.plist is gitignored.
+-->
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>REPLACE_ME.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.REPLACE_ME</string>
+	<key>API_KEY</key>
+	<string>REPLACE_ME</string>
+	<key>GCM_SENDER_ID</key>
+	<string>REPLACE_ME</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.silasha.diaryvault</string>
+	<key>PROJECT_ID</key>
+	<string>diaryappsilas</string>
+	<key>STORAGE_BUCKET</key>
+	<string>diaryappsilas.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:REPLACE_ME:ios:REPLACE_ME</string>
+</dict>
+</plist>

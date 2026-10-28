@@ -63,13 +63,13 @@
 	<string></string>
 	<key>DIARY_IAP_YEARLY_PRODUCT_ID</key>
 	<string></string>
-	<!-- SMS OTP — leave empty / stub in repo. Never put Twilio/Firebase secrets here. -->
+	<!-- SMS OTP — leave empty in repo. Empty DIARY_SMS_PROVIDER → firebase if GoogleService-Info.plist is in the bundle, else stub. Never put secrets here. -->
 	<key>DIARY_SMS_PROVIDER</key>
 	<string></string>
 	<key>DIARY_SMS_STUB_CODE</key>
 	<string></string>
 	<key>DIARY_FIREBASE_PROJECT_ID</key>
-	<string></string>
+	<string>diaryappsilas</string>
 	<key>DIARY_TWILIO_ACCOUNT_SID</key>
 	<string></string>
 	<key>DIARY_TWILIO_AUTH_TOKEN</key>
