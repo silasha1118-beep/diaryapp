@@ -1,8 +1,10 @@
 package com.diaryvault.app.billing
 
 /**
- * Product ID placeholders aligned with iOS [BillingConfig].
- * Play Billing Library is **not** wired in this PR (costly vs iOS-first StoreKit stub).
+ * Product ID placeholders aligned with iOS BillingConfig (Author Plus only).
+ * Play Billing Library is **not** wired yet (iOS StoreKit 2 is the first path).
+ *
+ * Voice / video diary billing is deferred — no media product IDs here.
  *
  * Override via Gradle/env later if needed — no secrets belong in source.
  */

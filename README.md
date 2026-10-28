@@ -78,35 +78,53 @@ See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders 
 
 Without a plist, provider stays **stub** (DEBUG shows the stub code). Twilio remains a fail-closed shell.
 
-### Subscriptions (StoreKit 2 stub)
+### Subscriptions (StoreKit 2 · Author Plus)
 
-Author Plus product IDs (override via scheme env or Info.plist — **no secrets**):
+**Free** vs **Author Plus** (monthly / yearly). Product IDs are configurable (override via scheme env or Info.plist — **no secrets**):
 
 | Variable | Default |
 |----------|---------|
 | `DIARY_IAP_MONTHLY_PRODUCT_ID` | `com.diaryvault.author.plus.monthly` |
 | `DIARY_IAP_YEARLY_PRODUCT_ID` | `com.diaryvault.author.plus.yearly` |
 
-- Settings → **View plans / restore** opens the paywall placeholder (load products, purchase when available, **Restore purchases**).
-- Shared scheme points at `DiaryVault/Configuration/DiaryVault.storekit` for local StoreKit testing.
-- Estate / legacy custody products are **not** in this paywall (later).
+- Settings → **View plans / restore** opens the paywall (load products, purchase, **Restore purchases**, reload).
+- Shared scheme already points at `DiaryVault/Configuration/DiaryVault.storekit` for local testing.
+- Estate / legacy custody and **voice / video diary** are **not** in this paywall (deferred).
 
-### Sandbox / StoreKit testing (iOS)
+#### Beginner Mac steps — buy / restore with local StoreKit (Personal Team OK)
 
-1. **Local StoreKit (no App Store Connect yet)**  
-   - Scheme → Run → Options → StoreKit Configuration = `DiaryVault.storekit` (already set on the shared scheme).  
-   - Run on Simulator → sign in (phone OTP stub or DEBUG local) → Settings → View plans → purchase / restore against the local config.
+You do **not** need a paid Apple Developer account to try purchase + restore on Simulator with the local `.storekit` file.
 
-2. **App Store Connect Sandbox (real products)**  
-   - Create an auto-renewable subscription group **Author Plus** with the monthly / yearly product IDs above (or override IDs to match Connect).  
-   - Availability: start with **Taiwan, Hong Kong, Mainland China** per product plan.  
-   - Create a Sandbox Apple ID (Users and Access → Sandbox).  
-   - On a **device**: Settings → App Store → Sandbox Account; run a development build; purchase / restore.  
-   - Clear the local StoreKit config from the scheme when testing against Sandbox / TestFlight, or products may come from the `.storekit` file instead.
+1. On a Mac, open `DiaryVault/DiaryVault.xcodeproj` in Xcode 15+.
+2. Confirm StoreKit Configuration is attached:
+   - **Product → Scheme → Edit Scheme…** (or click the scheme name → Edit Scheme…)
+   - Select **Run** on the left → **Options** tab
+   - **StoreKit Configuration** = `DiaryVault.storekit`  
+     (path in repo: `DiaryVault/DiaryVault/Configuration/DiaryVault.storekit`; the shared scheme already sets this)
+3. Select an **iPhone Simulator** → **Run** (⌘R).
+4. Finish onboarding → sign in (Firebase phone OTP, or DEBUG “local session”) → open **Settings**.
+5. Tap **View plans / restore**:
+   - You should see **Free** plus **Author Plus Monthly** / **Yearly** with prices from the `.storekit` file (e.g. $4.99 / $39.99).
+   - Tap a plan → confirm the StoreKit purchase sheet → Settings plan should flip to **Author Plus**.
+   - Tap **Restore purchases** after a purchase (or after deleting/reinstalling the app) to re-sync entitlement.
+6. Optional debug: in Xcode menu **Debug → StoreKit → Manage Transactions…** to expire / refund / renew the local subscription.
 
-3. **Capabilities**  
-   - Sign in with Apple is **not** required (removed so free Personal Team signing works).  
-   - In-App Purchase capability is provided by StoreKit linkage; ensure the App ID has IAP enabled in the Developer portal before shipping (paid Apple Developer account).
+#### Personal Team vs paid Apple Developer
+
+| What | Free Personal Team | Paid Apple Developer ($99/yr) |
+|------|--------------------|-------------------------------|
+| Local `.storekit` purchase / restore in Simulator | Yes | Yes |
+| Device run with Personal Team signing | Yes (app runs; local StoreKit still works if scheme points at the file) | Yes |
+| Create real IAP products in **App Store Connect** | **No** | Required |
+| Sandbox Apple ID + Connect Sandbox testing | **No** | Required |
+| TestFlight / App Store release with IAP | **No** | Required |
+
+When you upgrade to a paid account later: create subscription group **Author Plus** with the product IDs above (TW / HK / CN first), create a Sandbox Apple ID, then **clear** StoreKit Configuration on the scheme (set to None) so the app talks to Sandbox / production instead of the local file.
+
+#### Capabilities
+
+- Sign in with Apple is **not** required (removed so free Personal Team signing works).
+- StoreKit 2 needs no extra capability checkbox for local `.storekit` testing. Before shipping with Connect products, enable **In-App Purchase** on the App ID in the Developer portal (paid account).
 
 ### Enable cloud Mirror AI
 
@@ -150,7 +168,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 |------|--------|
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
 | **Account gate (phone SMS OTP + optional Apple)** | Firebase Phone Auth when plist present; else stub SMS; DEBUG local session available |
-| **StoreKit 2 Author Plus stub + paywall / restore** | Works against local `.storekit` or Sandbox products |
+| **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
 | Vault list / create / detail / edit | Works — JSON on device |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
@@ -162,11 +180,11 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 
 ## What is stubbed / omitted
 
-- **App Store Connect live products / prices** — create in Connect; IDs are configurable here
+- **App Store Connect live products / prices** — need paid Apple Developer; IDs are configurable here; local `.storekit` covers Personal Team testing
 - **Auth / receipt backend** — Firebase Phone Auth on iOS (local diary); Twilio / server receipt verify later
-- **Android SMS OTP / Play Billing** — stubs only this PR
+- **Android SMS OTP / Play Billing** — stubs only
 - **Free vs Plus Mirror quotas** — not yet wired to `MirrorUsageGuard`
-- **Voice / video diary** — deferred (out of this PR)
+- **Voice / video diary** — deferred (no media product tier in this build)
 - **Taiwan sync server** — local vault only; residency is narrative + config label
 - **Fine-tuning / private model training** — not used; learning = prompt context only
 - **Memorial mode, voice clone, legacy executor** — Settings stub copy only; no Phase 1 UI

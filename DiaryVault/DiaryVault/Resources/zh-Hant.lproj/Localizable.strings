@@ -52,24 +52,33 @@
 /* Paywall */
 "paywall.title" = "Author Plus";
 "paywall.headline" = "一面認得你文字的鏡子。";
-"paywall.body" = "Author Plus 是在世作者方案：金庫敘事＋鏡子建議額度。價格由 App Store 提供——此處不硬編碼金額。";
+"paywall.body" = "可選免費或 Author Plus。價格由 StoreKit（本機設定檔或 App Store）提供——此處不硬編碼金額。";
+"paywall.free.title" = "免費";
+"paywall.free.body" = "可寫日記、試用鏡子；額度有限，升級後再擴大。";
+"paywall.free.current" = "目前方案";
+"paywall.plus.blurb" = "無限日記敘事＋鏡子建議額度。";
 "paywall.monthly" = "Author Plus · 月訂";
 "paywall.yearly" = "Author Plus · 年訂";
 "paywall.restore" = "恢復購買";
+"paywall.reload" = "重新載入商品";
 "paywall.active" = "此 Apple ID 已有有效訂閱";
+"paywall.currentPlan" = "目前方案";
+"paywall.owned" = "使用中";
+"paywall.expires" = "續訂／到期";
+"paywall.autoRenewOn" = "自動續訂開啟";
 "paywall.unavailable" = "商品尚未載入";
-"paywall.productsMissing" = "請在 App Store Connect 建立這些產品 ID（或於 Scheme 啟用本機 StoreKit 設定檔）以便 Sandbox 購買。";
+"paywall.productsMissing" = "尚未載入商品。請在 Mac：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit，再重新 Run。真實 App Store Connect 商品需付費 Apple Developer。";
 "paywall.footer" = "訂閱會自動續訂，可於「設定 → Apple ID」取消。遺產／托管商品屬後期——不在此付費牆。";
-"paywall.status.productsEmpty" = "未取得任何商品。請檢查產品 ID 與 StoreKit／Sandbox 設定。";
+"paywall.status.productsEmpty" = "未取得任何商品。請確認 Scheme 的 StoreKit Configuration，再按重新載入。";
 "paywall.status.productsError" = "無法從 StoreKit 載入商品。";
-"paywall.status.purchaseSuccess" = "購買已記錄。";
+"paywall.status.purchaseSuccess" = "購買已記錄。Author Plus 已啟用。";
 "paywall.status.purchaseCancelled" = "已取消購買。";
 "paywall.status.purchasePending" = "購買待核准。";
 "paywall.status.purchaseUnknown" = "購買結束於未知狀態。";
 "paywall.status.purchaseError" = "購買失敗。";
 "paywall.status.restoreSuccess" = "已恢復購買。";
 "paywall.status.restoreNone" = "此 Apple ID 沒有有效訂閱。";
-"paywall.status.restoreError" = "恢復失敗。請檢查網路與 Sandbox 帳號。";
+"paywall.status.restoreError" = "恢復失敗。本機 StoreKit 請先購買一次；Sandbox 請登入 Sandbox Apple ID。";
 
 /* Diary */
 "diary.subtitle" = "你的私密日記";
@@ -115,8 +124,9 @@
 "settings.billing.free" = "免費";
 "settings.billing.active" = "Author Plus";
 "settings.billing.product" = "產品";
+"settings.billing.expires" = "週期結束";
 "settings.billing.manage" = "查看方案／恢復購買";
-"settings.billing.footer" = "StoreKit 2 骨架。可用 DIARY_IAP_* 環境變數或 Info.plist 覆寫產品 ID。倉庫不含密鑰。";
+"settings.billing.footer" = "StoreKit 2：可用本機 DiaryVault.storekit（或 App Store Sandbox）購買與恢復。可用 DIARY_IAP_* 環境變數或 Info.plist 覆寫產品 ID。倉庫不含密鑰。";
 "settings.section.language" = "語言";
 "settings.language" = "App 語言";
 "settings.language.footer" = "繁中／簡中／English——可隨時切換。";

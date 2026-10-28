@@ -69,6 +69,11 @@
           "description" : "在世 Author Plus：鏡子建議與你的金庫。",
           "displayName" : "Author Plus",
           "locale" : "zh_Hant"
+        },
+        {
+          "description" : "在世 Author Plus：镜子建议与你的金库。",
+          "displayName" : "Author Plus",
+          "locale" : "zh_Hans"
         }
       ],
       "name" : "Author Plus",
@@ -84,11 +89,22 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "21370002",
+          "introductoryOffer" : null,
           "localizations" : [
             {
               "description" : "Unlimited diary narrative and mirror advice quota.",
               "displayName" : "Author Plus Monthly",
               "locale" : "en_US"
+            },
+            {
+              "description" : "無限日記敘事與鏡子建議額度。",
+              "displayName" : "Author Plus 月訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "无限日记叙事与镜子建议额度。",
+              "displayName" : "Author Plus 月订",
+              "locale" : "zh_Hans"
             }
           ],
           "productID" : "com.diaryvault.author.plus.monthly",
@@ -96,7 +112,9 @@
           "referenceName" : "Author Plus Monthly",
           "subscriptionGroupID" : "21370001",
           "type" : "RecurringSubscription",
-          "currentprice" : "4.99"
+          "winbackOffers" : [
+
+          ]
         },
         {
           "adHocOffers" : [
@@ -107,13 +125,24 @@
           ],
           "displayPrice" : "39.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
+          "groupNumber" : 2,
           "internalID" : "21370003",
+          "introductoryOffer" : null,
           "localizations" : [
             {
               "description" : "Yearly Author Plus — better value for your vault.",
               "displayName" : "Author Plus Yearly",
               "locale" : "en_US"
+            },
+            {
+              "description" : "年訂 Author Plus——更划算守護你的金庫。",
+              "displayName" : "Author Plus 年訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "年订 Author Plus——更划算守护你的金库。",
+              "displayName" : "Author Plus 年订",
+              "locale" : "zh_Hans"
             }
           ],
           "productID" : "com.diaryvault.author.plus.yearly",
@@ -121,13 +150,15 @@
           "referenceName" : "Author Plus Yearly",
           "subscriptionGroupID" : "21370001",
           "type" : "RecurringSubscription",
-          "currentprice" : "39.99"
+          "winbackOffers" : [
+
+          ]
         }
       ]
     }
   ],
   "version" : {
-    "major" : 3,
+    "major" : 4,
     "minor" : 0
   }
 }

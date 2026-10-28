@@ -66,6 +66,12 @@ struct SettingsView: View {
                                     .lineLimit(1)
                             }
                         }
+                        if let exp = subscriptions.expirationDate {
+                            LabeledContent(localization.text("settings.billing.expires")) {
+                                Text(exp, style: .date)
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                        }
                         Button {
                             showPaywall = true
                         } label: {
