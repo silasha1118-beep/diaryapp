@@ -3,7 +3,8 @@ import Foundation
 /// SMS / phone auth configuration. Override via scheme env or Info.plist — **never commit secrets**.
 ///
 /// - `DIARY_SMS_PROVIDER` — `stub` | `firebase` | `twilio`
-///   Empty / unset: **firebase** when `GoogleService-Info.plist` is in the bundle, else **stub**.
+///   Empty / unset: **firebase** when `GoogleService-Info.plist` is in the app bundle, else **stub**.
+///   Stub is used only when explicitly set to `stub`, or when the plist is missing from the bundle.
 /// - Firebase uses the local plist (gitignored). Optional `DIARY_FIREBASE_PROJECT_ID` is a label only.
 /// - Twilio keys are read only when that provider is selected.
 enum AuthConfig {
@@ -13,16 +14,30 @@ enum AuthConfig {
         case twilio
     }
 
+    /// Why `smsProvider` resolved the way it did (for UI / DEBUG diagnostics).
+    enum SMSProviderResolution: Equatable {
+        case explicitEnvOrPlist(SMSProviderKind)
+        case autoFirebasePlistPresent
+        case autoStubNoPlist
+    }
+
     /// Active SMS backend.
     static var smsProvider: SMSProviderKind {
-        if let raw = value(for: "DIARY_SMS_PROVIDER")?.lowercased(), !raw.isEmpty {
-            return SMSProviderKind(rawValue: raw) ?? .stub
+        smsProviderResolution.kind
+    }
+
+    static var smsProviderResolution: SMSProviderResolution {
+        if let raw = value(for: "DIARY_SMS_PROVIDER")?.lowercased() {
+            let kind = SMSProviderKind(rawValue: raw) ?? .stub
+            return .explicitEnvOrPlist(kind)
         }
-        // Auto-select Firebase once the (gitignored) plist is in the app target.
+        // Auto-select Firebase once the (gitignored) plist is in the app bundle.
+        // A Run Script build phase copies `DiaryVault/GoogleService-Info.plist` when present on disk,
+        // so beginners do not need Target Membership or scheme env vars.
         if FirebaseBootstrap.hasGoogleServiceInfoPlist {
-            return .firebase
+            return .autoFirebasePlistPresent
         }
-        return .stub
+        return .autoStubNoPlist
     }
 
     // MARK: - Firebase (plist is source of truth — leave secrets out of git)
@@ -53,12 +68,27 @@ enum AuthConfig {
     }
 
     private static func value(for key: String) -> String? {
-        if let env = ProcessInfo.processInfo.environment[key], !env.isEmpty {
-            return env
+        if let env = ProcessInfo.processInfo.environment[key] {
+            let trimmed = env.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
         }
-        if let plist = Bundle.main.object(forInfoDictionaryKey: key) as? String, !plist.isEmpty {
-            return plist
+        if let plist = Bundle.main.object(forInfoDictionaryKey: key) as? String {
+            let trimmed = plist.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
         }
         return nil
+    }
+}
+
+private extension AuthConfig.SMSProviderResolution {
+    var kind: AuthConfig.SMSProviderKind {
+        switch self {
+        case .explicitEnvOrPlist(let kind):
+            return kind
+        case .autoFirebasePlistPresent:
+            return .firebase
+        case .autoStubNoPlist:
+            return .stub
+        }
     }
 }

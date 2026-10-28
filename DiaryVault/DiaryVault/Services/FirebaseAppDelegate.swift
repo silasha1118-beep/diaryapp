@@ -58,14 +58,30 @@ final class FirebaseAppDelegate: NSObject, UIApplicationDelegate {
 enum FirebaseBootstrap {
     private static var didAttempt = false
 
+    /// True when the real (gitignored) plist was copied into the app bundle.
+    /// Prefer `url(forResource:)` so nested / localized copies still count.
     static var hasGoogleServiceInfoPlist: Bool {
-        Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil
+        if Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist") != nil {
+            return true
+        }
+        // Legacy path check (same file in most installs).
+        return Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil
     }
 
     /// Call once at launch. No-op (and no crash) when the plist is missing so stub SMS still works.
     static func configureIfNeeded() {
         guard !didAttempt else { return }
         didAttempt = true
+        #if DEBUG
+        switch AuthConfig.smsProviderResolution {
+        case .explicitEnvOrPlist(let kind):
+            print("DiaryVault SMS provider=\(kind.rawValue) (explicit DIARY_SMS_PROVIDER)")
+        case .autoFirebasePlistPresent:
+            print("DiaryVault SMS provider=firebase (auto: GoogleService-Info.plist in bundle)")
+        case .autoStubNoPlist:
+            print("DiaryVault SMS provider=stub (auto: GoogleService-Info.plist missing from bundle)")
+        }
+        #endif
         guard hasGoogleServiceInfoPlist else { return }
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()

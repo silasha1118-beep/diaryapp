@@ -45,7 +45,12 @@
 "auth.dial.hk" = "+852 香港";
 "auth.dial.tw" = "+886 台灣";
 "auth.stub.hint" = "Stub 簡訊（未真實發送）：請使用 %@";
-"auth.sms.notConfigured" = "簡訊尚未就緒。請將 GoogleService-Info.plist 加入 DiaryVault target（勿提交到 git），或設定 DIARY_SMS_PROVIDER=stub。";
+"auth.sms.provider.firebase" = "簡訊後端：Firebase（真實發送）";
+"auth.sms.provider.stub" = "簡訊後端：Stub（本機，未真實發送）";
+"auth.sms.provider.twilio" = "簡訊後端：Twilio";
+"auth.sms.provider.stub.missingPlist" = "請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git），重新編譯；DIARY_SMS_PROVIDER 保持空白。";
+"auth.sms.provider.stub.explicit" = "Scheme／Info 設了 DIARY_SMS_PROVIDER=stub。清掉該環境變數（或改為 firebase）後重新編譯即可發送真實簡訊。";
+"auth.sms.notConfigured" = "簡訊尚未就緒。請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git）後重新編譯，或設定 DIARY_SMS_PROVIDER=stub。";
 "auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實簡訊——可用 Firebase 測試號碼節省配額。";
 "auth.sms.regionBlocked" = "此電話地區在 Firebase 被封鎖。請到 Console → Authentication → Settings → SMS region policy，允許台灣、香港與中國大陸。";
 "auth.sms.appVerification" = "App 驗證失敗（reCAPTCHA）。請在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然後重新編譯。";
@@ -119,7 +124,7 @@
 "settings.account.provider.local" = "本機（開發）";
 "settings.account.signOut" = "登出";
 "settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP。登出後會回到帳號閘門。";
-"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）。與啟動閘門相同的 Firebase 手機驗證。";
+"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）。上方橫幅會標示 Firebase 或 Stub——與啟動閘門相同。";
 "settings.account.phone.success" = "手機登入成功。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";

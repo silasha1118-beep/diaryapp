@@ -52,22 +52,23 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
 **You already have `GoogleService-Info.plist` locally — do not commit it.** After merge:
 
 1. Open `DiaryVault/DiaryVault.xcodeproj` in Xcode.
-2. Drag your real `GoogleService-Info.plist` into the **DiaryVault** group (or confirm it is still there).
-3. Select the file → **File inspector** → **Target Membership** → check **DiaryVault**. Confirm **Build Phases → Copy Bundle Resources** lists it.
-4. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console iOS app).
-5. **URL scheme (reCAPTCHA fallback — required if APNs is not set up):**
+2. Place your real plist at **`DiaryVault/DiaryVault/GoogleService-Info.plist`** (same folder as `Info.plist`).  
+   A **Run Script** build phase copies it into the app bundle automatically — you do **not** need Target Membership / Copy Bundle Resources for beginners. (Dragging into the DiaryVault group with membership checked still works too.)
+3. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console iOS app).
+4. **URL scheme (reCAPTCHA fallback — required if APNs is not set up):**
    - Open the real plist → copy the string for **`REVERSED_CLIENT_ID`** (looks like `com.googleusercontent.apps.…`).
    - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then copy the new value.
    - Xcode → DiaryVault **target** → **Info** tab → **URL Types** → **+** → **URL Schemes** = paste `REVERSED_CLIENT_ID`. Leave Identifier / Role blank.
    - Rebuild after changing URL Types.
-6. Optional but recommended for silent push (fewer reCAPTCHA prompts on device):
+5. Optional but recommended for silent push (fewer reCAPTCHA prompts on device):
    - Signing & Capabilities → **Push Notifications**
    - **Background Modes** → Remote notifications
    - Apple Developer → create APNs key → Firebase Console → Project settings → Cloud Messaging → upload APNs key  
    **APNs is optional for testing** — without it, Phone Auth uses **reCAPTCHA** (needs the URL scheme above).
-7. No extra Info.plist privacy usage strings are required for SMS OTP (no camera / mic / contacts).
-8. Scheme env (optional): `DIARY_SMS_PROVIDER=firebase` — or leave empty; with the plist in the bundle the app **auto-selects Firebase**. Use `stub` to force local OTP without SMS.
-9. Run on a **physical iPhone** for real SMS. Simulator can still drive the flow via reCAPTCHA + Firebase **test phone numbers** (no SMS charged).
+6. No extra Info.plist privacy usage strings are required for SMS OTP (no camera / mic / contacts).
+7. **Scheme env — leave `DIARY_SMS_PROVIDER` empty.** Empty + plist on disk → **Firebase** auto-select. Set `stub` only to force local OTP without SMS. If you previously added `DIARY_SMS_PROVIDER=stub` under Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables, **delete that row** and rebuild.
+8. Run on a **physical iPhone** for real SMS. Simulator can still drive the flow via reCAPTCHA + Firebase **test phone numbers** (no SMS charged).
+9. On the login / Settings phone form, confirm the banner says **簡訊後端：Firebase** (not Stub).
 
 See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders only).
 
@@ -101,9 +102,9 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 
 1. Plug in the iPhone → trust the computer → select the **device** (not Simulator) as the run destination.
 2. Target → **Signing & Capabilities** → Team = your free **Personal Team**; Bundle ID `com.silasha.diaryvault`.
-3. Confirm `GoogleService-Info.plist` is in the target + **URL Types** has `REVERSED_CLIENT_ID` (step 5 above).
-4. Leave `DIARY_SMS_PROVIDER` empty (or `firebase`). Do **not** use `stub` if you want a real text.
-5. **Product → Run** (⌘R). If asked, allow the developer app on the phone (Settings → General → VPN & Device Management).
+3. Confirm `GoogleService-Info.plist` is at `DiaryVault/DiaryVault/` + **URL Types** has `REVERSED_CLIENT_ID` (step 4 above).
+4. Leave `DIARY_SMS_PROVIDER` empty. Do **not** use `stub` if you want a real text. Clear any leftover scheme env row named `DIARY_SMS_PROVIDER`.
+5. **Product → Run** (⌘R). If asked, allow the developer app on the phone (Settings → General → VPN & Device Management). Login UI must show **簡訊後端：Firebase** before you send a code.
 
 **D. Sign out, then log in with phone**
 
@@ -119,20 +120,20 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 |----------------------|------------|
 | Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN |
 | App verification / reCAPTCHA | Add `REVERSED_CLIENT_ID` URL scheme, rebuild; or set up APNs |
-| SMS not ready / plist | Target membership on `GoogleService-Info.plist`; Copy Bundle Resources |
+| SMS not ready / plist | File at `DiaryVault/DiaryVault/GoogleService-Info.plist`; rebuild so the Copy script bundles it |
 | Too many attempts / quota | Wait, or use a **test phone number**; Spark ≈ **10 real SMS/day** |
-| Stub hint with a code on screen | You are on **stub** (plist missing or `DIARY_SMS_PROVIDER=stub`) — fix plist / env |
+| Banner says Stub / stub hint with a code | Stub is active: plist not on disk at that path, or scheme still has `DIARY_SMS_PROVIDER=stub` — fix & rebuild |
 
 #### SMS provider env vars
 
 | Variable | Purpose |
 |----------|---------|
-| `DIARY_SMS_PROVIDER` | `stub` · `firebase` · `twilio`. Empty → **firebase** if plist present, else **stub** |
+| `DIARY_SMS_PROVIDER` | `stub` · `firebase` · `twilio`. **Leave empty** → **firebase** if `GoogleService-Info.plist` is bundled, else **stub**. Explicit `stub` forces local OTP. |
 | `DIARY_SMS_STUB_CODE` | Optional fixed 6-digit code for stub; if empty, stub accepts the DEBUG-hinted code (or any 6-digit if session was lost) |
 | `DIARY_FIREBASE_PROJECT_ID` | Label only (default `diaryappsilas` in Info.plist); real config is the local plist |
 | `DIARY_TWILIO_ACCOUNT_SID` / `DIARY_TWILIO_AUTH_TOKEN` / `DIARY_TWILIO_VERIFY_SERVICE_SID` | Twilio Verify placeholders — **scheme env only**, never commit |
 
-Without a plist, provider stays **stub** (DEBUG shows the stub code). Twilio remains a fail-closed shell.
+**Shared scheme has no `DIARY_SMS_PROVIDER` env** — beginners should not add one. Without a plist on disk, provider stays **stub** (UI banner + DEBUG code hint). Twilio remains a fail-closed shell.
 
 ### Subscriptions (StoreKit 2 · Author Plus)
 

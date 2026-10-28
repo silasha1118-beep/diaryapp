@@ -8,17 +8,20 @@
 
   1. Copy your real plist next to this example as:
        DiaryVault/DiaryVault/GoogleService-Info.plist
-     (or drag it into the DiaryVault Xcode group).
-  2. In Xcode → File inspector → Target Membership → check **DiaryVault**.
-  3. Confirm it appears under Build Phases → Copy Bundle Resources.
-  4. From the real plist, copy REVERSED_CLIENT_ID and add it as a URL Type
+     A Run Script build phase copies that path into the app bundle automatically.
+     Leave DIARY_SMS_PROVIDER empty so the app auto-selects Firebase.
+  2. Optional: drag into the DiaryVault Xcode group with Target Membership —
+     not required when the file sits at the path above.
+  3. From the real plist, copy REVERSED_CLIENT_ID and add it as a URL Type
      (Xcode → target → Info → URL Types). That value looks like:
        com.googleusercontent.apps.1234567890-abcdef
      If REVERSED_CLIENT_ID is missing after an older download, re-download
      the plist from Firebase Console → Project settings → Your apps → iOS,
      replace this local file, then add the new URL scheme and rebuild.
-  5. Phone Auth also needs Console SMS region policy allowing TW / HK / CN
+  4. Phone Auth also needs Console SMS region policy allowing TW / HK / CN
      (see README “Tonight: receive a real SMS”).
+  5. Login UI should show “SMS provider: Firebase” — if it still says Stub,
+     clear any scheme env DIARY_SMS_PROVIDER=stub and confirm the file path.
 
   Real GoogleService-Info.plist is gitignored.
 -->
