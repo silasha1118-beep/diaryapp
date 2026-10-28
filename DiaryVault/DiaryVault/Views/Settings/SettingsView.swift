@@ -43,6 +43,11 @@ struct SettingsView: View {
 
                         PhoneOTPLoginForm(chrome: .settings)
                             .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+
+                        if !account.isSignedIn || account.provider != .apple {
+                            AppleSignInBackupView(chrome: .settings)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
+                        }
                     } header: {
                         Text(localization.text("settings.section.accountPhone"))
                     } footer: {

@@ -3,8 +3,8 @@ import Combine
 import FirebaseCore
 import FirebaseAuth
 
-/// Local account session for phone SMS OTP (primary) and DEBUG local.
-/// When Firebase Phone Auth succeeds, `userID` is the Firebase UID; diary data stays on device.
+/// Local account session for phone SMS OTP (primary), optional Sign in with Apple backup, and DEBUG local.
+/// When Firebase Auth succeeds, `userID` is the Firebase UID; diary data stays on device for this MVP.
 @MainActor
 final class AccountSession: ObservableObject {
     private let defaults = UserDefaults.standard
@@ -19,7 +19,7 @@ final class AccountSession: ObservableObject {
 
     enum Provider: String {
         case phone
-        /// Legacy sessions from when Sign in with Apple was offered; no longer a sign-in path.
+        /// Optional backup next to phone SMS (requires paid Apple Developer + capability).
         case apple
         case local
     }
@@ -54,13 +54,14 @@ final class AccountSession: ObservableObject {
         // Prefer live Firebase session when the SDK is configured and still signed in.
         FirebaseBootstrap.configureIfNeeded()
         if FirebaseApp.app() != nil, let fbUser = Auth.auth().currentUser {
+            let usesApple = fbUser.providerData.contains { $0.providerID == "apple.com" }
             let phone = fbUser.phoneNumber ?? phoneE164
             apply(
                 userID: fbUser.uid,
                 email: fbUser.email ?? email,
                 fullName: fullName,
-                phoneE164: phone,
-                provider: .phone
+                phoneE164: usesApple ? nil : phone,
+                provider: usesApple ? .apple : .phone
             )
         }
     }
@@ -72,6 +73,17 @@ final class AccountSession: ObservableObject {
             fullName: displayName,
             phoneE164: phoneE164,
             provider: .phone
+        )
+    }
+
+    /// Optional backup path — AuthenticationServices (and Firebase Auth when plist is present).
+    func signInWithApple(userID: String, email: String?, fullName: String?) {
+        apply(
+            userID: userID,
+            email: email,
+            fullName: fullName,
+            phoneE164: nil,
+            provider: .apple
         )
     }
 

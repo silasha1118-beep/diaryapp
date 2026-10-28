@@ -40,6 +40,8 @@
 		A10000000000000000000020 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* PaywallView.swift */; };
 		A10000000000000000000021 /* DiaryVault.storekit in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* DiaryVault.storekit */; };
 		A10000000000000000000025 /* FirebaseAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000025 /* FirebaseAppDelegate.swift */; };
+		A10000000000000000000029 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000029 /* AppleSignInCoordinator.swift */; };
+		A1000000000000000000002A /* AppleSignInBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002A /* AppleSignInBackupView.swift */; };
 		A10000000000000000000026 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000002 /* FirebaseAuth */; };
 		A10000000000000000000027 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000003 /* FirebaseCore */; };
 /* End PBXBuildFile section */
@@ -82,6 +84,8 @@
 		B10000000000000000000021 /* DiaryVault.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = DiaryVault.storekit; sourceTree = "<group>"; };
 		B10000000000000000000022 /* DiaryVault.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiaryVault.entitlements; sourceTree = "<group>"; };
 		B10000000000000000000025 /* FirebaseAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAppDelegate.swift; sourceTree = "<group>"; };
+		B10000000000000000000029 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
+		B1000000000000000000002A /* AppleSignInBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInBackupView.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -155,6 +159,7 @@
 				B1000000000000000000001D /* AccountSession.swift */,
 				B10000000000000000000024 /* SMSAuthProvider.swift */,
 				B10000000000000000000025 /* FirebaseAppDelegate.swift */,
+				B10000000000000000000029 /* AppleSignInCoordinator.swift */,
 				B1000000000000000000001E /* SubscriptionStore.swift */,
 			);
 			path = Services;
@@ -214,6 +219,7 @@
 			children = (
 				B1000000000000000000001F /* AuthGateView.swift */,
 				B10000000000000000000028 /* PhoneOTPLoginForm.swift */,
+				B1000000000000000000002A /* AppleSignInBackupView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -375,12 +381,14 @@
 				A1000000000000000000001D /* AccountSession.swift in Sources */,
 				A10000000000000000000024 /* SMSAuthProvider.swift in Sources */,
 				A10000000000000000000025 /* FirebaseAppDelegate.swift in Sources */,
+				A10000000000000000000029 /* AppleSignInCoordinator.swift in Sources */,
 				A1000000000000000000001E /* SubscriptionStore.swift in Sources */,
 				A1000000000000000000000B /* Theme.swift in Sources */,
 				A1000000000000000000000C /* RootView.swift in Sources */,
 				A1000000000000000000000D /* OnboardingView.swift in Sources */,
 				A1000000000000000000001F /* AuthGateView.swift in Sources */,
 				A10000000000000000000028 /* PhoneOTPLoginForm.swift in Sources */,
+				A1000000000000000000002A /* AppleSignInBackupView.swift in Sources */,
 				A1000000000000000000000E /* DiaryListView.swift in Sources */,
 				A1000000000000000000000F /* DiaryComposerView.swift in Sources */,
 				A10000000000000000000010 /* DiaryDetailView.swift in Sources */,
