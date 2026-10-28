@@ -99,8 +99,10 @@
 /* Settings */
 "settings.title" = "设置";
 "settings.section.account" = "账号";
+"settings.section.accountPhone" = "账号 / 手机登录";
 "settings.account.status" = "状态";
 "settings.account.signedIn" = "已登录";
+"settings.account.signedOut" = "尚未用手机登录。";
 "settings.account.identity" = "身份";
 "settings.account.provider" = "登录方式";
 "settings.account.provider.phone" = "手机（SMS 验证码）";
@@ -108,6 +110,8 @@
 "settings.account.provider.local" = "本机（开发）";
 "settings.account.signOut" = "退出登录";
 "settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP。退出后会回到账号闸门。";
+"settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）。与启动闸门相同的 Firebase 手机验证。";
+"settings.account.phone.success" = "手机登录成功。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";
