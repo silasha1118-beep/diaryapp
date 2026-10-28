@@ -32,11 +32,11 @@
 "auth.error" = "登入未完成，請再試一次。";
 "auth.phone.label" = "手機號碼";
 "auth.phone.region" = "地區";
-"auth.phone.placeholder" = "手機號碼";
+"auth.phone.placeholder" = "手機號碼（不含國碼）";
 "auth.phone.send" = "傳送驗證碼";
 "auth.phone.resend" = "重新傳送";
 "auth.phone.sent" = "驗證碼已送出，請查看簡訊。";
-"auth.phone.invalid" = "請輸入所選地區的有效手機號碼。";
+"auth.phone.invalid" = "請輸入所選地區的有效手機號碼（台灣 9 碼、香港 8 碼、中國大陸 11 碼；開頭 0 可保留）。";
 "auth.otp.label" = "驗證碼";
 "auth.otp.placeholder" = "六位數字";
 "auth.otp.verify" = "驗證並繼續";
@@ -46,7 +46,9 @@
 "auth.dial.tw" = "+886 台灣";
 "auth.stub.hint" = "Stub 簡訊（未真實發送）：請使用 %@";
 "auth.sms.notConfigured" = "簡訊尚未就緒。請將 GoogleService-Info.plist 加入 DiaryVault target（勿提交到 git），或設定 DIARY_SMS_PROVIDER=stub。";
-"auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。";
+"auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實簡訊——可用 Firebase 測試號碼節省配額。";
+"auth.sms.regionBlocked" = "此電話地區在 Firebase 被封鎖。請到 Console → Authentication → Settings → SMS region policy，允許台灣、香港與中國大陸。";
+"auth.sms.appVerification" = "App 驗證失敗（reCAPTCHA）。請在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然後重新編譯。";
 "auth.devLocal" = "開發：以本機會話繼續";
 
 /* Paywall */

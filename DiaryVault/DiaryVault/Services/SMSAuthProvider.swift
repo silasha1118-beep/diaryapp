@@ -22,6 +22,10 @@ enum SMSAuthError: LocalizedError, Equatable {
     case invalidCode
     case notConfigured(String)
     case rateLimited
+    /// Firebase SMS region policy blocked this country (allow TW / HK / CN in Console).
+    case regionNotAllowed
+    /// reCAPTCHA / APNs app verification failed — usually missing URL scheme (`REVERSED_CLIENT_ID`).
+    case appVerificationFailed
     case underlying(String)
 
     var errorDescription: String? {
@@ -30,6 +34,10 @@ enum SMSAuthError: LocalizedError, Equatable {
         case .invalidCode: return "Invalid verification code"
         case .notConfigured(let detail): return detail
         case .rateLimited: return "Too many attempts; try again later"
+        case .regionNotAllowed:
+            return "SMS is not allowed for this phone region in Firebase Console"
+        case .appVerificationFailed:
+            return "App verification failed. Add REVERSED_CLIENT_ID as a URL Type in Xcode"
         case .underlying(let message): return message
         }
     }
@@ -207,19 +215,28 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         let ns = error as NSError
         let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowered = message.lowercased()
-
-        // Stable FIRAuthErrorCode integers (invalid/missing phone, bad OTP, quota).
-        switch ns.code {
-        case 17041, 17042:
-            return .invalidPhone
-        case 17043, 17044, 17051:
-            return .invalidCode
-        case 17010, 17052:
-            return .rateLimited
-        default:
-            break
+        if let authCode = AuthErrorCode(rawValue: ns.code) {
+            switch authCode {
+            case .missingPhoneNumber, .invalidPhoneNumber:
+                return .invalidPhone
+            case .missingVerificationCode, .invalidVerificationCode, .sessionExpired:
+                return .invalidCode
+            case .tooManyRequests, .quotaExceeded:
+                return .rateLimited
+            case .operationNotAllowed:
+                // Phone provider disabled, or operation blocked (often SMS region policy).
+                if looksLikeRegionBlock(lowered) { return .regionNotAllowed }
+                return .notConfigured(
+                    "Phone sign-in is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
+                )
+            case .appNotAuthorized, .invalidAppCredential, .captchaCheckFailed, .missingAppCredential:
+                return .appVerificationFailed
+            default:
+                break
+            }
         }
 
+        if looksLikeRegionBlock(lowered) { return .regionNotAllowed }
         if lowered.contains("invalid phone") { return .invalidPhone }
         if lowered.contains("verification code") || lowered.contains("invalid code") {
             return .invalidCode
@@ -227,7 +244,22 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         if lowered.contains("too many") || lowered.contains("quota") {
             return .rateLimited
         }
+        if lowered.contains("app credential")
+            || lowered.contains("recaptcha")
+            || lowered.contains("app verification")
+            || lowered.contains("captcha")
+            || lowered.contains("invalid token") {
+            return .appVerificationFailed
+        }
         return .underlying(message.isEmpty ? "Firebase Auth error (\(ns.code))" : message)
+    }
+
+    private func looksLikeRegionBlock(_ lowered: String) -> Bool {
+        lowered.contains("region")
+            || lowered.contains("blocked")
+            || lowered.contains("not authorized to send")
+            || lowered.contains("cannot be used")
+            || lowered.contains("sms cannot")
     }
 }
 
@@ -292,6 +324,25 @@ enum PhoneNumberNormalizer {
         // Drop a single leading 0 common in national formats.
         let national = digits.hasPrefix("0") ? String(digits.dropFirst()) : digits
         return dial.rawValue + national
+    }
+
+    /// National significant number after stripping a leading trunk `0`.
+    static func nationalDigits(from nationalNumber: String) -> String {
+        let digits = nationalNumber.filter(\.isNumber)
+        return digits.hasPrefix("0") ? String(digits.dropFirst()) : digits
+    }
+
+    /// Launch-region mobile lengths: TW 9, HK 8, CN 11 (after dropping a leading 0).
+    static func isPlausibleNationalNumber(dial: RegionDial, nationalNumber: String) -> Bool {
+        let national = nationalDigits(from: nationalNumber)
+        switch dial {
+        case .tw:
+            return national.count == 9
+        case .hk:
+            return national.count == 8
+        case .cn:
+            return national.count == 11
+        }
     }
 
     static func isPlausibleE164(_ e164: String) -> Bool {

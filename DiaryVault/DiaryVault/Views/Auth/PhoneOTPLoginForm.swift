@@ -69,6 +69,12 @@ struct PhoneOTPLoginForm: View {
                 }
                 .pickerStyle(.menu)
                 .tint(VaultTheme.ink)
+                .onChange(of: dial) { _, _ in
+                    session = nil
+                    otpCode = ""
+                    errorMessage = nil
+                    infoMessage = nil
+                }
 
                 TextField(localization.text("auth.phone.placeholder"), text: $nationalNumber)
                     .keyboardType(.phonePad)
@@ -142,7 +148,7 @@ struct PhoneOTPLoginForm: View {
     }
 
     private var canSend: Bool {
-        nationalNumber.filter(\.isNumber).count >= 6
+        PhoneNumberNormalizer.isPlausibleNationalNumber(dial: dial, nationalNumber: nationalNumber)
     }
 
     private var canVerify: Bool {
@@ -157,6 +163,10 @@ struct PhoneOTPLoginForm: View {
         isSending = true
         defer { isSending = false }
 
+        guard PhoneNumberNormalizer.isPlausibleNationalNumber(dial: dial, nationalNumber: nationalNumber) else {
+            errorMessage = localization.text("auth.phone.invalid")
+            return
+        }
         let e164 = PhoneNumberNormalizer.composeE164(dial: dial, nationalNumber: nationalNumber)
         do {
             let newSession = try await sms.sendCode(toPhoneE164: e164)
@@ -210,6 +220,10 @@ struct PhoneOTPLoginForm: View {
             return localization.text("auth.sms.notConfigured")
         case .rateLimited:
             return localization.text("auth.sms.rateLimited")
+        case .regionNotAllowed:
+            return localization.text("auth.sms.regionBlocked")
+        case .appVerificationFailed:
+            return localization.text("auth.sms.appVerification")
         case .underlying(let detail):
             #if DEBUG
             return detail.isEmpty ? localization.text("auth.error") : detail
