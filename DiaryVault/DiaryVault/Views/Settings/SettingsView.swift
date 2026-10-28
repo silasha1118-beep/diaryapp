@@ -15,30 +15,38 @@ struct SettingsView: View {
 
                 Form {
                     Section {
-                        LabeledContent(localization.text("settings.account.status")) {
-                            Text(localization.text("settings.account.signedIn"))
-                                .foregroundStyle(VaultTheme.inkMuted)
-                        }
-                        if !account.displayLabel.isEmpty {
-                            LabeledContent(localization.text("settings.account.identity")) {
-                                Text(account.displayLabel)
+                        if account.isSignedIn {
+                            LabeledContent(localization.text("settings.account.status")) {
+                                Text(localization.text("settings.account.signedIn"))
                                     .foregroundStyle(VaultTheme.inkMuted)
-                                    .lineLimit(1)
                             }
-                        }
-                        LabeledContent(localization.text("settings.account.provider")) {
-                            Text(providerLabel)
+                            if !account.displayLabel.isEmpty {
+                                LabeledContent(localization.text("settings.account.identity")) {
+                                    Text(account.displayLabel)
+                                        .foregroundStyle(VaultTheme.inkMuted)
+                                        .lineLimit(1)
+                                }
+                            }
+                            LabeledContent(localization.text("settings.account.provider")) {
+                                Text(providerLabel)
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                            Button(role: .destructive) {
+                                account.signOut()
+                            } label: {
+                                Text(localization.text("settings.account.signOut"))
+                            }
+                        } else {
+                            Text(localization.text("settings.account.signedOut"))
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
-                        Button(role: .destructive) {
-                            account.signOut()
-                        } label: {
-                            Text(localization.text("settings.account.signOut"))
-                        }
+
+                        PhoneOTPLoginForm(chrome: .settings)
+                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                     } header: {
-                        Text(localization.text("settings.section.account"))
+                        Text(localization.text("settings.section.accountPhone"))
                     } footer: {
-                        Text(localization.text("settings.account.footer"))
+                        Text(localization.text("settings.account.phone.footer"))
                     }
 
                     Section {

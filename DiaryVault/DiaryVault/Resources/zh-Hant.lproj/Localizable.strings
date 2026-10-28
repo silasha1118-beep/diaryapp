@@ -99,8 +99,10 @@
 /* Settings */
 "settings.title" = "設定";
 "settings.section.account" = "帳號";
+"settings.section.accountPhone" = "帳號 / 手機登入";
 "settings.account.status" = "狀態";
 "settings.account.signedIn" = "已登入";
+"settings.account.signedOut" = "尚未以手機登入。";
 "settings.account.identity" = "身分";
 "settings.account.provider" = "登入方式";
 "settings.account.provider.phone" = "手機（SMS 驗證碼）";
@@ -108,6 +110,8 @@
 "settings.account.provider.local" = "本機（開發）";
 "settings.account.signOut" = "登出";
 "settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP。登出後會回到帳號閘門。";
+"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）。與啟動閘門相同的 Firebase 手機驗證。";
+"settings.account.phone.success" = "手機登入成功。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免費";

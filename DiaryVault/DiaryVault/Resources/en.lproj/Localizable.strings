@@ -99,8 +99,10 @@
 /* Settings */
 "settings.title" = "Settings";
 "settings.section.account" = "Account";
+"settings.section.accountPhone" = "Account / Phone login";
 "settings.account.status" = "Status";
 "settings.account.signedIn" = "Signed in";
+"settings.account.signedOut" = "Not signed in with phone yet.";
 "settings.account.identity" = "Identity";
 "settings.account.provider" = "Provider";
 "settings.account.provider.phone" = "Phone (SMS OTP)";
@@ -108,6 +110,8 @@
 "settings.account.provider.local" = "Local (dev)";
 "settings.account.signOut" = "Sign out";
 "settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions. Sign out returns you to the account gate.";
+"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). Same Firebase phone auth as the launch gate.";
+"settings.account.phone.success" = "Phone sign-in succeeded.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";
