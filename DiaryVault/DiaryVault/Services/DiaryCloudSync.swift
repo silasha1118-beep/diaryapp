@@ -35,6 +35,8 @@ enum DiaryFirestoreSchema {
 /// Local JSON remains source of truth offline; this layer best-effort syncs when online.
 enum DiaryCloudSync {
     /// True only for real Firebase Auth sessions (not DEBUG local / stub synthetic ids).
+    /// Prefer observing `AccountSession.firebaseAuthUID` for launch timing — Auth can restore
+    /// asynchronously, so a one-shot `currentUser` read at startup may still be nil.
     static var activeFirebaseUID: String? {
         FirebaseBootstrap.configureIfNeeded()
         guard FirebaseApp.app() != nil,
@@ -92,10 +94,9 @@ enum DiaryCloudSync {
             "schemaVersion": DiaryFirestoreSchema.schemaVersion,
             "contentType": DiaryFirestoreSchema.contentTypeText
         ]
+        // Omit nil moodTag (do not write NSNull — merge deletes the field and confuses rules debugging).
         if let mood = entry.moodTag {
             data["moodTag"] = mood
-        } else {
-            data["moodTag"] = NSNull()
         }
         return data
     }

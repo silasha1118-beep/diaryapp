@@ -9,6 +9,8 @@ import FirebaseAuth
 @MainActor
 final class AccountSession: ObservableObject {
     private let defaults = UserDefaults.standard
+    /// Retained for app lifetime so Auth restore callbacks keep firing.
+    private var authStateHandle: AuthStateDidChangeListenerHandle?
 
     private enum Keys {
         static let userID = "account.userID"
@@ -30,8 +32,18 @@ final class AccountSession: ObservableObject {
     @Published private(set) var fullName: String?
     @Published private(set) var phoneE164: String?
     @Published private(set) var provider: Provider?
+    /// Live Firebase Auth UID once the SDK finishes restoring keychain state (nil for stub / local).
+    @Published private(set) var firebaseAuthUID: String?
+    /// Becomes true after the first Auth state callback (or immediately when Firebase is not configured).
+    @Published private(set) var firebaseAuthReady: Bool = false
 
     var isSignedIn: Bool { userID != nil }
+
+    /// Firestore sync requires a live Firebase Auth user — not merely a UserDefaults / stub session.
+    var hasLiveFirebaseAuth: Bool {
+        guard let firebaseAuthUID, !firebaseAuthUID.isEmpty else { return false }
+        return true
+    }
 
     var displayLabel: String {
         if let fullName, !fullName.isEmpty { return fullName }
@@ -53,18 +65,46 @@ final class AccountSession: ObservableObject {
         }
 
         // Prefer live Firebase session when the SDK is configured and still signed in.
+        // Auth may restore asynchronously from the keychain — do not rely on a one-shot
+        // `currentUser` read alone (that was silently skipping Firestore sync).
         FirebaseBootstrap.configureIfNeeded()
-        if FirebaseApp.app() != nil, let fbUser = Auth.auth().currentUser {
-            let usesApple = fbUser.providerData.contains { $0.providerID == "apple.com" }
-            let phone = fbUser.phoneNumber ?? phoneE164
-            apply(
-                userID: fbUser.uid,
-                email: fbUser.email ?? email,
-                fullName: fullName,
-                phoneE164: usesApple ? nil : phone,
-                provider: usesApple ? .apple : .phone
-            )
+        if FirebaseApp.app() != nil {
+            if let fbUser = Auth.auth().currentUser {
+                applyFirebaseUser(fbUser)
+            }
+            authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+                Task { @MainActor in
+                    self?.handleFirebaseAuthStateChange(user)
+                }
+            }
+        } else {
+            firebaseAuthReady = true
+            firebaseAuthUID = nil
         }
+    }
+
+    private func handleFirebaseAuthStateChange(_ user: User?) {
+        firebaseAuthReady = true
+        if let user {
+            applyFirebaseUser(user)
+            return
+        }
+        // First callback can briefly be nil while keychain restore is in flight — do not
+        // wipe a UserDefaults session on that alone. Only clear the live-UID mirror.
+        firebaseAuthUID = nil
+    }
+
+    private func applyFirebaseUser(_ fbUser: User) {
+        firebaseAuthUID = fbUser.uid
+        let usesApple = fbUser.providerData.contains { $0.providerID == "apple.com" }
+        let phone = fbUser.phoneNumber ?? phoneE164
+        apply(
+            userID: fbUser.uid,
+            email: fbUser.email ?? email,
+            fullName: fullName,
+            phoneE164: usesApple ? nil : phone,
+            provider: usesApple ? .apple : .phone
+        )
     }
 
     func signInWithPhone(userID: String, phoneE164: String, displayName: String?) {
@@ -75,6 +115,12 @@ final class AccountSession: ObservableObject {
             phoneE164: phoneE164,
             provider: .phone
         )
+        // Mirror live Auth immediately when OTP went through Firebase (stub leaves this nil).
+        if Auth.auth().currentUser?.uid == userID {
+            firebaseAuthUID = userID
+        } else {
+            firebaseAuthUID = nil
+        }
     }
 
     /// Optional backup path — AuthenticationServices (and Firebase Auth when plist is present).
@@ -86,6 +132,11 @@ final class AccountSession: ObservableObject {
             phoneE164: nil,
             provider: .apple
         )
+        if Auth.auth().currentUser?.uid == userID {
+            firebaseAuthUID = userID
+        } else {
+            firebaseAuthUID = nil
+        }
     }
 
     /// DEBUG / simulator scaffold only — not a production auth path.
@@ -104,6 +155,7 @@ final class AccountSession: ObservableObject {
         if FirebaseApp.app() != nil {
             try? Auth.auth().signOut()
         }
+        firebaseAuthUID = nil
         clearLocalSession()
     }
 
@@ -127,6 +179,7 @@ final class AccountSession: ObservableObject {
                 outcome = needsRecentLogin ? .requiresReauthentication : .remoteFailed
             }
         }
+        firebaseAuthUID = nil
         clearLocalSession()
         return outcome
     }

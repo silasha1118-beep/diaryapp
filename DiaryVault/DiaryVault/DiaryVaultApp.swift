@@ -29,6 +29,17 @@ struct DiaryVaultApp: App {
                     // Sign-in / sign-out: pull+push when Firebase Auth is live; no-op when local-only.
                     diaryStore.scheduleSynchronize()
                 }
+                .onChange(of: account.firebaseAuthUID) { _, uid in
+                    // Auth keychain restore can land after first launch sync no-op'd — re-run then.
+                    if uid != nil {
+                        diaryStore.scheduleSynchronize()
+                    }
+                }
+                .onChange(of: account.firebaseAuthReady) { _, ready in
+                    if ready {
+                        diaryStore.scheduleSynchronize()
+                    }
+                }
                 .onOpenURL { url in
                     // reCAPTCHA custom-scheme callback for Phone Auth (SwiftUI path).
                     if FirebaseApp.app() != nil {

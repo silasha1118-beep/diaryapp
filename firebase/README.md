@@ -39,7 +39,11 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string
 | Auth state | Behavior |
 |------------|----------|
 | Signed out / DEBUG local session / stub OTP | Local vault only — no Firestore writes |
-| Firebase Auth phone or Apple | Local save first; upsert/delete sync when online; pull+merge (LWW by `updatedAt`) on launch / after sign-in |
+| Firebase Auth phone or Apple | Local save first; upsert/delete sync when online; pull+merge (LWW by `updatedAt`) on launch / after Auth restore / after sign-in |
+
+**Important:** Sync gates on live `Auth.auth().currentUser` (not UserDefaults alone). Settings → **Cloud sync** shows whether Firebase Auth is live and surfaces sync errors (e.g. rules not Published). If status is “Local session only”, sign out and complete real Firebase SMS (banner must say Firebase).
+
+**Rules:** Creating the database in production mode starts deny-all — paste [`firestore.rules`](firestore.rules) and **Publish**, or every write fails.
 
 ## Admin read (later — do not build UI now)
 

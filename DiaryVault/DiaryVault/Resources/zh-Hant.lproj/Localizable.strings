@@ -160,6 +160,16 @@
 "settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」始終顯示於下方。登出後會回到帳號閘門。";
 "settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）、馬來西亞（+60）、新加坡（+65）、泰國（+66）、日本（+81）。未以 Apple 登入時，下方會顯示標準「透過 Apple 登入」按鈕。橫幅會標示 Firebase 或 Stub——與啟動閘門相同。";
 "settings.account.phone.success" = "手機登入成功。";
+"settings.section.cloud" = "雲端同步";
+"settings.cloud.status" = "狀態";
+"settings.cloud.status.synced" = "已同步至 Firestore";
+"settings.cloud.status.pending" = "等待同步…";
+"settings.cloud.status.error" = "同步錯誤 — 見下方";
+"settings.cloud.status.localSession" = "僅本機會話（無 Firebase Auth）";
+"settings.cloud.status.signedOut" = "未登入 — 僅本機";
+"settings.cloud.lastSync" = "上次同步";
+"settings.cloud.syncNow" = "立即同步";
+"settings.cloud.footer" = "當 Firebase Auth 有效（手機簡訊或 Apple）時，文字日記會上傳到 users/{uid}/entries。若狀態顯示「僅本機會話」，請登出後以真實 Firebase 簡訊重新登入（橫幅須顯示 Firebase，而非 Stub）。並確認 Console 已 Publish firebase/firestore.rules。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免費";

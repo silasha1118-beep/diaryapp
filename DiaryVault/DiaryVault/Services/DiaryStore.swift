@@ -24,8 +24,9 @@ final class DiaryStore: ObservableObject {
     }()
 
     private var pendingOps: [PendingCloudOp] = []
-    private var syncTask: Task<Void, Never>?
+    private var debounceTask: Task<Void, Never>?
     private var isSyncing = false
+    private var needsResync = false
 
     init(filename: String = "diary_entries.json") {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -47,12 +48,13 @@ final class DiaryStore: ObservableObject {
         scheduleSynchronize()
     }
 
-    /// Re-run sync after sign-in / returning online.
+    /// Re-run sync after sign-in / Auth restore / returning online.
+    /// Debounces rapid calls; never cancels an in-flight Firestore round-trip (uses `needsResync`).
     func scheduleSynchronize() {
-        syncTask?.cancel()
-        syncTask = Task { [weak self] in
-            // Brief defer so Auth.currentUser is settled after OTP / Apple.
-            try? await Task.sleep(nanoseconds: 150_000_000)
+        debounceTask?.cancel()
+        debounceTask = Task { [weak self] in
+            // Brief defer so Auth.currentUser is settled after OTP / Apple / keychain restore.
+            try? await Task.sleep(nanoseconds: 250_000_000)
             guard !Task.isCancelled else { return }
             await self?.synchronizeWithCloud()
         }
@@ -110,6 +112,9 @@ final class DiaryStore: ObservableObject {
                 lastCloudSyncError = nil
             } catch {
                 lastCloudSyncError = error.localizedDescription
+                #if DEBUG
+                print("DiaryCloudSync deleteAll failed: \(error)")
+                #endif
             }
         }
     }
@@ -138,26 +143,62 @@ final class DiaryStore: ObservableObject {
     // MARK: - Cloud sync
 
     /// Merge remote → local (LWW by `updatedAt`), then flush pending upserts/deletes.
+    /// Push still runs if pull fails (so a rules/read glitch does not block uploads).
     func synchronizeWithCloud() async {
-        guard !isSyncing else { return }
+        if isSyncing {
+            needsResync = true
+            return
+        }
         guard let uid = DiaryCloudSync.activeFirebaseUID else {
-            // Signed-out / stub / local DEBUG: keep vault local-only.
+            // Signed-out / stub / local DEBUG / Auth not restored yet: keep vault local-only.
             return
         }
 
         isSyncing = true
-        defer { isSyncing = false }
+        defer {
+            isSyncing = false
+            if needsResync {
+                needsResync = false
+                scheduleSynchronize()
+            }
+        }
+
+        var remote: [DiaryEntry] = []
+        var pullError: String?
 
         do {
-            let remote = try await DiaryCloudSync.fetchAllEntries(uid: uid)
+            remote = try await DiaryCloudSync.fetchAllEntries(uid: uid)
             mergeRemote(remote)
+        } catch is CancellationError {
+            return
+        } catch {
+            pullError = error.localizedDescription
+            #if DEBUG
+            print("DiaryCloudSync pull failed: \(error)")
+            #endif
+        }
+
+        do {
             try await flushPending(uid: uid)
-            // Push any local-only entries that were never queued (e.g. pre-sign-in writing).
+            // Push any local-only entries that were never queued (e.g. pre-sign-in writing,
+            // or creates that happened while Auth was still restoring).
             try await pushMissingLocals(uid: uid, remoteIDs: Set(remote.map(\.id)))
             lastCloudSyncAt = Date()
-            lastCloudSyncError = nil
+            lastCloudSyncError = pullError
+            #if DEBUG
+            if let pullError {
+                print("DiaryCloudSync push OK after pull error: \(pullError)")
+            } else {
+                print("DiaryCloudSync OK uid=\(uid) entries=\(entries.count)")
+            }
+            #endif
+        } catch is CancellationError {
+            return
         } catch {
             lastCloudSyncError = error.localizedDescription
+            #if DEBUG
+            print("DiaryCloudSync push failed: \(error)")
+            #endif
         }
     }
 
@@ -190,6 +231,7 @@ final class DiaryStore: ObservableObject {
         for op in pendingOps {
             latest[op.entryID] = op
         }
+        var firstError: Error?
         for op in latest.values {
             do {
                 switch op {
@@ -203,12 +245,13 @@ final class DiaryStore: ObservableObject {
                 }
             } catch {
                 remaining.append(op)
+                if firstError == nil { firstError = error }
             }
         }
         pendingOps = remaining
         persistPending()
-        if !remaining.isEmpty {
-            throw remaining.first.map { _ in CloudSyncError.pendingFlushFailed } ?? CloudSyncError.pendingFlushFailed
+        if let firstError {
+            throw firstError
         }
     }
 
@@ -231,13 +274,10 @@ final class DiaryStore: ObservableObject {
         }
     }
 
-    private enum CloudSyncError: LocalizedError {
-        case pendingFlushFailed
-        var errorDescription: String? { "Some diary changes are waiting to sync." }
-    }
-
     private func enqueue(_ op: PendingCloudOp) {
-        // Signed-out / stub / DEBUG local: keep vault local-only (no cloud queue).
+        // Signed-out / stub / DEBUG local / Auth not restored yet: local vault only.
+        // Entries created before Auth restores are uploaded via `pushMissingLocals`
+        // once `AccountSession.firebaseAuthUID` becomes available.
         guard DiaryCloudSync.activeFirebaseUID != nil else { return }
         // Drop earlier ops for the same id.
         pendingOps.removeAll { $0.entryID == op.entryID }
