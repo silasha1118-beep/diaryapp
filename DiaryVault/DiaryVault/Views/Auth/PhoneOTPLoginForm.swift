@@ -53,6 +53,9 @@ struct PhoneOTPLoginForm: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: session != nil)
+        .onAppear {
+            surfacePhoneAuthURLSchemeIfNeeded()
+        }
     }
 
     /// Always show Firebase vs Stub so a misconfigured local plist / scheme is obvious.
@@ -65,6 +68,12 @@ struct PhoneOTPLoginForm: View {
                 Text(stubHelpText)
                     .font(.system(size: 12))
                     .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if AuthConfig.smsProvider == .firebase,
+                      !FirebasePhoneAuthURLScheme.readinessCheck().canInstantiatePhoneAuthProvider {
+                Text(localization.text("auth.sms.appVerification"))
+                    .font(.system(size: 12))
+                    .foregroundStyle(VaultTheme.seal)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -189,7 +198,14 @@ struct PhoneOTPLoginForm: View {
     }
 
     private var canSend: Bool {
-        PhoneNumberNormalizer.isPlausibleNationalNumber(dial: dial, nationalNumber: nationalNumber)
+        guard PhoneNumberNormalizer.isPlausibleNationalNumber(dial: dial, nationalNumber: nationalNumber) else {
+            return false
+        }
+        // Block Send when Firebase Phone Auth would fatal inside PhoneAuthProvider.init.
+        if AuthConfig.smsProvider == .firebase {
+            return FirebasePhoneAuthURLScheme.readinessCheck().canInstantiatePhoneAuthProvider
+        }
+        return true
     }
 
     private var canVerify: Bool {
@@ -282,6 +298,19 @@ struct PhoneOTPLoginForm: View {
         let created = SMSAuthProviderFactory.make()
         smsProvider = SMSAuthProviderHolder(created)
         return created
+    }
+
+    /// Surface missing URL scheme before the user taps Send — never instantiate PhoneAuthProvider here.
+    private func surfacePhoneAuthURLSchemeIfNeeded() {
+        guard AuthConfig.smsProvider == .firebase else { return }
+        let readiness = FirebasePhoneAuthURLScheme.readinessCheck()
+        guard !readiness.canInstantiatePhoneAuthProvider else { return }
+        if errorMessage == nil {
+            errorMessage = localization.text("auth.sms.appVerification")
+        }
+        #if DEBUG
+        print("DiaryVault Phone Auth URL scheme not ready: \(readiness.debugSummary)")
+        #endif
     }
 }
 

@@ -45,13 +45,35 @@
 		<string>remote-notification</string>
 	</array>
 	<!--
-	  Firebase Phone Auth reCAPTCHA callback scheme.
-	  The "Copy GoogleService-Info.plist" Run Script injects REVERSED_CLIENT_ID from the
-	  gitignored GoogleService-Info.plist into this array at build time. Do not commit a
-	  real client id here — leave the array empty in git.
+	  Firebase Phone Auth reCAPTCHA callback schemes.
+	  MUST stay non-empty: Firebase Auth stores CFBundleURLTypes as an IUO
+	  (`Auth.mainBundleUrlTypes`). An absent/stripped empty array makes that nil, and
+	  PhoneAuthProvider.init force-unwraps it (fatal at PhoneAuthProvider.swift:649).
+	  The Copy GoogleService-Info.plist Run Script replaces the DIARYVAULT_* placeholders
+	  with REVERSED_CLIENT_ID + encoded GOOGLE_APP_ID from the gitignored plist.
 	-->
 	<key>CFBundleURLTypes</key>
 	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Firebase Phone Auth REVERSED_CLIENT_ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.DIARYVAULT_REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>Firebase Phone Auth Encoded App ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app-1-DIARYVAULT_GOOGLE_APP_ID</string>
+			</array>
+		</dict>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

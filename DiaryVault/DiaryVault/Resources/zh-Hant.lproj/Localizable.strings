@@ -59,7 +59,7 @@
 "auth.sms.notConfigured" = "簡訊尚未就緒。請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git）後重新編譯，或設定 DIARY_SMS_PROVIDER=stub。";
 "auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實簡訊——可用 Firebase 測試號碼節省配額。";
 "auth.sms.regionBlocked" = "此電話地區在 Firebase 被封鎖。請到 Console → Authentication → Settings → SMS region policy，允許台灣、香港、中國大陸、馬來西亞、新加坡、泰國與日本。";
-"auth.sms.appVerification" = "App 驗證失敗（reCAPTCHA／缺少 URL scheme）。請把 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/，重新編譯讓 Copy script 注入 REVERSED_CLIENT_ID 到 URL Types，再重試。";
+"auth.sms.appVerification" = "缺少 Phone Auth URL scheme。請把含 REVERSED_CLIENT_ID 的 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/，Product → Clean Build Folder，刪除手機上的 App 後重裝。再到 Target → Info → URL Types 確認有 com.googleusercontent.apps.…";
 "auth.apple.or" = "或";
 "auth.apple.backup" = "透過 Apple 登入";
 "auth.apple.secondaryNote" = "適合不想收簡訊、或想用 Apple ID 綁定帳號時使用。";

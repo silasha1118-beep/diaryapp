@@ -59,7 +59,7 @@
 "auth.sms.notConfigured" = "SMS ยังไม่พร้อม วาง GoogleService-Info.plist ที่ DiaryVault/DiaryVault/ (gitignore) แล้วสร้างใหม่ หรือตั้ง DIARY_SMS_PROVIDER=stub";
 "auth.sms.rateLimited" = "พยายามมากเกินไป รอสักครู่แล้วลองใหม่ แผน Spark อนุญาต SMS จริงประมาณ 10 ข้อความ/วัน — ใช้เบอร์ทดสอบ Firebase เพื่อประหยัดโควตา";
 "auth.sms.regionBlocked" = "ภูมิภาคโทรศัพท์นี้ถูกบล็อกใน Firebase ที่ Console → Authentication → Settings → SMS region policy ให้อนุญาตไต้หวัน ฮ่องกง จีนแผ่นดินใหญ่ มาเลเซีย สิงคโปร์ ไทย และญี่ปุ่น";
-"auth.sms.appVerification" = "ยืนยันแอปไม่สำเร็จ (reCAPTCHA / ไม่มี URL scheme) วาง GoogleService-Info.plist ที่ DiaryVault/DiaryVault/ แล้วสร้างใหม่ให้ Copy script ฉีด REVERSED_CLIENT_ID เข้า URL Types แล้วลองอีกครั้ง";
+"auth.sms.appVerification" = "ไม่มี URL scheme ของ Phone Auth วาง GoogleService-Info.plist ที่มี REVERSED_CLIENT_ID ที่ DiaryVault/DiaryVault/ แล้ว Product → Clean Build Folder ลบแอปจากเครื่องแล้วติดตั้งใหม่ จากนั้นตรวจ Target → Info → URL Types ว่ามี com.googleusercontent.apps.…";
 "auth.apple.or" = "หรือ";
 "auth.apple.backup" = "เข้าสู่ระบบด้วย Apple";
 "auth.apple.secondaryNote" = "ใช้เมื่อไม่ต้องการรับ SMS หรือต้องการผูก Apple ID";
