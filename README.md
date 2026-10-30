@@ -142,18 +142,28 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 
 **Shared scheme has no `DIARY_SMS_PROVIDER` env** — beginners should not add one. Without a plist on disk, provider stays **stub** (UI banner + DEBUG code hint). Twilio remains a fail-closed shell.
 
-### Subscriptions (StoreKit 2 · Author Plus)
+### Subscriptions (StoreKit 2 · Free / Author Plus / Author Pro)
 
-**Free** vs **Author Plus** (monthly / yearly). Product IDs are configurable (override via scheme env or Info.plist — **no secrets**):
+Three Mirror tiers (entitlement rank **Pro > Plus > Free**). Each paid tier has **monthly / quarterly / yearly**. Product IDs are configurable (override via scheme env or Info.plist — **no secrets**):
 
 | Variable | Default |
 |----------|---------|
-| `DIARY_IAP_MONTHLY_PRODUCT_ID` | `com.diaryvault.author.plus.monthly` |
-| `DIARY_IAP_YEARLY_PRODUCT_ID` | `com.diaryvault.author.plus.yearly` |
+| `DIARY_IAP_PLUS_MONTHLY_PRODUCT_ID` (alias `DIARY_IAP_MONTHLY_PRODUCT_ID`) | `com.diaryvault.author.plus.monthly` |
+| `DIARY_IAP_PLUS_QUARTERLY_PRODUCT_ID` | `com.diaryvault.author.plus.quarterly` |
+| `DIARY_IAP_PLUS_YEARLY_PRODUCT_ID` (alias `DIARY_IAP_YEARLY_PRODUCT_ID`) | `com.diaryvault.author.plus.yearly` |
+| `DIARY_IAP_PRO_MONTHLY_PRODUCT_ID` | `com.diaryvault.author.pro.monthly` |
+| `DIARY_IAP_PRO_QUARTERLY_PRODUCT_ID` | `com.diaryvault.author.pro.quarterly` |
+| `DIARY_IAP_PRO_YEARLY_PRODUCT_ID` | `com.diaryvault.author.pro.yearly` |
 
-- Settings → **View plans / restore** opens the paywall (load products, purchase, **Restore purchases**, reload).
-- Shared scheme already points at `DiaryVault/Configuration/DiaryVault.storekit` for local testing.
-- Estate / legacy custody and **voice / video diary** are **not** in this paywall (deferred).
+| Tier | Daily Mirror hard cap | Soft paywall |
+|------|----------------------|--------------|
+| Free | 6 | After 3 uses, dismissible Author Plus reminder on uses 4–6 |
+| Author Plus | 15 | At 15 → “done for today” + Author Pro upsell |
+| Author Pro | 40 | At 40 → “done for today” only |
+
+- Settings → **View plans / restore** opens the paywall (Free card + Plus periods + Pro periods, purchase, **Restore purchases**, reload).
+- Shared scheme already points at `DiaryVault/Configuration/DiaryVault.storekit` for local testing (one subscription group, Pro service level above Plus).
+- Estate / legacy custody and **voice / video diary** are **not** in this paywall (deferred; DA-15 duration TODOs in `AIConfig`).
 
 #### Beginner Mac steps — buy / restore with local StoreKit (Personal Team OK)
 
@@ -168,20 +178,37 @@ You do **not** need a paid Apple Developer account to try purchase + restore on 
 3. Select an **iPhone Simulator** → **Run** (⌘R).
 4. Finish onboarding → sign in (Firebase phone OTP, or DEBUG “local session”) → open **Settings**.
 5. Tap **View plans / restore**:
-   - You should see **Free** plus **Author Plus Monthly** / **Yearly** with prices from the `.storekit` file (e.g. $4.99 / $39.99).
-   - Tap a plan → confirm the StoreKit purchase sheet → Settings plan should flip to **Author Plus**.
+   - You should see **Free**, **Author Plus** (monthly / quarterly / yearly), and **Author Pro** (monthly / quarterly / yearly) with prices from the `.storekit` file.
+   - Tap a plan → confirm the StoreKit purchase sheet → Settings plan should flip to **Author Plus** or **Author Pro**.
    - Tap **Restore purchases** after a purchase (or after deleting/reinstalling the app) to re-sync entitlement.
 6. Optional debug: in Xcode menu **Debug → StoreKit → Manage Transactions…** to expire / refund / renew the local subscription.
 
-#### Beginner Mac steps — Free vs Author Plus Mirror AI quotas
+#### Beginner Mac steps — Free / Plus / Pro Mirror AI quotas
 
-Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 8/day**, **Author Plus = 40/day** (`DIARY_AI_DAILY_REQUEST_LIMIT`; `0` = unlimited for Plus). Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
+Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 6/day** (soft reminder after **3**), **Plus = 15/day**, **Pro = 40/day**. Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
 
 1. Same as above: StoreKit Configuration = `DiaryVault.storekit`, Simulator Run, cloud AI key in scheme.
-2. Stay on **Free** (do not buy yet). Open **Mirror** → send cloud messages until the quota banner / error shows the free limit is used up (Settings → AI → **Mirror today** also shows `used / limit` and an upgrade CTA).
-3. Open **Settings → View plans / restore** → buy **Author Plus** via the `.storekit` sheet.
-4. Return to **Mirror**: remaining quota should jump to the Plus daily limit (or “unlimited” if Plus limit is `0`). You can send again without waiting for tomorrow.
-5. (Optional) Exhaust the Plus limit the same way, or set `DIARY_AI_DAILY_REQUEST_LIMIT=2` to verify the Plus exhausted copy (no upgrade CTA).
+2. Stay on **Free**. Open **Mirror** → after 3 uses, uses 4–6 show a dismissible paywall; at 6, “done for today”.
+3. Buy **Author Plus** → Mirror quota becomes 15/day. At 15, upsell **Author Pro**.
+4. Buy **Author Pro** → Mirror quota becomes 40/day. At 40, “done for today” (no higher CTA).
+
+#### App Store Connect (paid Apple Developer) — for Silas
+
+1. App Store Connect → your app → **Subscriptions** → create one subscription group, e.g. **Diary Vault Author** (same as local `.storekit`).
+2. Add **six** auto-renewable products with these IDs (must match the app / overrides exactly):
+
+   | Reference | Product ID | Duration | Suggested level |
+   |-----------|------------|----------|-----------------|
+   | Author Pro Monthly | `com.diaryvault.author.pro.monthly` | 1 month | Higher (level 1) |
+   | Author Pro Quarterly | `com.diaryvault.author.pro.quarterly` | 3 months | Higher (level 1) |
+   | Author Pro Yearly | `com.diaryvault.author.pro.yearly` | 1 year | Higher (level 1) |
+   | Author Plus Monthly | `com.diaryvault.author.plus.monthly` | 1 month | Lower (level 2) |
+   | Author Plus Quarterly | `com.diaryvault.author.plus.quarterly` | 3 months | Lower (level 2) |
+   | Author Plus Yearly | `com.diaryvault.author.plus.yearly` | 1 year | Lower (level 2) |
+
+3. Set localization (TW / HK / CN first), pricing, and review screenshot / notes.
+4. Create a **Sandbox** Apple ID; on device/Simulator clear scheme **StoreKit Configuration** (set to None) so the app talks to Sandbox / production.
+5. Enable **In-App Purchase** on the App ID; Paid Apps Agreement must be active.
 
 #### Personal Team vs paid Apple Developer
 
@@ -192,8 +219,6 @@ Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 8/d
 | Create real IAP products in **App Store Connect** | **No** | Required |
 | Sandbox Apple ID + Connect Sandbox testing | **No** | Required |
 | TestFlight / App Store release with IAP | **No** | Required |
-
-When you upgrade to a paid account later: create subscription group **Author Plus** with the product IDs above (TW / HK / CN first), create a Sandbox Apple ID, then **clear** StoreKit Configuration on the scheme (set to None) so the app talks to Sandbox / production instead of the local file.
 
 #### Capabilities
 
@@ -214,8 +239,10 @@ By default the Mirror tab uses a **local mock**. To call a real cloud chat API (
    | `DIARY_AI_MODEL` | No | OpenAI: `gpt-4o-mini` · Anthropic: `claude-sonnet-4-5` |
    | `DIARY_AI_MAX_TOKENS` | No | `400` |
    | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
-   | `DIARY_AI_FREE_DAILY_REQUEST_LIMIT` | No | `8` (Free tier daily Mirror cap) |
-   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `40` (Author Plus daily Mirror cap; `0` = unlimited for Plus) |
+   | `DIARY_AI_FREE_DAILY_REQUEST_LIMIT` | No | `6` (Free tier daily Mirror hard cap) |
+   | `DIARY_AI_FREE_SOFT_PAYWALL_THRESHOLD` | No | `3` (Free: after this many uses, dismissible Author Plus reminder until hard cap) |
+   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `15` (Author Plus daily Mirror hard cap; `0` = unlimited for Plus) |
+   | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `40` (Author Pro daily Mirror hard cap; `0` = unlimited for Pro) |
 
 2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
 3. Restart the app. Settings → AI should show **Cloud API** and the resolved provider.

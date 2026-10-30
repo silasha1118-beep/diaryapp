@@ -12,10 +12,13 @@ struct MirrorChatView: View {
     @State private var errorText: String?
     @State private var showQuotaUpgrade = false
     @State private var showPaywall = false
+    /// Soft paywall: hold the outbound text while Author Plus reminder is shown; resume on dismiss.
+    @State private var pendingSendText: String?
+    @State private var suppressPaywallNagOnce = false
     @State private var client: (any MirrorAIService) = MockMirrorAIClient()
     @State private var quotaTick = 0
 
-    private var isAuthorPlus: Bool { subscriptions.isSubscribed }
+    private var billingTier: BillingConfig.Tier { subscriptions.tier }
 
     var body: some View {
         NavigationStack {
@@ -50,14 +53,22 @@ struct MirrorChatView: View {
                     messages[0] = MirrorMessage(role: .system, text: localization.text("mirror.intro"))
                 }
             }
-            .onChange(of: subscriptions.isSubscribed) { _, _ in
+            .onChange(of: subscriptions.tier) { _, _ in
                 quotaTick &+= 1
-                if !MirrorUsageGuard.isExhausted(isAuthorPlus: isAuthorPlus) {
+                if !MirrorUsageGuard.isExhausted(tier: billingTier) {
                     showQuotaUpgrade = false
                     if errorText != nil {
                         errorText = nil
                     }
                 }
+            }
+            .onChange(of: showPaywall) { wasShowing, isShowing in
+                // After dismissible soft reminder, continue the Mirror request (still counted toward hard cap).
+                guard wasShowing, !isShowing, let pending = pendingSendText else { return }
+                pendingSendText = nil
+                suppressPaywallNagOnce = true
+                draft = pending
+                Task { await send() }
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
@@ -94,7 +105,7 @@ struct MirrorChatView: View {
 
     private var quotaBanner: some View {
         let _ = quotaTick
-        let exhausted = MirrorUsageGuard.isExhausted(isAuthorPlus: isAuthorPlus)
+        let exhausted = MirrorUsageGuard.isExhausted(tier: billingTier)
         return HStack(alignment: .center, spacing: 10) {
             Image(systemName: exhausted ? "exclamationmark.circle" : "chart.bar")
                 .font(.system(size: 13))
@@ -107,11 +118,11 @@ struct MirrorChatView: View {
 
             Spacer(minLength: 8)
 
-            if exhausted && !isAuthorPlus {
+            if shouldShowQuotaUpgradeCTA(exhausted: exhausted) {
                 Button {
                     showPaywall = true
                 } label: {
-                    Text(localization.text("mirror.quota.upgrade"))
+                    Text(localization.text(quotaUpgradeCTAKey))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(VaultTheme.seal)
                 }
@@ -128,13 +139,18 @@ struct MirrorChatView: View {
     }
 
     private func quotaStatusText(exhausted: Bool) -> String {
-        if let remaining = MirrorUsageGuard.remaining(isAuthorPlus: isAuthorPlus) {
-            let limit = MirrorUsageGuard.effectiveLimit(isAuthorPlus: isAuthorPlus)
+        if let remaining = MirrorUsageGuard.remaining(tier: billingTier) {
+            let limit = MirrorUsageGuard.effectiveLimit(tier: billingTier)
             if exhausted {
                 return String(
-                    format: localization.text(
-                        isAuthorPlus ? "mirror.quota.exhausted.plus" : "mirror.quota.exhausted.free"
-                    ),
+                    format: localization.text(exhaustedKey(for: billingTier)),
+                    limit
+                )
+            }
+            if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier) {
+                return String(
+                    format: localization.text("mirror.quota.softReminder"),
+                    remaining,
                     limit
                 )
             }
@@ -172,7 +188,7 @@ struct MirrorChatView: View {
                                 Button {
                                     showPaywall = true
                                 } label: {
-                                    Text(localization.text("mirror.quota.upgrade"))
+                                    Text(localization.text(quotaUpgradeCTAKey))
                                         .font(.system(size: 13, weight: .semibold))
                                         .foregroundStyle(VaultTheme.seal)
                                 }
@@ -260,6 +276,25 @@ struct MirrorChatView: View {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
+        // Hard-capped: “done for today” — Plus also offers Author Pro CTA.
+        if MirrorUsageGuard.isExhausted(tier: billingTier) {
+            let limit = MirrorUsageGuard.effectiveLimit(tier: billingTier)
+            errorText = String(
+                format: localization.text(exhaustedKey(for: billingTier)),
+                limit
+            )
+            showQuotaUpgrade = billingTier != .authorPro
+            return
+        }
+
+        // Soft reminder: Free uses after soft threshold (default 3) until hard cap (default 6).
+        if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier), !suppressPaywallNagOnce {
+            pendingSendText = text
+            showPaywall = true
+            return
+        }
+        suppressPaywallNagOnce = false
+
         draft = ""
         errorText = nil
         showQuotaUpgrade = false
@@ -278,12 +313,12 @@ struct MirrorChatView: View {
             messages.append(reply)
         } catch let error as MirrorAIError {
             switch error {
-            case .rateLimited(let limit, let plus):
+            case .rateLimited(let limit, let tier):
                 errorText = String(
-                    format: localization.text(plus ? "mirror.quota.exhausted.plus" : "mirror.quota.exhausted.free"),
+                    format: localization.text(exhaustedKey(for: tier)),
                     limit
                 )
-                showQuotaUpgrade = !plus
+                showQuotaUpgrade = tier != .authorPro
             default:
                 errorText = error.localizedDescription
             }
@@ -293,5 +328,33 @@ struct MirrorChatView: View {
 
         isThinking = false
         quotaTick &+= 1
+    }
+
+    private func exhaustedKey(for tier: BillingConfig.Tier) -> String {
+        switch tier {
+        case .free: return "mirror.quota.exhausted.free"
+        case .authorPlus: return "mirror.quota.exhausted.plus"
+        case .authorPro: return "mirror.quota.exhausted.pro"
+        }
+    }
+
+    private var quotaUpgradeCTAKey: String {
+        switch billingTier {
+        case .authorPlus:
+            return "mirror.quota.upgrade.pro"
+        case .free, .authorPro:
+            return "mirror.quota.upgrade"
+        }
+    }
+
+    private func shouldShowQuotaUpgradeCTA(exhausted: Bool) -> Bool {
+        switch billingTier {
+        case .authorPro:
+            return false
+        case .authorPlus:
+            return exhausted
+        case .free:
+            return exhausted || MirrorUsageGuard.shouldNudgePaywall(tier: .free)
+        }
     }
 }

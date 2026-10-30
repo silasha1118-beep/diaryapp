@@ -68,18 +68,30 @@
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */
-"paywall.title" = "Author Plus";
+"paywall.title" = "Plans";
 "paywall.headline" = "A mirror that knows your words.";
-"paywall.body" = "Choose Free or Author Plus. Prices come from StoreKit (local config or App Store) — nothing is hardcoded here.";
+"paywall.body" = "Choose Free, Author Plus, or Author Pro. Prices come from StoreKit (local config or App Store) — nothing is hardcoded here.";
 "paywall.free.title" = "Free";
-"paywall.free.body" = "Write in your vault and try the mirror. Free cloud Mirror is capped each day until you upgrade.";
+"paywall.free.body" = "Write in your vault and try the mirror. Free cloud Mirror: first uses are uninterrupted; later uses show this reminder, then today’s limit (6) stops further Mirror.";
 "paywall.free.current" = "Your current plan";
-"paywall.plus.blurb" = "Unlimited diary narrative + higher daily Mirror advice quota.";
+"paywall.plus.section" = "Author Plus · 15 Mirror / day";
+"paywall.plus.blurb" = "Unlimited diary narrative + 15 Mirror requests per day. Monthly, quarterly, or yearly.";
+"paywall.plus.monthly" = "Author Plus · Monthly";
+"paywall.plus.quarterly" = "Author Plus · Quarterly";
+"paywall.plus.yearly" = "Author Plus · Yearly";
+"paywall.pro.section" = "Author Pro · 40 Mirror / day";
+"paywall.pro.title" = "Author Pro";
+"paywall.pro.body" = "Highest daily Mirror quota (40/day). Monthly, quarterly, or yearly. Upgrade when Plus is not enough.";
+"paywall.pro.pending" = "Author Pro products load from StoreKit when the scheme points at DiaryVault.storekit (or Connect).";
+"paywall.pro.monthly" = "Author Pro · Monthly";
+"paywall.pro.quarterly" = "Author Pro · Quarterly";
+"paywall.pro.yearly" = "Author Pro · Yearly";
 "paywall.monthly" = "Author Plus · Monthly";
 "paywall.yearly" = "Author Plus · Yearly";
 "paywall.restore" = "Restore purchases";
 "paywall.reload" = "Reload products";
-"paywall.active" = "Subscription active on this Apple ID";
+"paywall.active" = "Author Plus active on this Apple ID";
+"paywall.active.pro" = "Author Pro active on this Apple ID";
 "paywall.currentPlan" = "Current plan";
 "paywall.owned" = "Active";
 "paywall.expires" = "Renews / ends";
@@ -87,11 +99,11 @@
 "paywall.unavailable" = "Product not loaded yet";
 "paywall.productsMissing" = "No products loaded. On Mac: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit, then Run again. Paid Apple Developer is required for real App Store Connect products.";
 "paywall.footer" = "Subscriptions renew until cancelled in Settings → Apple ID. Estate / legacy custody products are later — not in this paywall.";
-"paywall.disclosure" = "Author Plus is an auto-renewable subscription (monthly or yearly). Price and period are shown on each product above (from StoreKit). Payment is charged to your Apple ID at confirmation. Subscription renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings → Apple ID → Subscriptions. Deleting the Diary Vault account does not cancel an Apple subscription.";
+"paywall.disclosure" = "Author Plus and Author Pro are auto-renewable subscriptions (monthly, quarterly, or yearly). Price and period are shown on each product above (from StoreKit). Payment is charged to your Apple ID at confirmation. Subscription renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings → Apple ID → Subscriptions. Deleting the Diary Vault account does not cancel an Apple subscription.";
 "paywall.privacy.pending" = "Privacy Policy: host a URL and set DIARY_PRIVACY_POLICY_URL before App Store submit (also in Settings).";
 "paywall.status.productsEmpty" = "No products returned. Confirm the scheme StoreKit Configuration file, then Reload products.";
 "paywall.status.productsError" = "Could not load products from StoreKit.";
-"paywall.status.purchaseSuccess" = "Purchase recorded. Author Plus is active.";
+"paywall.status.purchaseSuccess" = "Purchase recorded. Your plan is active.";
 "paywall.status.purchaseCancelled" = "Purchase cancelled.";
 "paywall.status.purchasePending" = "Purchase pending approval.";
 "paywall.status.purchaseUnknown" = "Purchase ended in an unknown state.";
@@ -123,10 +135,13 @@
 "mirror.thinking" = "Listening…";
 "mirror.cited" = "Grounded in your entries";
 "mirror.quota.remaining" = "%d of %d Mirror requests left today";
-"mirror.quota.unlimited" = "Author Plus Mirror quota: unlimited today (config)";
-"mirror.quota.exhausted.free" = "Today’s free Mirror limit (%d) is used up. Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
-"mirror.quota.exhausted.plus" = "Today’s Author Plus Mirror limit (%d) is used up. Try again tomorrow.";
+"mirror.quota.softReminder" = "%d of %d Mirror left today — Author Plus raises the daily limit";
+"mirror.quota.unlimited" = "Mirror quota: unlimited today (config)";
+"mirror.quota.exhausted.free" = "Today’s Mirror use is finished (%d). Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
+"mirror.quota.exhausted.plus" = "Today’s Mirror use is finished (%d). Upgrade to Author Pro (40/day) for more Mirror, or try again tomorrow.";
+"mirror.quota.exhausted.pro" = "Today’s Mirror use is finished (%d). Try again tomorrow.";
 "mirror.quota.upgrade" = "View Author Plus";
+"mirror.quota.upgrade.pro" = "View Author Pro";
 
 /* Settings */
 "settings.title" = "Settings";
@@ -148,10 +163,11 @@
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";
 "settings.billing.active" = "Author Plus";
+"settings.billing.pro" = "Author Pro";
 "settings.billing.product" = "Product";
 "settings.billing.expires" = "Period end";
 "settings.billing.manage" = "View plans / restore";
-"settings.billing.footer" = "StoreKit 2: purchase and restore against the local DiaryVault.storekit file (or App Store Sandbox). Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
+"settings.billing.footer" = "StoreKit 2: Free / Author Plus (15/day) / Author Pro (40/day); monthly, quarterly, yearly. Local DiaryVault.storekit or App Store Sandbox. Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
 "settings.section.language" = "Language";
 "settings.language" = "App language";
 "settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — switch anytime. First launch follows your system language (App Store locale).";
@@ -168,10 +184,11 @@
 "settings.ai.quota" = "Mirror today";
 "settings.ai.quota.value" = "%d / %d requests";
 "settings.ai.quota.unlimited" = "Unlimited (Plus config)";
-"settings.ai.quota.exhausted.free" = "Free daily Mirror quota is used up. Upgrade to Author Plus or wait until tomorrow.";
-"settings.ai.quota.exhausted.plus" = "Author Plus daily Mirror quota is used up. Try again tomorrow.";
+"settings.ai.quota.exhausted.free" = "Today’s Mirror use is finished. Upgrade to Author Plus or wait until tomorrow.";
+"settings.ai.quota.exhausted.plus" = "Today’s Mirror use is finished. Upgrade to Author Pro (40/day), or wait until tomorrow.";
+"settings.ai.quota.exhausted.pro" = "Today’s Mirror use is finished. Try again tomorrow.";
 "settings.ai.residency" = "Data residency";
-"settings.ai.footer" = "Cloud Mirror: Free uses DIARY_AI_FREE_DAILY_REQUEST_LIMIT (default 8); Author Plus uses DIARY_AI_DAILY_REQUEST_LIMIT (default 40, 0 = unlimited). Set DIARY_AI_API_KEY in the Xcode scheme. No secrets in the repo.";
+"settings.ai.footer" = "Cloud Mirror: Free hard 6 / soft 3; Plus DIARY_AI_DAILY_REQUEST_LIMIT (default 15); Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT (default 40). 0 = unlimited for that tier. Set DIARY_AI_API_KEY in the Xcode scheme. No secrets in the repo.";
 "settings.section.legacy" = "Legacy";
 "settings.legacy.stub" = "Memorial / voice clone / executor settings — not in Phase 1 UI.";
 "settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";

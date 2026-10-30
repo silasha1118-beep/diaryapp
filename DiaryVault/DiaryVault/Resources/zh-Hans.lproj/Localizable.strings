@@ -68,18 +68,30 @@
 "auth.devLocal" = "开发：以本机会话继续";
 
 /* Paywall */
-"paywall.title" = "Author Plus";
+"paywall.title" = "方案";
 "paywall.headline" = "一面认得你文字的镜子。";
-"paywall.body" = "可选免费或 Author Plus。价格由 StoreKit（本机配置或 App Store）提供——此处不硬编码金额。";
+"paywall.body" = "可选免费、Author Plus 或 Author Pro。价格由 StoreKit（本机配置或 App Store）提供——此处不硬编码金额。";
 "paywall.free.title" = "免费";
-"paywall.free.body" = "可写日记、试用镜子；免费云端镜子每日有次数上限，升级后提高。";
+"paywall.free.body" = "可写日记、试用镜子。免费云端镜子：前几次不打扰，之后会显示升级提醒，用完当日上限（6 次）后即停止。";
 "paywall.free.current" = "当前方案";
-"paywall.plus.blurb" = "无限日记叙事＋更高每日镜子建议额度。";
+"paywall.plus.blurb" = "无限日记叙事＋每日 15 次镜子。可选月订、季订或年订。";
+"paywall.plus.section" = "Author Plus · 每日镜子 15 次";
+"paywall.pro.title" = "Author Pro";
+"paywall.pro.section" = "Author Pro · 每日镜子 40 次";
+"paywall.pro.body" = "最高每日镜子额度（40 次）。可选月订、季订或年订。Plus 不够时再升级。";
+"paywall.pro.pending" = "Author Pro 商品会从 StoreKit 加载（Scheme 指向 DiaryVault.storekit 或 Connect）。";
+"paywall.pro.monthly" = "Author Pro · 月订";
+"paywall.pro.quarterly" = "Author Pro · 季订";
+"paywall.pro.yearly" = "Author Pro · 年订";
 "paywall.monthly" = "Author Plus · 月订";
+"paywall.plus.monthly" = "Author Plus · 月订";
+"paywall.plus.quarterly" = "Author Plus · 季订";
 "paywall.yearly" = "Author Plus · 年订";
+"paywall.plus.yearly" = "Author Plus · 年订";
 "paywall.restore" = "恢复购买";
 "paywall.reload" = "重新加载商品";
-"paywall.active" = "此 Apple ID 已有有效订阅";
+"paywall.active" = "此 Apple ID 已启用 Author Plus";
+"paywall.active.pro" = "此 Apple ID 已启用 Author Pro";
 "paywall.currentPlan" = "当前方案";
 "paywall.owned" = "使用中";
 "paywall.expires" = "续订／到期";
@@ -87,11 +99,11 @@
 "paywall.unavailable" = "商品尚未加载";
 "paywall.productsMissing" = "尚未加载商品。请在 Mac：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit，再重新 Run。真实 App Store Connect 商品需付费 Apple Developer。";
 "paywall.footer" = "订阅会自动续订，可在「设置 → Apple ID」取消。遗产／托管商品属后期——不在此付费墙。";
-"paywall.disclosure" = "Author Plus 为自动续订订阅（月订或年订）。价格与周期见上方各商品（来自 StoreKit）。确认购买后会向你的 Apple ID 收费；除非在当前周期结束前至少 24 小时取消，否则会自动续订。请到「设置 → Apple ID → 订阅」管理或取消。删除日记金库账号不会取消 Apple 订阅。";
+"paywall.disclosure" = "Author Plus 与 Author Pro 为自动续订订阅（月订、季订或年订）。价格与周期见上方各商品（来自 StoreKit）。确认购买后会向你的 Apple ID 收费；除非在当前周期结束前至少 24 小时取消，否则会自动续订。请到「设置 → Apple ID → 订阅」管理或取消。删除日记金库账号不会取消 Apple 订阅。";
 "paywall.privacy.pending" = "隐私政策：上架前请托管网页并在 Info.plist 设置 DIARY_PRIVACY_POLICY_URL（设置页也可打开）。";
 "paywall.status.productsEmpty" = "未取得任何商品。请确认 Scheme 的 StoreKit Configuration，再点重新加载。";
 "paywall.status.productsError" = "无法从 StoreKit 加载商品。";
-"paywall.status.purchaseSuccess" = "购买已记录。Author Plus 已启用。";
+"paywall.status.purchaseSuccess" = "购买已记录。方案已启用。";
 "paywall.status.purchaseCancelled" = "已取消购买。";
 "paywall.status.purchasePending" = "购买待核准。";
 "paywall.status.purchaseUnknown" = "购买结束于未知状态。";
@@ -123,11 +135,13 @@
 "mirror.thinking" = "正在倾听…";
 "mirror.cited" = "依据你的日记";
 "mirror.quota.remaining" = "今日镜子还剩 %d／%d 次";
-"mirror.quota.unlimited" = "Author Plus 镜子额度：今日不限（依配置）";
-"mirror.quota.exhausted.free" = "今日免费镜子次数（%d）已用完。升级 Author Plus 可提高每日额度，或明天再试。";
-"mirror.quota.exhausted.plus" = "今日 Author Plus 镜子额度（%d）已用完。请明天再试。";
+"mirror.quota.softReminder" = "今日镜子还剩 %d／%d 次——升级 Author Plus 可提高每日额度";
+"mirror.quota.unlimited" = "镜子额度：今日不限（依配置）";
+"mirror.quota.exhausted.free" = "今日镜子已使用完毕（%d）。升级 Author Plus 可提高每日额度，或明天再试。";
+"mirror.quota.exhausted.plus" = "今日镜子已使用完毕（%d）。可升级 Author Pro（每日 40 次）以获得更多镜子，或明天再试。";
+"mirror.quota.exhausted.pro" = "今日镜子已使用完毕（%d）。请明天再试。";
 "mirror.quota.upgrade" = "查看 Author Plus";
-
+"mirror.quota.upgrade.pro" = "查看 Author Pro";
 /* Settings */
 "settings.title" = "设置";
 "settings.section.account" = "账号";
@@ -148,10 +162,11 @@
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";
 "settings.billing.active" = "Author Plus";
+"settings.billing.pro" = "Author Pro";
 "settings.billing.product" = "产品";
 "settings.billing.expires" = "周期结束";
 "settings.billing.manage" = "查看方案／恢复购买";
-"settings.billing.footer" = "StoreKit 2：可用本机 DiaryVault.storekit（或 App Store Sandbox）购买与恢复。可用 DIARY_IAP_* 环境变量或 Info.plist 覆盖产品 ID。仓库不含密钥。";
+"settings.billing.footer" = "StoreKit 2：免费／Author Plus（每日 15）／Author Pro（每日 40）；月订、季订、年订。本机 DiaryVault.storekit 或 App Store Sandbox。可用 DIARY_IAP_* 覆盖产品 ID。仓库不含密钥。";
 "settings.section.language" = "语言";
 "settings.language" = "App 语言";
 "settings.language.footer" = "繁中／简中／English／日本語／ไทย——可随时切换。首次启动跟随系统语言（App Store 地区）。";
@@ -168,10 +183,11 @@
 "settings.ai.quota" = "今日镜子";
 "settings.ai.quota.value" = "%d／%d 次";
 "settings.ai.quota.unlimited" = "不限（Plus 配置）";
-"settings.ai.quota.exhausted.free" = "免费每日镜子额度已用完。请升级 Author Plus，或等到明天。";
-"settings.ai.quota.exhausted.plus" = "Author Plus 每日镜子额度已用完。请明天再试。";
+"settings.ai.quota.exhausted.free" = "今日镜子已使用完毕。请升级 Author Plus，或等到明天。";
+"settings.ai.quota.exhausted.plus" = "今日镜子已使用完毕。可升级 Author Pro（每日 40 次），或等到明天。";
+"settings.ai.quota.exhausted.pro" = "今日镜子已使用完毕。请明天再试。";
 "settings.ai.residency" = "数据落地";
-"settings.ai.footer" = "云端镜子：免费用 DIARY_AI_FREE_DAILY_REQUEST_LIMIT（默认 8）；Author Plus 用 DIARY_AI_DAILY_REQUEST_LIMIT（默认 40，0＝不限）。请在 Xcode Scheme 设置 DIARY_AI_API_KEY。仓库不含密钥。";
+"settings.ai.footer" = "云端镜子：免费硬上限 6／软提醒 3；Plus 用 DIARY_AI_DAILY_REQUEST_LIMIT（默认 15）；Pro 用 DIARY_AI_PRO_DAILY_REQUEST_LIMIT（默认 40）。0＝该层不限。请在 Xcode Scheme 设置 DIARY_AI_API_KEY。仓库不含密钥。";
 "settings.section.legacy" = "遗产／纪念";
 "settings.legacy.stub" = "纪念模式／语音克隆／执行人设置——非 Phase 1 UI。";
 "settings.legacy.footer" = "仅路线图。本 MVP 骨架刻意省略。";

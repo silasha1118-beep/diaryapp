@@ -61,23 +61,137 @@
       "id" : "21370001",
       "localizations" : [
         {
-          "description" : "Living-author Plus: mirror advice and your vault.",
-          "displayName" : "Author Plus",
+          "description" : "Living-author plans: Free trial Mirror, Author Plus, Author Pro.",
+          "displayName" : "Diary Vault Author",
           "locale" : "en_US"
         },
         {
-          "description" : "在世 Author Plus：鏡子建議與你的金庫。",
-          "displayName" : "Author Plus",
+          "description" : "在世作者方案：免費鏡子試用、Author Plus、Author Pro。",
+          "displayName" : "日記金庫 Author",
           "locale" : "zh_Hant"
         },
         {
-          "description" : "在世 Author Plus：镜子建议与你的金库。",
-          "displayName" : "Author Plus",
+          "description" : "在世作者方案：免费镜子试用、Author Plus、Author Pro。",
+          "displayName" : "日记金库 Author",
           "locale" : "zh_Hans"
         }
       ],
-      "name" : "Author Plus",
+      "name" : "Diary Vault Author",
       "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21370011",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Highest daily Mirror quota (40/day). Monthly.",
+              "displayName" : "Author Pro Monthly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "最高每日鏡子額度（40 次）。月訂。",
+              "displayName" : "Author Pro 月訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "最高每日镜子额度（40 次）。月订。",
+              "displayName" : "Author Pro 月订",
+              "locale" : "zh_Hans"
+            }
+          ],
+          "productID" : "com.diaryvault.author.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Author Pro Monthly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "24.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21370012",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Highest daily Mirror quota (40/day). Quarterly.",
+              "displayName" : "Author Pro Quarterly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "最高每日鏡子額度（40 次）。季訂。",
+              "displayName" : "Author Pro 季訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "最高每日镜子额度（40 次）。季订。",
+              "displayName" : "Author Pro 季订",
+              "locale" : "zh_Hans"
+            }
+          ],
+          "productID" : "com.diaryvault.author.pro.quarterly",
+          "recurringSubscriptionPeriod" : "P3M",
+          "referenceName" : "Author Pro Quarterly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "79.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21370013",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Highest daily Mirror quota (40/day). Yearly.",
+              "displayName" : "Author Pro Yearly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "最高每日鏡子額度（40 次）。年訂。",
+              "displayName" : "Author Pro 年訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "最高每日镜子额度（40 次）。年订。",
+              "displayName" : "Author Pro 年订",
+              "locale" : "zh_Hans"
+            }
+          ],
+          "productID" : "com.diaryvault.author.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Author Pro Yearly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
         {
           "adHocOffers" : [
 
@@ -87,22 +201,22 @@
           ],
           "displayPrice" : "4.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
+          "groupNumber" : 2,
           "internalID" : "21370002",
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Unlimited diary narrative and mirror advice quota.",
+              "description" : "Higher Mirror quota (15/day). Monthly.",
               "displayName" : "Author Plus Monthly",
               "locale" : "en_US"
             },
             {
-              "description" : "無限日記敘事與鏡子建議額度。",
+              "description" : "更高鏡子額度（15 次／日）。月訂。",
               "displayName" : "Author Plus 月訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "无限日记叙事与镜子建议额度。",
+              "description" : "更高镜子额度（15 次／日）。月订。",
               "displayName" : "Author Plus 月订",
               "locale" : "zh_Hans"
             }
@@ -123,6 +237,44 @@
           "codeOffers" : [
 
           ],
+          "displayPrice" : "12.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "21370004",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Higher Mirror quota (15/day). Quarterly.",
+              "displayName" : "Author Plus Quarterly",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "更高鏡子額度（15 次／日）。季訂。",
+              "displayName" : "Author Plus 季訂",
+              "locale" : "zh_Hant"
+            },
+            {
+              "description" : "更高镜子额度（15 次／日）。季订。",
+              "displayName" : "Author Plus 季订",
+              "locale" : "zh_Hans"
+            }
+          ],
+          "productID" : "com.diaryvault.author.plus.quarterly",
+          "recurringSubscriptionPeriod" : "P3M",
+          "referenceName" : "Author Plus Quarterly",
+          "subscriptionGroupID" : "21370001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
           "displayPrice" : "39.99",
           "familyShareable" : false,
           "groupNumber" : 2,
@@ -130,17 +282,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Yearly Author Plus — better value for your vault.",
+              "description" : "Higher Mirror quota (15/day). Yearly.",
               "displayName" : "Author Plus Yearly",
               "locale" : "en_US"
             },
             {
-              "description" : "年訂 Author Plus——更划算守護你的金庫。",
+              "description" : "更高鏡子額度（15 次／日）。年訂。",
               "displayName" : "Author Plus 年訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "年订 Author Plus——更划算守护你的金库。",
+              "description" : "更高镜子额度（15 次／日）。年订。",
               "displayName" : "Author Plus 年订",
               "locale" : "zh_Hans"
             }

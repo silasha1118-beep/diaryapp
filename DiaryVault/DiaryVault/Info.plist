@@ -76,9 +76,26 @@
 	<key>DIARY_AI_DAILY_REQUEST_LIMIT</key>
 	<string></string>
 	<!-- Optional IAP product ID overrides — leave empty to use BillingConfig defaults. Never put secrets here. -->
+	<!-- Legacy aliases still read by BillingConfig if PLUS_* keys are empty. -->
 	<key>DIARY_IAP_MONTHLY_PRODUCT_ID</key>
 	<string></string>
 	<key>DIARY_IAP_YEARLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PLUS_MONTHLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PLUS_QUARTERLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PLUS_YEARLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PRO_MONTHLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PRO_QUARTERLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_IAP_PRO_YEARLY_PRODUCT_ID</key>
+	<string></string>
+	<key>DIARY_AI_PRO_DAILY_REQUEST_LIMIT</key>
+	<string></string>
+	<key>DIARY_AI_FREE_SOFT_PAYWALL_THRESHOLD</key>
 	<string></string>
 	<!-- Hosted legal pages for App Store subscription disclosure. Empty → in-app privacy sheet + Apple Standard EULA. -->
 	<!-- Requires GitHub Pages: Settings → Pages → Deploy from a branch → main / docs (see README). -->

@@ -68,18 +68,30 @@
 "auth.devLocal" = "พัฒนา: ดำเนินการต่อด้วยเซสชันในเครื่อง";
 
 /* Paywall */
-"paywall.title" = "Author Plus";
+"paywall.title" = "แผน";
 "paywall.headline" = "กระจกที่รู้จักคำของคุณ";
-"paywall.body" = "เลือกฟรีหรือ Author Plus ราคาจาก StoreKit (ตั้งค่าในเครื่องหรือ App Store) — ไม่ฮาร์ดโค้ดที่นี่";
+"paywall.body" = "เลือกฟรี Author Plus หรือ Author Pro ราคาจาก StoreKit (ตั้งค่าในเครื่องหรือ App Store) — ไม่ฮาร์ดโค้ดที่นี่";
 "paywall.free.title" = "ฟรี";
-"paywall.free.body" = "เขียนในห้องเก็บและลองกระจก กระจกคลาวด์ฟรีมีเพดานรายวันจนกว่าจะอัปเกรด";
+"paywall.free.body" = "เขียนในห้องเก็บและลองกระจก กระจกคลาวด์ฟรี: ครั้งแรกๆ ใช้ได้ตามปกติ ครั้งถัดไปจะเตือนอัปเกรด จนครบเพดานวันนี้ (6) แล้วหยุด";
 "paywall.free.current" = "แผนปัจจุบันของคุณ";
-"paywall.plus.blurb" = "ไดอารีไม่จำกัด + โควตากระจกแนะนำรายวันสูงขึ้น";
+"paywall.plus.blurb" = "ไดอารีไม่จำกัด + กระจก 15 ครั้งต่อวัน เลือกเดือน ไตรมาส หรือปี";
+"paywall.plus.section" = "Author Plus · กระจก 15 ครั้ง/วัน";
+"paywall.pro.title" = "Author Pro";
+"paywall.pro.section" = "Author Pro · กระจก 40 ครั้ง/วัน";
+"paywall.pro.body" = "โควตากระจกรายวันสูงสุด (40/วัน) เลือกเดือน ไตรมาส หรือปี เมื่อ Plus ไม่พอ";
+"paywall.pro.pending" = "สินค้า Author Pro โหลดจาก StoreKit เมื่อ Scheme ชี้ DiaryVault.storekit หรือ Connect";
+"paywall.pro.monthly" = "Author Pro · รายเดือน";
+"paywall.pro.quarterly" = "Author Pro · รายไตรมาส";
+"paywall.pro.yearly" = "Author Pro · รายปี";
 "paywall.monthly" = "Author Plus · รายเดือน";
+"paywall.plus.monthly" = "Author Plus · รายเดือน";
+"paywall.plus.quarterly" = "Author Plus · รายไตรมาส";
 "paywall.yearly" = "Author Plus · รายปี";
+"paywall.plus.yearly" = "Author Plus · รายปี";
 "paywall.restore" = "กู้คืนการซื้อ";
 "paywall.reload" = "โหลดสินค้าใหม่";
-"paywall.active" = "มีการสมัครใช้งานบน Apple ID นี้";
+"paywall.active" = "Author Plus ใช้งานบน Apple ID นี้";
+"paywall.active.pro" = "Author Pro ใช้งานบน Apple ID นี้";
 "paywall.currentPlan" = "แผนปัจจุบัน";
 "paywall.owned" = "ใช้งานอยู่";
 "paywall.expires" = "ต่ออายุ / สิ้นสุด";
@@ -87,11 +99,11 @@
 "paywall.unavailable" = "ยังไม่โหลดสินค้า";
 "paywall.productsMissing" = "ยังไม่โหลดสินค้า บน Mac: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit แล้ว Run อีกครั้ง ต้องมี Apple Developer แบบชำระเงินสำหรับสินค้า App Store Connect จริง";
 "paywall.footer" = "การสมัครต่ออายุจนกว่าจะยกเลิกใน การตั้งค่า → Apple ID สินค้ามรดก/ผู้ดูแลมาทีหลัง — ไม่อยู่ในเพย์วอลล์นี้";
-"paywall.disclosure" = "Author Plus เป็นการสมัครต่ออายุอัตโนมัติ (รายเดือนหรือรายปี) ราคาและรอบแสดงบนสินค้าด้านบน (จาก StoreKit) เรียกเก็บจาก Apple ID เมื่อยืนยัน ต่ออายุเว้นแต่ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นรอบปัจจุบัน จัดการหรือยกเลิกใน การตั้งค่า → Apple ID → การสมัคร การลบบัญชี Diary Vault ไม่ยกเลิกการสมัคร Apple";
+"paywall.disclosure" = "Author Plus และ Author Pro เป็นการสมัครต่ออายุอัตโนมัติ (รายเดือน ไตรมาส หรือรายปี) ราคาและรอบแสดงบนสินค้าด้านบน (จาก StoreKit) เรียกเก็บจาก Apple ID เมื่อยืนยัน ต่ออายุเว้นแต่ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นรอบปัจจุบัน จัดการหรือยกเลิกใน การตั้งค่า → Apple ID → การสมัคร การลบบัญชี Diary Vault ไม่ยกเลิกการสมัคร Apple";
 "paywall.privacy.pending" = "นโยบายความเป็นส่วนตัว: โฮสต์ URL และตั้ง DIARY_PRIVACY_POLICY_URL ก่อนส่ง App Store (เปิดในตั้งค่าได้ด้วย)";
 "paywall.status.productsEmpty" = "ไม่ได้รับสินค้า ยืนยันไฟล์ StoreKit Configuration ของ Scheme แล้วโหลดใหม่";
 "paywall.status.productsError" = "โหลดสินค้าจาก StoreKit ไม่ได้";
-"paywall.status.purchaseSuccess" = "บันทึกการซื้อแล้ว Author Plus ใช้งานได้";
+"paywall.status.purchaseSuccess" = "บันทึกการซื้อแล้ว แผนของคุณใช้งานได้";
 "paywall.status.purchaseCancelled" = "ยกเลิกการซื้อแล้ว";
 "paywall.status.purchasePending" = "การซื้อรอการอนุมัติ";
 "paywall.status.purchaseUnknown" = "การซื้อจบในสถานะไม่ทราบ";
@@ -123,11 +135,13 @@
 "mirror.thinking" = "กำลังฟัง…";
 "mirror.cited" = "อิงจากบันทึกของคุณ";
 "mirror.quota.remaining" = "กระจกวันนี้เหลือ %d จาก %d ครั้ง";
-"mirror.quota.unlimited" = "โควตากระจก Author Plus: ไม่จำกัดวันนี้ (ตามตั้งค่า)";
-"mirror.quota.exhausted.free" = "ใช้โควตากระจกฟรีวันนี้ (%d) หมดแล้ว อัปเกรด Author Plus เพื่อโควตรายวันสูงขึ้น หรือลองใหม่พรุ่งนี้";
-"mirror.quota.exhausted.plus" = "ใช้โควตากระจก Author Plus วันนี้ (%d) หมดแล้ว ลองใหม่พรุ่งนี้";
+"mirror.quota.softReminder" = "กระจกวันนี้เหลือ %d จาก %d ครั้ง — Author Plus เพิ่มเพดานรายวัน";
+"mirror.quota.unlimited" = "โควตากระจก: ไม่จำกัดวันนี้ (ตามตั้งค่า)";
+"mirror.quota.exhausted.free" = "กระจกวันนี้ใช้ครบแล้ว (%d) อัปเกรด Author Plus เพื่อโควตรายวันสูงขึ้น หรือลองใหม่พรุ่งนี้";
+"mirror.quota.exhausted.plus" = "กระจกวันนี้ใช้ครบแล้ว (%d) อัปเกรด Author Pro (40/วัน) เพื่อกระจกมากขึ้น หรือลองใหม่พรุ่งนี้";
+"mirror.quota.exhausted.pro" = "กระจกวันนี้ใช้ครบแล้ว (%d) ลองใหม่พรุ่งนี้";
 "mirror.quota.upgrade" = "ดู Author Plus";
-
+"mirror.quota.upgrade.pro" = "ดู Author Pro";
 /* Settings */
 "settings.title" = "การตั้งค่า";
 "settings.section.account" = "บัญชี";
@@ -148,10 +162,11 @@
 "settings.billing.plan" = "แผน";
 "settings.billing.free" = "ฟรี";
 "settings.billing.active" = "Author Plus";
+"settings.billing.pro" = "Author Pro";
 "settings.billing.product" = "สินค้า";
 "settings.billing.expires" = "สิ้นรอบ";
 "settings.billing.manage" = "ดูแผน / กู้คืน";
-"settings.billing.footer" = "StoreKit 2: ซื้อและกู้คืนกับ DiaryVault.storekit ในเครื่อง (หรือ App Store Sandbox) แทนที่รหัสสินค้าด้วย DIARY_IAP_* หรือ Info.plist ไม่ใส่ความลับในรีโป";
+"settings.billing.footer" = "StoreKit 2: ฟรี / Author Plus (15/วัน) / Author Pro (40/วัน); เดือน ไตรมาส ปี DiaryVault.storekit ในเครื่องหรือ App Store Sandbox แทนที่รหัสด้วย DIARY_IAP_* ไม่ใส่ความลับในรีโป";
 "settings.section.language" = "ภาษา";
 "settings.language" = "ภาษาแอป";
 "settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — สลับได้ทุกเมื่อ เปิดครั้งแรกตามภาษาของระบบ";
@@ -168,10 +183,11 @@
 "settings.ai.quota" = "กระจกวันนี้";
 "settings.ai.quota.value" = "%d / %d ครั้ง";
 "settings.ai.quota.unlimited" = "ไม่จำกัด (ตั้งค่า Plus)";
-"settings.ai.quota.exhausted.free" = "โควตากระจกฟรีรายวันหมดแล้ว อัปเกรด Author Plus หรือรอถึงพรุ่งนี้";
-"settings.ai.quota.exhausted.plus" = "โควตากระจก Author Plus รายวันหมดแล้ว ลองใหม่พรุ่งนี้";
+"settings.ai.quota.exhausted.free" = "กระจกวันนี้ใช้ครบแล้ว อัปเกรด Author Plus หรือรอถึงพรุ่งนี้";
+"settings.ai.quota.exhausted.plus" = "กระจกวันนี้ใช้ครบแล้ว อัปเกรด Author Pro (40/วัน) หรือรอถึงพรุ่งนี้";
+"settings.ai.quota.exhausted.pro" = "กระจกวันนี้ใช้ครบแล้ว ลองใหม่พรุ่งนี้";
 "settings.ai.residency" = "ที่เก็บข้อมูล";
-"settings.ai.footer" = "กระจกคลาวด์: ฟรีใช้ DIARY_AI_FREE_DAILY_REQUEST_LIMIT (ค่าเริ่ม 8) Author Plus ใช้ DIARY_AI_DAILY_REQUEST_LIMIT (ค่าเริ่ม 40, 0 = ไม่จำกัด) ตั้ง DIARY_AI_API_KEY ใน Xcode scheme ไม่ใส่ความลับในรีโป";
+"settings.ai.footer" = "กระจกคลาวด์: ฟรีฮาร์ด 6 / ซอฟต์ 3; Plus ใช้ DIARY_AI_DAILY_REQUEST_LIMIT (ค่าเริ่ม 15); Pro ใช้ DIARY_AI_PRO_DAILY_REQUEST_LIMIT (ค่าเริ่ม 40) 0 = ไม่จำกัดชั้นนั้น ตั้ง DIARY_AI_API_KEY ใน Xcode scheme ไม่ใส่ความลับในรีโป";
 "settings.section.legacy" = "มรดก";
 "settings.legacy.stub" = "อนุสรณ์ / โคลนเสียง / ผู้ดำเนินการ — ไม่มีใน UI เฟส 1";
 "settings.legacy.footer" = "แผนงานเท่านั้น ละไว้ในโครง MVP นี้";

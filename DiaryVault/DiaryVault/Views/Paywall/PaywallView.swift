@@ -27,7 +27,9 @@ struct PaywallView: View {
 
                         if subscriptions.isSubscribed {
                             statusBanner(
-                                localization.text("paywall.active"),
+                                localization.text(
+                                    subscriptions.isAuthorPro ? "paywall.active.pro" : "paywall.active"
+                                ),
                                 detail: activeDetail
                             )
                         }
@@ -37,12 +39,34 @@ struct PaywallView: View {
                                 .padding(.vertical, 12)
                         }
 
-                        ForEach(subscriptions.products, id: \.id) { product in
-                            productRow(product)
-                        }
+                        tierSection(
+                            title: localization.text("paywall.plus.section"),
+                            blurb: localization.text("paywall.plus.blurb"),
+                            products: subscriptions.plusProducts,
+                            placeholderIDs: BillingConfig.plusProductIDs,
+                            fallbackNames: [
+                                localization.text("paywall.plus.monthly"),
+                                localization.text("paywall.plus.quarterly"),
+                                localization.text("paywall.plus.yearly"),
+                            ]
+                        )
+
+                        tierSection(
+                            title: localization.text("paywall.pro.section"),
+                            blurb: localization.text("paywall.pro.body"),
+                            products: subscriptions.proProducts,
+                            placeholderIDs: BillingConfig.proProductIDs,
+                            fallbackNames: [
+                                localization.text("paywall.pro.monthly"),
+                                localization.text("paywall.pro.quarterly"),
+                                localization.text("paywall.pro.yearly"),
+                            ]
+                        )
 
                         if subscriptions.products.isEmpty && !subscriptions.isLoading {
-                            placeholderProducts
+                            Text(localization.text("paywall.productsMissing"))
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.inkMuted)
                         }
 
                         Button {
@@ -153,7 +177,7 @@ struct PaywallView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(VaultTheme.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
-            if !subscriptions.isSubscribed {
+            if subscriptions.tier == .free {
                 Text(localization.text("paywall.free.current"))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(VaultTheme.seal)
@@ -167,19 +191,32 @@ struct PaywallView: View {
         )
     }
 
-    private var placeholderProducts: some View {
+    private func tierSection(
+        title: String,
+        blurb: String,
+        products: [Product],
+        placeholderIDs: [String],
+        fallbackNames: [String]
+    ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            placeholderCard(
-                title: localization.text("paywall.monthly"),
-                subtitle: BillingConfig.monthlyProductID
-            )
-            placeholderCard(
-                title: localization.text("paywall.yearly"),
-                subtitle: BillingConfig.yearlyProductID
-            )
-            Text(localization.text("paywall.productsMissing"))
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(VaultTheme.ink)
+            Text(blurb)
                 .font(.system(size: 13))
                 .foregroundStyle(VaultTheme.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if products.isEmpty {
+                ForEach(Array(placeholderIDs.enumerated()), id: \.element) { index, id in
+                    let name = index < fallbackNames.count ? fallbackNames[index] : id
+                    placeholderCard(title: name, subtitle: id)
+                }
+            } else {
+                ForEach(products, id: \.id) { product in
+                    productRow(product)
+                }
+            }
         }
     }
 
@@ -205,6 +242,7 @@ struct PaywallView: View {
 
     private func productRow(_ product: Product) -> some View {
         let isActive = subscriptions.activeProductID == product.id
+        let isPro = BillingConfig.isProProduct(product.id)
         return Button {
             Task { await subscriptions.purchase(product) }
         } label: {
@@ -214,7 +252,7 @@ struct PaywallView: View {
                         .font(.system(size: 17, weight: .semibold, design: .serif))
                         .foregroundStyle(VaultTheme.ink)
                     Text(product.description.isEmpty
-                         ? localization.text("paywall.plus.blurb")
+                         ? localization.text(isPro ? "paywall.pro.body" : "paywall.plus.blurb")
                          : product.description)
                         .font(.system(size: 13))
                         .foregroundStyle(VaultTheme.inkMuted)
@@ -237,7 +275,10 @@ struct PaywallView: View {
             .padding(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .stroke(isActive ? VaultTheme.seal.opacity(0.55) : VaultTheme.line, lineWidth: isActive ? 1.5 : 1)
+                    .stroke(
+                        isActive ? VaultTheme.seal.opacity(0.55) : (isPro ? VaultTheme.seal.opacity(0.35) : VaultTheme.line),
+                        lineWidth: isActive ? 1.5 : 1
+                    )
             )
         }
         .buttonStyle(.plain)
@@ -249,13 +290,22 @@ struct PaywallView: View {
         if !product.displayName.isEmpty {
             return product.displayName
         }
-        if product.id == BillingConfig.monthlyProductID {
-            return localization.text("paywall.monthly")
+        switch product.id {
+        case BillingConfig.plusMonthlyProductID:
+            return localization.text("paywall.plus.monthly")
+        case BillingConfig.plusQuarterlyProductID:
+            return localization.text("paywall.plus.quarterly")
+        case BillingConfig.plusYearlyProductID:
+            return localization.text("paywall.plus.yearly")
+        case BillingConfig.proMonthlyProductID:
+            return localization.text("paywall.pro.monthly")
+        case BillingConfig.proQuarterlyProductID:
+            return localization.text("paywall.pro.quarterly")
+        case BillingConfig.proYearlyProductID:
+            return localization.text("paywall.pro.yearly")
+        default:
+            return product.id
         }
-        if product.id == BillingConfig.yearlyProductID {
-            return localization.text("paywall.yearly")
-        }
-        return product.id
     }
 
     private func statusBanner(_ title: String, detail: String?) -> some View {

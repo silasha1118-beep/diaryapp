@@ -2,13 +2,15 @@ import Foundation
 import Combine
 import StoreKit
 
-/// StoreKit 2 purchase / restore / entitlement for Author Plus.
+/// StoreKit 2 purchase / restore / entitlement for Author Plus and Author Pro.
 /// Uses the scheme's local `DiaryVault.storekit` in Simulator/Xcode, or App Store Sandbox / production when that file is cleared.
+/// Entitlement rank: Author Pro > Author Plus > Free.
 @MainActor
 final class SubscriptionStore: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var tier: BillingConfig.Tier = .free
     @Published private(set) var isSubscribed: Bool = false
+    @Published private(set) var isAuthorPro: Bool = false
     @Published private(set) var activeProductID: String?
     @Published private(set) var expirationDate: Date?
     @Published private(set) var willAutoRenew: Bool = false
@@ -27,7 +29,15 @@ final class SubscriptionStore: ObservableObject {
         updatesTask?.cancel()
     }
 
-    /// Load Author Plus products and refresh local entitlement from `Transaction.currentEntitlements`.
+    var plusProducts: [Product] {
+        products.filter { BillingConfig.isPlusProduct($0.id) }
+    }
+
+    var proProducts: [Product] {
+        products.filter { BillingConfig.isProProduct($0.id) }
+    }
+
+    /// Load Plus + Pro products and refresh local entitlement from `Transaction.currentEntitlements`.
     func refresh() async {
         isLoading = true
         statusMessage = nil
@@ -50,9 +60,9 @@ final class SubscriptionStore: ObservableObject {
     }
 
     func purchase(_ product: Product) async {
-        guard BillingConfig.isAuthorPlusProduct(product.id) else {
+        guard BillingConfig.isCatalogProduct(product.id) else {
             statusMessage = "purchase.error"
-            lastErrorDetail = "Product not in Author Plus catalog."
+            lastErrorDetail = "Product not in Author Plus / Author Pro catalog."
             return
         }
 
@@ -107,42 +117,57 @@ final class SubscriptionStore: ObservableObject {
 
     private func updateEntitlement() async {
         var best: Transaction?
+        var bestTier: BillingConfig.Tier = .free
+
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? checkVerified(result) else { continue }
-            guard BillingConfig.isAuthorPlusProduct(transaction.productID) else { continue }
-            if let existing = best {
-                // Prefer yearly over monthly when both somehow present; else newer expiry.
-                let existingYearly = existing.productID == BillingConfig.yearlyProductID
-                let candidateYearly = transaction.productID == BillingConfig.yearlyProductID
-                if candidateYearly && !existingYearly {
+            guard let candidateTier = BillingConfig.tier(for: transaction.productID) else { continue }
+
+            if let existing = best, let existingTier = BillingConfig.tier(for: existing.productID) {
+                if candidateTier > existingTier {
                     best = transaction
-                } else if candidateYearly == existingYearly {
-                    let existingExp = existing.expirationDate ?? .distantPast
-                    let candidateExp = transaction.expirationDate ?? .distantPast
-                    if candidateExp > existingExp {
+                    bestTier = candidateTier
+                } else if candidateTier == existingTier {
+                    let existingPeriod = BillingConfig.periodRank(for: existing.productID)
+                    let candidatePeriod = BillingConfig.periodRank(for: transaction.productID)
+                    if candidatePeriod > existingPeriod {
                         best = transaction
+                        bestTier = candidateTier
+                    } else if candidatePeriod == existingPeriod {
+                        let existingExp = existing.expirationDate ?? .distantPast
+                        let candidateExp = transaction.expirationDate ?? .distantPast
+                        if candidateExp > existingExp {
+                            best = transaction
+                            bestTier = candidateTier
+                        }
                     }
                 }
             } else {
                 best = transaction
+                bestTier = candidateTier
             }
         }
 
         if let best {
             activeProductID = best.productID
             expirationDate = best.expirationDate
-            isSubscribed = true
-            tier = .authorPlus
+            tier = bestTier
+            isSubscribed = bestTier >= .authorPlus
+            isAuthorPro = bestTier == .authorPro
             willAutoRenew = await subscriptionWillAutoRenew(for: best.productID)
         } else {
             activeProductID = nil
             expirationDate = nil
-            isSubscribed = false
             tier = .free
+            isSubscribed = false
+            isAuthorPro = false
             willAutoRenew = false
         }
+
         // Sync for MirrorUsageGuard (cloud clients read this synchronously).
         UserDefaults.standard.set(isSubscribed, forKey: BillingConfig.authorPlusEntitlementDefaultsKey)
+        UserDefaults.standard.set(isAuthorPro, forKey: BillingConfig.authorProEntitlementDefaultsKey)
+        UserDefaults.standard.set(tier.rawValue, forKey: BillingConfig.mirrorTierDefaultsKey)
     }
 
     private func subscriptionWillAutoRenew(for productID: String) async -> Bool {
@@ -179,13 +204,14 @@ final class SubscriptionStore: ObservableObject {
 
     private func sortProducts(_ products: [Product]) -> [Product] {
         products.sorted { lhs, rhs in
-            let order: (String) -> Int = { id in
-                if id == BillingConfig.monthlyProductID { return 0 }
-                if id == BillingConfig.yearlyProductID { return 1 }
-                return 2
+            let leftTier = BillingConfig.tier(for: lhs.id) ?? .free
+            let rightTier = BillingConfig.tier(for: rhs.id) ?? .free
+            if leftTier != rightTier {
+                // Plus before Pro in the list (upsell path Free → Plus → Pro).
+                return leftTier < rightTier
             }
-            let lo = order(lhs.id)
-            let ro = order(rhs.id)
+            let lo = BillingConfig.periodRank(for: lhs.id)
+            let ro = BillingConfig.periodRank(for: rhs.id)
             if lo != ro { return lo < ro }
             return lhs.id < rhs.id
         }
