@@ -74,6 +74,8 @@
 		B10000000000000000000015 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B10000000000000000000016 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B10000000000000000000017 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		B10000000000000000000030 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B10000000000000000000031 /* th */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = th; path = th.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B10000000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1000000000000000000001C /* BillingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingConfig.swift; sourceTree = "<group>"; };
 		B10000000000000000000023 /* AuthConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfig.swift; sourceTree = "<group>"; };
@@ -315,6 +317,8 @@
 				Base,
 				"zh-Hant",
 				"zh-Hans",
+				ja,
+				th,
 			);
 			mainGroup = E10000000000000000000001;
 			packageReferences = (
@@ -417,6 +421,8 @@
 				B10000000000000000000015 /* en */,
 				B10000000000000000000016 /* zh-Hant */,
 				B10000000000000000000017 /* zh-Hans */,
+				B10000000000000000000030 /* ja */,
+				B10000000000000000000031 /* th */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

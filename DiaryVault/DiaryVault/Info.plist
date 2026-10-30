@@ -4,12 +4,14 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<!-- Launch locales: Traditional Chinese, Simplified Chinese, English (TW / HK / CN + EN UI). -->
+	<!-- First-market locales: zh-Hant / zh-Hans / en (TW·HK·CN·MY·SG) + ja (JP) + th (TH). -->
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
 		<string>zh-Hant</string>
 		<string>zh-Hans</string>
+		<string>ja</string>
+		<string>th</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Diary Vault</string>

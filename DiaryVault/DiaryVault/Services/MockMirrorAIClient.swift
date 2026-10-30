@@ -45,22 +45,30 @@ enum L10n {
             "mirror.mock.withCite": [
                 "en": "I hear you. Looking at what you already wrote — “%@” — it seems something there still matters to you.",
                 "zh-Hant": "我聽見了。對照你寫過的內容——「%@」——那裡似乎仍有對你重要的東西。",
-                "zh-Hans": "我听见了。对照你写过的内容——「%@」——那里似乎仍有对你重要的东西。"
+                "zh-Hans": "我听见了。对照你写过的内容——「%@」——那里似乎仍有对你重要的东西。",
+                "ja": "聞こえています。すでに書いた内容——「%@」——を見ると、そこに今も大切なものが残っているようです。",
+                "th": "ฉันได้ยินคุณ เมื่อมองสิ่งที่คุณเขียนไว้ — “%@” — ดูเหมือนยังมีสิ่งสำคัญอยู่ที่นั่น"
             ],
             "mirror.mock.noCite": [
                 "en": "I hear you. There isn’t enough in your vault yet for me to reflect specific words back — that’s okay.",
                 "zh-Hant": "我聽見了。金庫裡可引用的文字還不多——沒關係，我們可以慢慢寫。",
-                "zh-Hans": "我听见了。金库里可引用的文字还不多——没关系，我们可以慢慢写。"
+                "zh-Hans": "我听见了。金库里可引用的文字还不多——没关系，我们可以慢慢写。",
+                "ja": "聞こえています。ボールトに映し返せる言葉はまだ多くありません——大丈夫、ゆっくり書きましょう。",
+                "th": "ฉันได้ยินคุณ ในห้องเก็บยังมีข้อความให้สะท้อนไม่มาก — ไม่เป็นไร ค่อย ๆ เขียนได้"
             ],
             "mirror.mock.question": [
                 "en": "What part of that feels closest to how you are right now?",
                 "zh-Hant": "這段話裡，哪一部分最接近你此刻的感覺？",
-                "zh-Hans": "这段话里，哪一部分最接近你此刻的感觉？"
+                "zh-Hans": "这段话里，哪一部分最接近你此刻的感觉？",
+                "ja": "そのなかで、いまの自分の感覚にいちばん近いのはどの部分ですか？",
+                "th": "ส่วนไหนของเรื่องนั้นใกล้กับความรู้สึกตอนนี้ที่สุด?"
             ],
             "mirror.mock.disclaimer": [
                 "en": "Based on what you’ve written · mock mirror (not a coach)",
                 "zh-Hant": "根據你寫過的內容 · 模擬鏡子（非教練處方）",
-                "zh-Hans": "根据你写过的内容 · 模拟镜子（非教练处方）"
+                "zh-Hans": "根据你写过的内容 · 模拟镜子（非教练处方）",
+                "ja": "書いた内容に基づく · モックミラー（コーチではない）",
+                "th": "อิงจากสิ่งที่คุณเขียน · กระจกจำลอง (ไม่ใช่โค้ช)"
             ]
         ]
 
@@ -71,6 +79,10 @@ enum L10n {
             lang = "zh-Hans"
         } else if locale.hasPrefix("zh") {
             lang = "zh-Hant"
+        } else if locale.hasPrefix("ja") {
+            lang = "ja"
+        } else if locale.hasPrefix("th") {
+            lang = "th"
         } else {
             lang = "en"
         }

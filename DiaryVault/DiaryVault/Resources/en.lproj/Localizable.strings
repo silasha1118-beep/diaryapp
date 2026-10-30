@@ -30,7 +30,7 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "Sign in to keep your vault yours.";
-"auth.body" = "Use your phone number and a one-time SMS code (primary). Works in Taiwan, Hong Kong, and Mainland China — any phone that can receive SMS. You can also Sign in with Apple below. No password is stored. Cloud sync is not in this MVP.";
+"auth.body" = "Use your phone number and a one-time SMS code (primary). Works in Taiwan, Hong Kong, Mainland China, Malaysia, Singapore, Thailand, and Japan — any phone that can receive SMS. You can also Sign in with Apple below. No password is stored. Cloud sync is not in this MVP.";
 "auth.error" = "Sign in could not finish. Try again.";
 "auth.phone.label" = "Phone number";
 "auth.phone.region" = "Region";
@@ -38,14 +38,18 @@
 "auth.phone.send" = "Send verification code";
 "auth.phone.resend" = "Resend code";
 "auth.phone.sent" = "Code sent. Check your messages.";
-"auth.phone.invalid" = "Enter a valid mobile number for the selected region (TW 9 digits, HK 8, CN 11 — leading 0 OK).";
+"auth.phone.invalid" = "Enter a valid mobile number for the selected region (TW 9, HK/SG 8, CN 11, MY 9–10, TH 9, JP 10 — leading 0 OK).";
 "auth.otp.label" = "Verification code";
 "auth.otp.placeholder" = "6-digit code";
 "auth.otp.verify" = "Verify and continue";
 "auth.otp.error" = "That code did not match. Try again.";
-"auth.dial.cn" = "+86 Mainland China";
-"auth.dial.hk" = "+852 Hong Kong";
 "auth.dial.tw" = "+886 Taiwan";
+"auth.dial.hk" = "+852 Hong Kong";
+"auth.dial.cn" = "+86 Mainland China";
+"auth.dial.my" = "+60 Malaysia";
+"auth.dial.sg" = "+65 Singapore";
+"auth.dial.th" = "+66 Thailand";
+"auth.dial.jp" = "+81 Japan";
 "auth.stub.hint" = "Stub SMS (no real text): use code %@";
 "auth.sms.provider.firebase" = "SMS provider: Firebase (real text)";
 "auth.sms.provider.stub" = "SMS provider: Stub (local, no real text)";
@@ -54,7 +58,7 @@
 "auth.sms.provider.stub.explicit" = "Scheme/Info has DIARY_SMS_PROVIDER=stub. Clear that env var (or set firebase) and rebuild for real SMS.";
 "auth.sms.notConfigured" = "SMS is not ready. Place GoogleService-Info.plist at DiaryVault/DiaryVault/ (gitignored) and rebuild, or set DIARY_SMS_PROVIDER=stub.";
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again. Spark plan allows about 10 real SMS per day — use a Firebase test number to save quota.";
-"auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, and Mainland China.";
+"auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, Mainland China, Malaysia, Singapore, Thailand, and Japan.";
 "auth.sms.appVerification" = "App verification failed (reCAPTCHA). In Xcode → Target → Info → URL Types, add REVERSED_CLIENT_ID from GoogleService-Info.plist, then rebuild.";
 "auth.apple.or" = "or";
 "auth.apple.backup" = "Sign in with Apple";
@@ -138,7 +142,7 @@
 "settings.account.provider.local" = "Local (dev)";
 "settings.account.signOut" = "Sign out";
 "settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions; Sign in with Apple stays visible below when available. Sign out returns you to the account gate.";
-"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), and Mainland China (+86). When you are not signed in with Apple, the standard Sign in with Apple button is shown below. The banner shows Firebase vs Stub — same as the launch gate.";
+"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), Mainland China (+86), Malaysia (+60), Singapore (+65), Thailand (+66), and Japan (+81). When you are not signed in with Apple, the standard Sign in with Apple button is shown below. The banner shows Firebase vs Stub — same as the launch gate.";
 "settings.account.phone.success" = "Phone sign-in succeeded.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
@@ -150,7 +154,7 @@
 "settings.billing.footer" = "StoreKit 2: purchase and restore against the local DiaryVault.storekit file (or App Store Sandbox). Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
 "settings.section.language" = "Language";
 "settings.language" = "App language";
-"settings.language.footer" = "繁中 / 簡中 / English — switch anytime.";
+"settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — switch anytime. First launch follows your system language (App Store locale).";
 "settings.section.advice" = "Advice";
 "settings.reminders" = "Gentle contextual reminders";
 "settings.reminders.footer" = "When on, the mirror may softly surface reflections at relevant moments. Never high-frequency or pushy.";
