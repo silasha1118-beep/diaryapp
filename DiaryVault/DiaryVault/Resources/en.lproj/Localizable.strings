@@ -161,6 +161,16 @@
 "settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions; Sign in with Apple stays visible below when available. Sign out returns you to the account gate.";
 "settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), Mainland China (+86), Malaysia (+60), Singapore (+65), Thailand (+66), and Japan (+81). When you are not signed in with Apple, the standard Sign in with Apple button is shown below. The banner shows Firebase vs Stub — same as the launch gate.";
 "settings.account.phone.success" = "Phone sign-in succeeded.";
+"settings.section.cloud" = "Cloud sync";
+"settings.cloud.status" = "Status";
+"settings.cloud.status.synced" = "Synced to Firestore";
+"settings.cloud.status.pending" = "Waiting to sync…";
+"settings.cloud.status.error" = "Sync error — see below";
+"settings.cloud.status.localSession" = "Local session only (no Firebase Auth)";
+"settings.cloud.status.signedOut" = "Signed out — on-device only";
+"settings.cloud.lastSync" = "Last sync";
+"settings.cloud.syncNow" = "Sync now";
+"settings.cloud.footer" = "Text diaries upload to users/{uid}/entries when Firebase Auth is live (phone SMS or Apple). If status says “Local session only”, sign out and sign in again with real Firebase SMS (banner must say Firebase, not Stub). Also confirm Firestore rules from firebase/firestore.rules are Published in Console.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";

@@ -160,6 +160,16 @@
 "settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」始终显示于下方。退出后会回到账号闸门。";
 "settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）、马来西亚（+60）、新加坡（+65）、泰国（+66）、日本（+81）。未以 Apple 登录时，下方会显示标准「通过 Apple 登录」按钮。横幅会标示 Firebase 或 Stub——与启动闸门相同。";
 "settings.account.phone.success" = "手机登录成功。";
+"settings.section.cloud" = "云端同步";
+"settings.cloud.status" = "状态";
+"settings.cloud.status.synced" = "已同步至 Firestore";
+"settings.cloud.status.pending" = "等待同步…";
+"settings.cloud.status.error" = "同步错误 — 见下方";
+"settings.cloud.status.localSession" = "仅本机会话（无 Firebase Auth）";
+"settings.cloud.status.signedOut" = "未登录 — 仅本机";
+"settings.cloud.lastSync" = "上次同步";
+"settings.cloud.syncNow" = "立即同步";
+"settings.cloud.footer" = "当 Firebase Auth 有效（手机短信或 Apple）时，文字日记会上传到 users/{uid}/entries。若状态显示“仅本机会话”，请退出后以真实 Firebase 短信重新登录（横幅须显示 Firebase，而非 Stub）。并确认 Console 已 Publish firebase/firestore.rules。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";

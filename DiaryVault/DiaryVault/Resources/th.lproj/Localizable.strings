@@ -160,6 +160,16 @@
 "settings.account.footer" = "เซสชันอยู่บนเครื่องนี้เท่านั้น เข้าสู่ระบบหลักคือ SMS OTP ทุกภูมิภาค Sign in with Apple แสดงด้านล่างเมื่อพร้อม ออกจากระบบแล้วย้อนไปเกตบัญชี";
 "settings.account.phone.footer" = "ใส่เบอร์มือถือ ส่งรหัส แล้วยืนยัน รองรับไต้หวัน (+886) ฮ่องกง (+852) จีนแผ่นดินใหญ่ (+86) มาเลเซีย (+60) สิงคโปร์ (+65) ไทย (+66) และญี่ปุ่น (+81) เมื่อยังไม่ได้เข้าสู่ระบบด้วย Apple จะมีปุ่มมาตรฐานด้านล่าง แบนเนอร์แสดง Firebase หรือ Stub — เหมือนเกตเปิดแอป";
 "settings.account.phone.success" = "เข้าสู่ระบบด้วยโทรศัพท์สำเร็จ";
+"settings.section.cloud" = "ซิงค์คลาวด์";
+"settings.cloud.status" = "สถานะ";
+"settings.cloud.status.synced" = "ซิงค์ไป Firestore แล้ว";
+"settings.cloud.status.pending" = "รอซิงค์…";
+"settings.cloud.status.error" = "ซิงค์ผิดพลาด — ดูด้านล่าง";
+"settings.cloud.status.localSession" = "เซสชันในเครื่องเท่านั้น (ไม่มี Firebase Auth)";
+"settings.cloud.status.signedOut" = "ยังไม่เข้าสู่ระบบ — เฉพาะเครื่อง";
+"settings.cloud.lastSync" = "ซิงค์ล่าสุด";
+"settings.cloud.syncNow" = "ซิงค์ตอนนี้";
+"settings.cloud.footer" = "เมื่อ Firebase Auth พร้อม (SMS หรือ Apple) ไดอารี่ข้อความจะอัปโหลดไป users/{uid}/entries หากสถานะเป็นเซสชันในเครื่อง ให้ลงชื่อออกแล้วเข้าใหม่ด้วย Firebase SMS จริง (แบนเนอร์ต้องเป็น Firebase ไม่ใช่ Stub) และตรวจว่า Publish กฎใน firebase/firestore.rules แล้ว";
 "settings.section.billing" = "การสมัคร";
 "settings.billing.plan" = "แผน";
 "settings.billing.free" = "ฟรี";

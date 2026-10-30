@@ -160,6 +160,16 @@
 "settings.account.footer" = "セッションはこの端末のみ。全地域のメインは電話 SMS OTP；Sign in with Apple は下に表示されます。サインアウトするとアカウントゲートに戻ります。";
 "settings.account.phone.footer" = "携帯番号を入力し、コードを送信して確認します。台湾（+886）、香港（+852）、中国本土（+86）、マレーシア（+60）、シンガポール（+65）、タイ（+66）、日本（+81）に対応。Apple でサインインしていないとき、下に標準の「Apple でサインイン」が表示されます。バナーは Firebase か Stub——起動ゲートと同じ。";
 "settings.account.phone.success" = "電話サインインに成功しました。";
+"settings.section.cloud" = "クラウド同期";
+"settings.cloud.status" = "状態";
+"settings.cloud.status.synced" = "Firestore に同期済み";
+"settings.cloud.status.pending" = "同期待ち…";
+"settings.cloud.status.error" = "同期エラー — 下記を参照";
+"settings.cloud.status.localSession" = "ローカルセッションのみ（Firebase Auth なし）";
+"settings.cloud.status.signedOut" = "未サインイン — 端末のみ";
+"settings.cloud.lastSync" = "前回の同期";
+"settings.cloud.syncNow" = "今すぐ同期";
+"settings.cloud.footer" = "Firebase Auth が有効なとき（SMS または Apple）、テキスト日記は users/{uid}/entries にアップロードされます。「ローカルセッションのみ」の場合はサインアウトし、本物の Firebase SMS で再ログインしてください（バナーは Stub ではなく Firebase）。Console で firebase/firestore.rules が Publish 済みかも確認。";
 "settings.section.billing" = "サブスクリプション";
 "settings.billing.plan" = "プラン";
 "settings.billing.free" = "無料";

@@ -62,6 +62,36 @@ struct SettingsView: View {
                     }
 
                     Section {
+                        LabeledContent(localization.text("settings.cloud.status")) {
+                            Text(cloudSyncStatusLabel)
+                                .foregroundStyle(VaultTheme.inkMuted)
+                                .multilineTextAlignment(.trailing)
+                        }
+                        if let synced = diaryStore.lastCloudSyncAt {
+                            LabeledContent(localization.text("settings.cloud.lastSync")) {
+                                Text(synced, style: .relative)
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                        }
+                        if let err = diaryStore.lastCloudSyncError, !err.isEmpty {
+                            Text(err)
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.seal)
+                        }
+                        Button {
+                            diaryStore.scheduleSynchronize()
+                        } label: {
+                            Text(localization.text("settings.cloud.syncNow"))
+                                .foregroundStyle(VaultTheme.seal)
+                        }
+                        .disabled(!account.hasLiveFirebaseAuth)
+                    } header: {
+                        Text(localization.text("settings.section.cloud"))
+                    } footer: {
+                        Text(localization.text("settings.cloud.footer"))
+                    }
+
+                    Section {
                         LabeledContent(localization.text("settings.billing.plan")) {
                             Text(billingPlanLabel)
                                 .foregroundStyle(VaultTheme.inkMuted)
@@ -294,6 +324,22 @@ struct SettingsView: View {
         case .none:
             return "—"
         }
+    }
+
+    private var cloudSyncStatusLabel: String {
+        if account.hasLiveFirebaseAuth {
+            if diaryStore.lastCloudSyncError != nil {
+                return localization.text("settings.cloud.status.error")
+            }
+            if diaryStore.lastCloudSyncAt != nil {
+                return localization.text("settings.cloud.status.synced")
+            }
+            return localization.text("settings.cloud.status.pending")
+        }
+        if account.isSignedIn {
+            return localization.text("settings.cloud.status.localSession")
+        }
+        return localization.text("settings.cloud.status.signedOut")
     }
 
     private var billingPlanLabel: String {
