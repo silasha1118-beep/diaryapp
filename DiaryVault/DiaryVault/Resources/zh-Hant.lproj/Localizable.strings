@@ -30,7 +30,7 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "登入，讓金庫真正屬於你。";
-"auth.body" = "使用手機號碼與簡訊驗證碼登入（主路徑）。台／港／陸皆可——只要能收 SMS。「透過 Apple 登入」為可選備援。App 不存密碼。本 MVP 尚無雲端同步。";
+"auth.body" = "使用手機號碼與簡訊驗證碼登入（主路徑）。台／港／陸皆可——只要能收 SMS。也可直接「透過 Apple 登入」。App 不存密碼。本 MVP 尚無雲端同步。";
 "auth.error" = "登入未完成，請再試一次。";
 "auth.phone.label" = "手機號碼";
 "auth.phone.region" = "地區";
@@ -56,7 +56,9 @@
 "auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實簡訊——可用 Firebase 測試號碼節省配額。";
 "auth.sms.regionBlocked" = "此電話地區在 Firebase 被封鎖。請到 Console → Authentication → Settings → SMS region policy，允許台灣、香港與中國大陸。";
 "auth.sms.appVerification" = "App 驗證失敗（reCAPTCHA）。請在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然後重新編譯。";
-"auth.apple.backup" = "或使用透過 Apple 登入";
+"auth.apple.or" = "或";
+"auth.apple.backup" = "透過 Apple 登入";
+"auth.apple.secondaryNote" = "適合不想收簡訊、或想用 Apple ID 綁定帳號時使用。";
 "auth.apple.error" = "透過 Apple 登入未完成，請再試一次。";
 "auth.apple.paidNote" = "需要付費 Apple Developer 團隊（約每年 99 美元）。免費 Personal Team 無法啟用此能力。";
 "auth.devLocal" = "開發：以本機會話繼續";
@@ -135,8 +137,8 @@
 "settings.account.provider.apple" = "透過 Apple 登入";
 "settings.account.provider.local" = "本機（開發）";
 "settings.account.signOut" = "登出";
-"settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」為可選備援。登出後會回到帳號閘門。";
-"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）。可選：下方展開「透過 Apple 登入」（需付費 Apple Developer）。橫幅會標示 Firebase 或 Stub——與啟動閘門相同。";
+"settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」始終顯示於下方。登出後會回到帳號閘門。";
+"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）。未以 Apple 登入時，下方會顯示標準「透過 Apple 登入」按鈕。橫幅會標示 Firebase 或 Stub——與啟動閘門相同。";
 "settings.account.phone.success" = "手機登入成功。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";

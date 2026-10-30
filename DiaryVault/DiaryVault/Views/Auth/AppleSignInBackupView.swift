@@ -1,8 +1,8 @@
 import SwiftUI
 import AuthenticationServices
 
-/// Optional Sign in with Apple backup under the primary phone SMS OTP form.
-/// Product rule: SMS is primary; Apple is backup (paid Apple Developer required).
+/// Sign in with Apple under the primary phone SMS OTP form.
+/// Always visible (standard black button) — SMS remains the primary path.
 struct AppleSignInBackupView: View {
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var account: AccountSession
@@ -10,45 +10,38 @@ struct AppleSignInBackupView: View {
 
     var chrome: PhoneOTPLoginForm.Chrome = .gate
 
-    @State private var expanded = false
     @State private var errorMessage: String?
     @State private var isWorking = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    expanded.toggle()
-                }
-            } label: {
-                Text(localization.text("auth.apple.backup"))
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(VaultTheme.inkMuted)
+            Text(localization.text("auth.apple.backup"))
+                .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))
+                .foregroundStyle(VaultTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+
+            SignInWithAppleButton(.signIn) { request in
+                AppleSignInCoordinator.prepareRequest(request)
+            } onCompletion: { result in
+                Task { await complete(result) }
             }
-            .buttonStyle(.plain)
+            .signInWithAppleButtonStyle(.black)
+            .frame(maxWidth: .infinity)
+            .frame(height: chrome == .gate ? 52 : 48)
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .disabled(isWorking)
+            .opacity(isWorking ? 0.6 : 1)
+            .accessibilityLabel(localization.text("auth.apple.backup"))
 
-            if expanded {
-                SignInWithAppleButton(.signIn) { request in
-                    AppleSignInCoordinator.prepareRequest(request)
-                } onCompletion: { result in
-                    Task { await complete(result) }
-                }
-                .signInWithAppleButtonStyle(.black)
-                .frame(height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                .disabled(isWorking)
-                .opacity(isWorking ? 0.6 : 1)
+            Text(localization.text("auth.apple.secondaryNote"))
+                .font(.system(size: 12))
+                .foregroundStyle(VaultTheme.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
 
-                Text(localization.text("auth.apple.paidNote"))
-                    .font(.system(size: 12))
-                    .foregroundStyle(VaultTheme.inkMuted)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.system(size: 14))
-                        .foregroundStyle(VaultTheme.seal)
-                }
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 14))
+                    .foregroundStyle(VaultTheme.seal)
             }
         }
     }
