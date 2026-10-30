@@ -8,6 +8,10 @@ final class DiaryStore: ObservableObject {
     @Published private(set) var entries: [DiaryEntry] = []
     @Published private(set) var lastCloudSyncAt: Date?
     @Published private(set) var lastCloudSyncError: String?
+    /// Entries confirmed present on the Firestore server after the last successful sync.
+    @Published private(set) var lastCloudSyncServerCount: Int?
+    /// `FirebaseApp.options.projectID` captured at last sync attempt (for Console matching).
+    @Published private(set) var lastCloudSyncProjectID: String?
 
     private let fileURL: URL
     private let pendingURL: URL
@@ -144,6 +148,8 @@ final class DiaryStore: ObservableObject {
 
     /// Merge remote → local (LWW by `updatedAt`), then flush pending upserts/deletes.
     /// Push still runs if pull fails (so a rules/read glitch does not block uploads).
+    /// Success requires a **server** read confirming local entry IDs exist (avoids “synced” when
+    /// Console is empty because cache lied or writes never landed).
     func synchronizeWithCloud() async {
         if isSyncing {
             needsResync = true
@@ -155,6 +161,7 @@ final class DiaryStore: ObservableObject {
         }
 
         isSyncing = true
+        lastCloudSyncProjectID = DiaryCloudSync.firebaseProjectID
         defer {
             isSyncing = false
             if needsResync {
@@ -164,18 +171,18 @@ final class DiaryStore: ObservableObject {
         }
 
         var remote: [DiaryEntry] = []
-        var pullError: String?
 
         do {
-            remote = try await DiaryCloudSync.fetchAllEntries(uid: uid)
+            // Force server so we never skip uploads based on a stale local cache.
+            remote = try await DiaryCloudSync.fetchAllEntries(uid: uid, source: .server)
             mergeRemote(remote)
         } catch is CancellationError {
             return
         } catch {
-            pullError = error.localizedDescription
             #if DEBUG
             print("DiaryCloudSync pull failed: \(error)")
             #endif
+            // Continue to push — verifyLocalsOnServer is the success gate.
         }
 
         do {
@@ -183,23 +190,53 @@ final class DiaryStore: ObservableObject {
             // Push any local-only entries that were never queued (e.g. pre-sign-in writing,
             // or creates that happened while Auth was still restoring).
             try await pushMissingLocals(uid: uid, remoteIDs: Set(remote.map(\.id)))
+            try await DiaryCloudSync.waitForPendingWrites()
+
+            let serverIDs = try await verifyLocalsOnServer(uid: uid)
+            lastCloudSyncServerCount = serverIDs.count
             lastCloudSyncAt = Date()
-            lastCloudSyncError = pullError
+            // Server verification is authoritative — never claim “synced” without it.
+            lastCloudSyncError = nil
             #if DEBUG
-            if let pullError {
-                print("DiaryCloudSync push OK after pull error: \(pullError)")
-            } else {
-                print("DiaryCloudSync OK uid=\(uid) entries=\(entries.count)")
-            }
+            let project = DiaryCloudSync.firebaseProjectID ?? "?"
+            print("DiaryCloudSync OK project=\(project) uid=\(uid) local=\(entries.count) server=\(serverIDs.count)")
             #endif
         } catch is CancellationError {
             return
         } catch {
             lastCloudSyncError = error.localizedDescription
             #if DEBUG
-            print("DiaryCloudSync push failed: \(error)")
+            print("DiaryCloudSync push/verify failed: \(error)")
             #endif
         }
+    }
+
+    /// Re-push any locals missing on the server, then confirm. Throws if Console would still look empty.
+    @discardableResult
+    private func verifyLocalsOnServer(uid: String) async throws -> Set<UUID> {
+        let localIDs = Set(entries.map(\.id))
+        guard !localIDs.isEmpty else {
+            return try await DiaryCloudSync.fetchServerEntryIDs(uid: uid)
+        }
+
+        var serverIDs = try await DiaryCloudSync.fetchServerEntryIDs(uid: uid)
+        let missing = localIDs.subtracting(serverIDs)
+        if !missing.isEmpty {
+            for entry in entries where missing.contains(entry.id) {
+                try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+            }
+            try await DiaryCloudSync.waitForPendingWrites()
+            serverIDs = try await DiaryCloudSync.fetchServerEntryIDs(uid: uid)
+        }
+
+        let stillMissing = localIDs.subtracting(serverIDs)
+        if !stillMissing.isEmpty {
+            throw CloudSyncFailure.serverMissingEntries(
+                localCount: localIDs.count,
+                serverCount: serverIDs.count
+            )
+        }
+        return serverIDs
     }
 
     private func mergeRemote(_ remote: [DiaryEntry]) {

@@ -5,13 +5,16 @@ On-device JSON remains the offline source of truth. Multimedia upload is **not**
 
 ## Enable Firestore (Silas — Console)
 
-1. Open [Firebase Console](https://console.firebase.google.com/) → project **`diaryappsilas`**.
-2. **Build → Firestore Database → Create database**.
+1. Open [Firebase Console](https://console.firebase.google.com/) → project that matches the app’s live **Project ID**.
+   - Expected from the repo example / `DIARY_FIREBASE_PROJECT_ID`: **`diaryappsilas`**.
+   - **Source of truth** is `GoogleService-Info.plist` → `PROJECT_ID` (also shown in Settings → Cloud sync → **Firebase project** after this fix). If Console shows a different project name, you are looking at the wrong place — Auth + Firestore both use the plist project.
+2. **Build → Firestore Database** → database **`(default)`** (the app never writes a named database).
 3. Start in **production mode** (rules below will replace the default deny-all after you paste them).
 4. **Location (data residency narrative: Taiwan):** choose the closest available region — prefer **`asia-east1` (Taiwan)** if offered, otherwise **`asia-east2` (Hong Kong)** or **`asia-northeast1` (Tokyo)**. Location is permanent for the database.
-5. Open **Rules** → replace with the contents of [`firestore.rules`](firestore.rules) in this folder → **Publish**.
+5. Open **Rules** → replace with the contents of [`firestore.rules`](firestore.rules) in this folder → **Publish**. Deny-all / unpublished rules make writes fail; the app now surfaces permission-denied instead of “synced”.
 6. No composite indexes are required for phase 1 (simple collection reads under `users/{uid}/entries`).
 7. Rebuild the iOS app with `GoogleService-Info.plist` present (same as Phone Auth). SPM product **FirebaseFirestore** is already linked in the Xcode project.
+8. After **Sync now**, open Data → `users` → `{Auth UID from Settings}` → `entries`. Settings also shows **Entries on server**; if that is `0` while you have local diaries, sync did not land (check project ID + rules).
 
 ## Schema
 

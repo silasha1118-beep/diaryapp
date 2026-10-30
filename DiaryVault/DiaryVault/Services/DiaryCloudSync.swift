@@ -17,6 +17,8 @@ import FirebaseFirestore
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
     static let contentTypeText = "text"
+    /// Always the Firebase `(default)` database — never a named DB.
+    static let databaseID = "(default)"
 
     static func userDocument(_ uid: String) -> DocumentReference {
         Firestore.firestore().collection("users").document(uid)
@@ -46,39 +48,79 @@ enum DiaryCloudSync {
         return uid
     }
 
+    /// Live `PROJECT_ID` from the bundled `GoogleService-Info.plist` (source of truth for Console).
+    static var firebaseProjectID: String? {
+        FirebaseBootstrap.configureIfNeeded()
+        return FirebaseApp.app()?.options.projectID
+    }
+
+    static var firestoreDatabaseID: String { DiaryFirestoreSchema.databaseID }
+
     static func upsert(entry: DiaryEntry, uid: String) async throws {
-        let ref = DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entry.id)
-        try await ref.setData(Self.encode(entry: entry, ownerUid: uid), merge: true)
-        try await touchUserProfile(uid: uid)
+        do {
+            let ref = DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entry.id)
+            try await ref.setData(Self.encode(entry: entry, ownerUid: uid), merge: true)
+            try await touchUserProfile(uid: uid)
+        } catch {
+            throw mapFirestoreError(error)
+        }
     }
 
     static func delete(entryID: UUID, uid: String) async throws {
-        try await DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entryID).delete()
-        try await touchUserProfile(uid: uid)
+        do {
+            try await DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entryID).delete()
+            try await touchUserProfile(uid: uid)
+        } catch {
+            throw mapFirestoreError(error)
+        }
     }
 
     /// Deletes every entry under the user. Batch in chunks of 400.
     static func deleteAllEntries(uid: String) async throws {
-        let snapshot = try await DiaryFirestoreSchema.entriesCollection(uid).getDocuments()
-        let docs = snapshot.documents
-        guard !docs.isEmpty else {
-            try await DiaryFirestoreSchema.userDocument(uid).delete()
-            return
-        }
-        let db = Firestore.firestore()
-        for chunk in docs.chunked(into: 400) {
-            let batch = db.batch()
-            for doc in chunk {
-                batch.deleteDocument(doc.reference)
+        do {
+            let snapshot = try await DiaryFirestoreSchema.entriesCollection(uid).getDocuments()
+            let docs = snapshot.documents
+            guard !docs.isEmpty else {
+                try await DiaryFirestoreSchema.userDocument(uid).delete()
+                return
             }
-            try await batch.commit()
+            let db = Firestore.firestore()
+            for chunk in docs.chunked(into: 400) {
+                let batch = db.batch()
+                for doc in chunk {
+                    batch.deleteDocument(doc.reference)
+                }
+                try await batch.commit()
+            }
+            try await DiaryFirestoreSchema.userDocument(uid).delete()
+        } catch {
+            throw mapFirestoreError(error)
         }
-        try await DiaryFirestoreSchema.userDocument(uid).delete()
     }
 
-    static func fetchAllEntries(uid: String) async throws -> [DiaryEntry] {
-        let snapshot = try await DiaryFirestoreSchema.entriesCollection(uid).getDocuments()
-        return snapshot.documents.compactMap { Self.decode(document: $0) }
+    /// Pull entries. Prefer `.server` so a stale local cache cannot pretend Console has data.
+    static func fetchAllEntries(uid: String, source: FirestoreSource = .server) async throws -> [DiaryEntry] {
+        do {
+            let snapshot = try await DiaryFirestoreSchema.entriesCollection(uid).getDocuments(source: source)
+            return snapshot.documents.compactMap { Self.decode(document: $0) }
+        } catch {
+            throw mapFirestoreError(error)
+        }
+    }
+
+    /// Document IDs currently acknowledged on the server (ignores local cache).
+    static func fetchServerEntryIDs(uid: String) async throws -> Set<UUID> {
+        let remote = try await fetchAllEntries(uid: uid, source: .server)
+        return Set(remote.map(\.id))
+    }
+
+    /// Blocks until Firestore has acknowledged outstanding writes for this user (or fails).
+    static func waitForPendingWrites() async throws {
+        do {
+            try await Firestore.firestore().waitForPendingWrites()
+        } catch {
+            throw mapFirestoreError(error)
+        }
     }
 
     // MARK: - Encode / decode
@@ -91,7 +133,8 @@ enum DiaryCloudSync {
             "createdAt": Timestamp(date: entry.createdAt),
             "updatedAt": Timestamp(date: entry.updatedAt),
             "ownerUid": ownerUid,
-            "schemaVersion": DiaryFirestoreSchema.schemaVersion,
+            // Explicit Int so rules `schemaVersion is int` never sees a Double bridge.
+            "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion),
             "contentType": DiaryFirestoreSchema.contentTypeText
         ]
         // Omit nil moodTag (do not write NSNull — merge deletes the field and confuses rules debugging).
@@ -128,13 +171,43 @@ enum DiaryCloudSync {
         )
     }
 
+    /// Maps Firestore / Auth failures into actionable copy (especially permission-denied).
+    static func mapFirestoreError(_ error: Error) -> Error {
+        let ns = error as NSError
+        if ns.domain == FirestoreErrorDomain,
+           ns.code == FirestoreErrorCode.permissionDenied.rawValue {
+            return CloudSyncFailure.permissionDenied
+        }
+        if let mapped = error as? CloudSyncFailure {
+            return mapped
+        }
+        return error
+    }
+
     private static func touchUserProfile(uid: String) async throws {
         try await DiaryFirestoreSchema.userDocument(uid).setData([
             "ownerUid": uid,
             "updatedAt": Timestamp(date: Date()),
-            "schemaVersion": DiaryFirestoreSchema.schemaVersion,
+            "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion),
             "hasTextEntries": true
         ], merge: true)
+    }
+}
+
+enum CloudSyncFailure: LocalizedError, Equatable {
+    case permissionDenied
+    case serverMissingEntries(localCount: Int, serverCount: Int)
+    case notSignedIn
+
+    var errorDescription: String? {
+        switch self {
+        case .permissionDenied:
+            return "Firestore permission denied. In Firebase Console → project matching Settings → Cloud sync → Project ID → Firestore → Rules, paste firebase/firestore.rules and Publish."
+        case .serverMissingEntries(let localCount, let serverCount):
+            return "Upload reported OK but server still has \(serverCount) entr\(serverCount == 1 ? "y" : "ies") while this device has \(localCount). Confirm Console project ID matches Settings, database is (default), then Sync now. Path: users/{uid}/entries."
+        case .notSignedIn:
+            return "No live Firebase Auth user — sign in with phone SMS or Apple first."
+        }
     }
 }
 

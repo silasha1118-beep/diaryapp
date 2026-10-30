@@ -67,9 +67,37 @@ struct SettingsView: View {
                                 .foregroundStyle(VaultTheme.inkMuted)
                                 .multilineTextAlignment(.trailing)
                         }
+                        if let projectID = cloudProjectID {
+                            LabeledContent(localization.text("settings.cloud.project")) {
+                                Text(projectID)
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        LabeledContent(localization.text("settings.cloud.database")) {
+                            Text(DiaryCloudSync.firestoreDatabaseID)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(VaultTheme.inkMuted)
+                        }
+                        if let uid = account.firebaseAuthUID, !uid.isEmpty {
+                            LabeledContent(localization.text("settings.cloud.uid")) {
+                                Text(uid)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .lineLimit(2)
+                                    .textSelection(.enabled)
+                            }
+                        }
                         if let synced = diaryStore.lastCloudSyncAt {
                             LabeledContent(localization.text("settings.cloud.lastSync")) {
                                 Text(synced, style: .relative)
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                        }
+                        if let serverCount = diaryStore.lastCloudSyncServerCount {
+                            LabeledContent(localization.text("settings.cloud.serverCount")) {
+                                Text("\(serverCount)")
                                     .foregroundStyle(VaultTheme.inkMuted)
                             }
                         }
@@ -77,6 +105,7 @@ struct SettingsView: View {
                             Text(err)
                                 .font(.system(size: 13))
                                 .foregroundStyle(VaultTheme.seal)
+                                .textSelection(.enabled)
                         }
                         Button {
                             diaryStore.scheduleSynchronize()
@@ -324,6 +353,12 @@ struct SettingsView: View {
         case .none:
             return "—"
         }
+    }
+
+    private var cloudProjectID: String? {
+        diaryStore.lastCloudSyncProjectID
+            ?? DiaryCloudSync.firebaseProjectID
+            ?? AuthConfig.firebaseProjectID
     }
 
     private var cloudSyncStatusLabel: String {
