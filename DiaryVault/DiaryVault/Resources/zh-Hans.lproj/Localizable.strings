@@ -173,7 +173,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "服务器日记数";
 "settings.cloud.syncNow" = "立即同步";
-"settings.cloud.footer" = "文字日记会上传到数据库 (default) 的 users/{uid}/entries。请打开上方「Firebase 项目」显示的 Console 项目（来自 GoogleService-Info.plist），不要开错项目。路径：users/{Auth UID}/entries（文档路径仍是 UID）。users/{uid} 还会写入 phoneNumber／appleUserId／displayName，可在 Console 用 phoneNumber 筛选 users 集合查找，文档 ID 不会是电话号码。若状态显示“仅本机会话”，请退出后以真实 Firebase 短信重新登录（横幅须显示 Firebase，而非 Stub）。权限错误时请粘贴 firebase/firestore.rules 并 Publish。";
+"settings.cloud.footer" = "文字日记会上传到数据库 (default) 的 users/{uid}/entries。请打开上方「Firebase 项目」显示的 Console 项目（来自 GoogleService-Info.plist），不要开错项目。路径：users/{Auth UID}/entries（用户路径仍是 UID；每篇日记文档 ID 仍是 UUID——请看 label 字段如「2026-10-30 18:22 · 标题」，并按 createdAt 排序）。users/{uid} 还会写入 phoneNumber／appleUserId／displayName，可在 Console 用 phoneNumber 筛选 users 集合查找，文档 ID 不会是电话号码。若状态显示“仅本机会话”，请退出后以真实 Firebase 短信重新登录（横幅须显示 Firebase，而非 Stub）。权限错误时请粘贴 firebase/firestore.rules 并 Publish。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";

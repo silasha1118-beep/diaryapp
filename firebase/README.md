@@ -29,10 +29,12 @@ users/{uid}                     // uid = Firebase Auth UID (path key — do not 
   displayName?: string
   authProviders?: string[]      // e.g. ["phone"], ["apple"], or both
 
-users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string
-  id: string
+users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — never phone+datetime)
+  id: string                    // same UUID as document ID
   title: string
-  body: string
+  body: string                  // full text
+  bodyPreview: string           // short Console excerpt
+  label: string                 // e.g. "2026-10-30 18:22 · Morning notes" for Console browsing
   moodTag: string | null
   createdAt: timestamp
   updatedAt: timestamp
@@ -43,7 +45,7 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string
 
 **Console tip:** Data → `users` → open a doc, or filter by `phoneNumber`. Document ID remains the Auth UID. Identity fields are written on sign-in and each cloud sync (user doc only — not mirrored onto entries).
 
-**Entry order:** Document IDs are entry UUIDs — Console’s default list is **not** chronological. Open `users/{uid}/entries` and sort/filter by the `createdAt` Timestamp field (or `updatedAt`). The app Vault list always sorts newest-`createdAt`-first and never trusts doc-ID order.
+**Entry order / Console browsing:** Document IDs stay entry UUIDs (required for local sync, privacy, and phone number changes — do **not** rename to phone+datetime). Console’s default list is UUID order. Open `users/{uid}/entries`, sort by `createdAt`, and scan the `label` field (`yyyy-MM-dd HH:mm · title`). Phone lives on the parent `users/{uid}.phoneNumber`, not in the entry path. The app Vault list always sorts newest-`createdAt`-first.
 
 ## Client behavior
 
