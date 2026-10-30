@@ -68,18 +68,30 @@
 "auth.devLocal" = "開発：ローカルセッションで続行";
 
 /* Paywall */
-"paywall.title" = "Author Plus";
+"paywall.title" = "プラン";
 "paywall.headline" = "あなたの言葉を知るミラー。";
-"paywall.body" = "無料または Author Plus を選べます。価格は StoreKit（ローカル設定または App Store）から——ここには金額をハードコードしません。";
+"paywall.body" = "無料、Author Plus、Author Pro から選べます。価格は StoreKit（ローカル設定または App Store）から——ここには金額をハードコードしません。";
 "paywall.free.title" = "無料";
-"paywall.free.body" = "ボールトに書いてミラーを試せます。無料のクラウドミラーは1日の上限があり、アップグレードで上がります。";
+"paywall.free.body" = "ボールトに書いてミラーを試せます。無料クラウドミラーは最初の数回はそのまま、その後はアップグレード案内を表示し、1日の上限（6回）で停止します。";
 "paywall.free.current" = "現在のプラン";
-"paywall.plus.blurb" = "無制限の日記ナラティブ＋より高い1日あたりのミラー助言枠。";
+"paywall.plus.blurb" = "無制限の日記ナラティブ＋1日15回のミラー。月額・四半期・年額から選択。";
+"paywall.plus.section" = "Author Plus · ミラー 15回／日";
+"paywall.pro.title" = "Author Pro";
+"paywall.pro.section" = "Author Pro · ミラー 40回／日";
+"paywall.pro.body" = "最高の1日ミラー枠（40回）。月額・四半期・年額。Plus では足りないときに。";
+"paywall.pro.pending" = "Author Pro 商品は StoreKit から読み込みます（Scheme で DiaryVault.storekit または Connect）。";
+"paywall.pro.monthly" = "Author Pro · 月額";
+"paywall.pro.quarterly" = "Author Pro · 四半期";
+"paywall.pro.yearly" = "Author Pro · 年額";
 "paywall.monthly" = "Author Plus · 月額";
+"paywall.plus.monthly" = "Author Plus · 月額";
+"paywall.plus.quarterly" = "Author Plus · 四半期";
 "paywall.yearly" = "Author Plus · 年額";
+"paywall.plus.yearly" = "Author Plus · 年額";
 "paywall.restore" = "購入を復元";
 "paywall.reload" = "商品を再読み込み";
-"paywall.active" = "この Apple ID でサブスクリプション有効";
+"paywall.active" = "この Apple ID で Author Plus が有効";
+"paywall.active.pro" = "この Apple ID で Author Pro が有効";
 "paywall.currentPlan" = "現在のプラン";
 "paywall.owned" = "利用中";
 "paywall.expires" = "更新／終了";
@@ -87,11 +99,11 @@
 "paywall.unavailable" = "商品はまだ読み込まれていません";
 "paywall.productsMissing" = "商品が読み込まれていません。Mac：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit にして再実行。実 App Store Connect 商品には有料 Apple Developer が必要です。";
 "paywall.footer" = "サブスクリプションは設定 → Apple ID でキャンセルするまで更新されます。遺産／托管商品は後の段階——このペイウォールにはありません。";
-"paywall.disclosure" = "Author Plus は自動更新サブスクリプション（月額または年額）です。価格と期間は上の各商品に表示されます（StoreKit から）。確認時に Apple ID に課金されます。現在の期間終了の少なくとも24時間前にキャンセルしない限り更新されます。管理／キャンセルは設定 → Apple ID → サブスクリプション。Diary Vault アカウントの削除では Apple サブスクリプションはキャンセルされません。";
+"paywall.disclosure" = "Author Plus と Author Pro は自動更新サブスクリプション（月額・四半期・年額）です。価格と期間は上の各商品に表示されます（StoreKit から）。確認時に Apple ID に課金されます。現在の期間終了の少なくとも24時間前にキャンセルしない限り更新されます。管理／キャンセルは設定 → Apple ID → サブスクリプション。Diary Vault アカウントの削除では Apple サブスクリプションはキャンセルされません。";
 "paywall.privacy.pending" = "プライバシーポリシー：App Store 提出前に URL をホストし DIARY_PRIVACY_POLICY_URL を設定（設定画面からも）。";
 "paywall.status.productsEmpty" = "商品が返りませんでした。Scheme の StoreKit Configuration を確認してから再読み込みしてください。";
 "paywall.status.productsError" = "StoreKit から商品を読み込めませんでした。";
-"paywall.status.purchaseSuccess" = "購入を記録しました。Author Plus が有効です。";
+"paywall.status.purchaseSuccess" = "購入を記録しました。プランが有効です。";
 "paywall.status.purchaseCancelled" = "購入をキャンセルしました。";
 "paywall.status.purchasePending" = "購入は承認待ちです。";
 "paywall.status.purchaseUnknown" = "購入が不明な状態で終了しました。";
@@ -123,11 +135,13 @@
 "mirror.thinking" = "聞いています…";
 "mirror.cited" = "あなたの記録に基づく";
 "mirror.quota.remaining" = "本日のミラー残り %d／%d 回";
-"mirror.quota.unlimited" = "Author Plus ミラー枠：本日無制限（設定による）";
-"mirror.quota.exhausted.free" = "本日の無料ミラー上限（%d）を使い切りました。Author Plus にアップグレードするか、明日またお試しください。";
-"mirror.quota.exhausted.plus" = "本日の Author Plus ミラー上限（%d）を使い切りました。明日またお試しください。";
+"mirror.quota.softReminder" = "本日のミラー残り %d／%d 回——Author Plus で1日の上限が上がります";
+"mirror.quota.unlimited" = "ミラー枠：本日無制限（設定による）";
+"mirror.quota.exhausted.free" = "本日のミラーは使い切りました（%d）。Author Plus にアップグレードするか、明日またお試しください。";
+"mirror.quota.exhausted.plus" = "本日のミラーは使い切りました（%d）。Author Pro（40回／日）にアップグレードするか、明日またお試しください。";
+"mirror.quota.exhausted.pro" = "本日のミラーは使い切りました（%d）。明日またお試しください。";
 "mirror.quota.upgrade" = "Author Plus を見る";
-
+"mirror.quota.upgrade.pro" = "Author Pro を見る";
 /* Settings */
 "settings.title" = "設定";
 "settings.section.account" = "アカウント";
@@ -148,10 +162,11 @@
 "settings.billing.plan" = "プラン";
 "settings.billing.free" = "無料";
 "settings.billing.active" = "Author Plus";
+"settings.billing.pro" = "Author Pro";
 "settings.billing.product" = "商品";
 "settings.billing.expires" = "期間終了";
 "settings.billing.manage" = "プランを見る／復元";
-"settings.billing.footer" = "StoreKit 2：ローカル DiaryVault.storekit（または App Store Sandbox）で購入・復元。DIARY_IAP_* 環境変数または Info.plist で商品 ID を上書き。リポジトリに秘密情報は入れません。";
+"settings.billing.footer" = "StoreKit 2：無料／Author Plus（15／日）／Author Pro（40／日）；月・四半期・年。ローカル DiaryVault.storekit または App Store Sandbox。DIARY_IAP_* で商品 ID を上書き。リポジトリに秘密情報は入れません。";
 "settings.section.language" = "言語";
 "settings.language" = "アプリの言語";
 "settings.language.footer" = "繁中／簡中／English／日本語／ไทย——いつでも切り替え。初回起動はシステムの言語に従います。";
@@ -168,10 +183,11 @@
 "settings.ai.quota" = "本日のミラー";
 "settings.ai.quota.value" = "%d／%d 回";
 "settings.ai.quota.unlimited" = "無制限（Plus 設定）";
-"settings.ai.quota.exhausted.free" = "無料の1日ミラー枠を使い切りました。Author Plus にアップグレードするか、明日までお待ちください。";
-"settings.ai.quota.exhausted.plus" = "Author Plus の1日ミラー枠を使い切りました。明日またお試しください。";
+"settings.ai.quota.exhausted.free" = "本日のミラーは使い切りました。Author Plus にアップグレードするか、明日までお待ちください。";
+"settings.ai.quota.exhausted.plus" = "本日のミラーは使い切りました。Author Pro（40回／日）へ、または明日までお待ちください。";
+"settings.ai.quota.exhausted.pro" = "本日のミラーは使い切りました。明日またお試しください。";
 "settings.ai.residency" = "データ所在";
-"settings.ai.footer" = "クラウドミラー：無料は DIARY_AI_FREE_DAILY_REQUEST_LIMIT（既定 8）；Author Plus は DIARY_AI_DAILY_REQUEST_LIMIT（既定 40、0＝無制限）。Xcode Scheme で DIARY_AI_API_KEY を設定。リポジトリに秘密情報は入れません。";
+"settings.ai.footer" = "クラウドミラー：無料ハード 6／ソフト 3；Plus は DIARY_AI_DAILY_REQUEST_LIMIT（既定 15）；Pro は DIARY_AI_PRO_DAILY_REQUEST_LIMIT（既定 40）。0＝その層は無制限。Xcode Scheme で DIARY_AI_API_KEY を設定。リポジトリに秘密情報は入れません。";
 "settings.section.legacy" = "レガシー";
 "settings.legacy.stub" = "追悼／音声クローン／執行人設定——Phase 1 UI にはありません。";
 "settings.legacy.footer" = "ロードマップのみ。この MVP 足場では省略。";

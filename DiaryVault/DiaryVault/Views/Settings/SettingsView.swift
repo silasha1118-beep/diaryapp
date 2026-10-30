@@ -63,12 +63,8 @@ struct SettingsView: View {
 
                     Section {
                         LabeledContent(localization.text("settings.billing.plan")) {
-                            Text(
-                                subscriptions.isSubscribed
-                                    ? localization.text("settings.billing.active")
-                                    : localization.text("settings.billing.free")
-                            )
-                            .foregroundStyle(VaultTheme.inkMuted)
+                            Text(billingPlanLabel)
+                                .foregroundStyle(VaultTheme.inkMuted)
                         }
                         if let productID = subscriptions.activeProductID {
                             LabeledContent(localization.text("settings.billing.product")) {
@@ -202,27 +198,27 @@ struct SettingsView: View {
                             LabeledContent(localization.text("settings.ai.quota")) {
                                 Text(mirrorQuotaLabel)
                                     .foregroundStyle(
-                                        MirrorUsageGuard.isExhausted(isAuthorPlus: subscriptions.isSubscribed)
+                                        MirrorUsageGuard.isExhausted(tier: subscriptions.tier)
                                             ? VaultTheme.seal
                                             : VaultTheme.inkMuted
                                     )
                             }
-                            if MirrorUsageGuard.isExhausted(isAuthorPlus: subscriptions.isSubscribed) {
-                                Text(
-                                    localization.text(
-                                        subscriptions.isSubscribed
-                                            ? "settings.ai.quota.exhausted.plus"
-                                            : "settings.ai.quota.exhausted.free"
-                                    )
-                                )
+                            if MirrorUsageGuard.isExhausted(tier: subscriptions.tier) {
+                                Text(localization.text(settingsExhaustedKey))
                                 .font(.system(size: 13))
                                 .foregroundStyle(VaultTheme.seal)
-                                if !subscriptions.isSubscribed {
+                                if subscriptions.tier != .authorPro {
                                     Button {
                                         showPaywall = true
                                     } label: {
-                                        Text(localization.text("mirror.quota.upgrade"))
-                                            .foregroundStyle(VaultTheme.seal)
+                                        Text(
+                                            localization.text(
+                                                subscriptions.tier == .authorPlus
+                                                    ? "mirror.quota.upgrade.pro"
+                                                    : "mirror.quota.upgrade"
+                                            )
+                                        )
+                                        .foregroundStyle(VaultTheme.seal)
                                     }
                                 }
                             }
@@ -300,10 +296,28 @@ struct SettingsView: View {
         }
     }
 
+    private var billingPlanLabel: String {
+        switch subscriptions.tier {
+        case .free:
+            return localization.text("settings.billing.free")
+        case .authorPlus:
+            return localization.text("settings.billing.active")
+        case .authorPro:
+            return localization.text("settings.billing.pro")
+        }
+    }
+
+    private var settingsExhaustedKey: String {
+        switch subscriptions.tier {
+        case .free: return "settings.ai.quota.exhausted.free"
+        case .authorPlus: return "settings.ai.quota.exhausted.plus"
+        case .authorPro: return "settings.ai.quota.exhausted.pro"
+        }
+    }
+
     private var mirrorQuotaLabel: String {
-        let plus = subscriptions.isSubscribed
         let used = MirrorUsageGuard.usageCountToday()
-        let limit = MirrorUsageGuard.effectiveLimit(isAuthorPlus: plus)
+        let limit = MirrorUsageGuard.effectiveLimit(tier: subscriptions.tier)
         if limit <= 0 {
             return localization.text("settings.ai.quota.unlimited")
         }
