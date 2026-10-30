@@ -30,7 +30,7 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "登录，让金库真正属于你。";
-"auth.body" = "使用手机号码与短信验证码登录（主路径）。台／港／陆皆可——只要能收 SMS。也可直接「通过 Apple 登录」。App 不存密码。本 MVP 尚无云端同步。";
+"auth.body" = "使用手机号码与短信验证码登录（主路径）。台／港／陆／马／新／泰／日皆可——只要能收 SMS。也可直接「通过 Apple 登录」。App 不存密码。本 MVP 尚无云端同步。";
 "auth.error" = "登录未完成，请再试一次。";
 "auth.phone.label" = "手机号码";
 "auth.phone.region" = "地区";
@@ -38,14 +38,18 @@
 "auth.phone.send" = "发送验证码";
 "auth.phone.resend" = "重新发送";
 "auth.phone.sent" = "验证码已发送，请查看短信。";
-"auth.phone.invalid" = "请输入所选地区的有效手机号码（台湾 9 位、香港 8 位、中国大陆 11 位；开头 0 可保留）。";
+"auth.phone.invalid" = "请输入所选地区的有效手机号码（台湾 9、港／新 8、中国大陆 11、马来西亚 9–10、泰国 9、日本 10；开头 0 可保留）。";
 "auth.otp.label" = "验证码";
 "auth.otp.placeholder" = "六位数字";
 "auth.otp.verify" = "验证并继续";
 "auth.otp.error" = "验证码不符，请再试一次。";
-"auth.dial.cn" = "+86 中国大陆";
-"auth.dial.hk" = "+852 香港";
 "auth.dial.tw" = "+886 台湾";
+"auth.dial.hk" = "+852 香港";
+"auth.dial.cn" = "+86 中国大陆";
+"auth.dial.my" = "+60 马来西亚";
+"auth.dial.sg" = "+65 新加坡";
+"auth.dial.th" = "+66 泰国";
+"auth.dial.jp" = "+81 日本";
 "auth.stub.hint" = "Stub 短信（未真实发送）：请使用 %@";
 "auth.sms.provider.firebase" = "短信后端：Firebase（真实发送）";
 "auth.sms.provider.stub" = "短信后端：Stub（本机，未真实发送）";
@@ -54,7 +58,7 @@
 "auth.sms.provider.stub.explicit" = "Scheme／Info 设置了 DIARY_SMS_PROVIDER=stub。清掉该环境变量（或改为 firebase）后重新编译即可发送真实短信。";
 "auth.sms.notConfigured" = "短信尚未就绪。请将 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git）后重新编译，或设置 DIARY_SMS_PROVIDER=stub。";
 "auth.sms.rateLimited" = "尝试次数过多，请稍后再试。Spark 方案每天约 10 条真实短信——可用 Firebase 测试号码节省配额。";
-"auth.sms.regionBlocked" = "此电话地区在 Firebase 被封锁。请到 Console → Authentication → Settings → SMS region policy，允许台湾、香港与中国大陆。";
+"auth.sms.regionBlocked" = "此电话地区在 Firebase 被封锁。请到 Console → Authentication → Settings → SMS region policy，允许台湾、香港、中国大陆、马来西亚、新加坡、泰国与日本。";
 "auth.sms.appVerification" = "App 验证失败（reCAPTCHA）。请在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然后重新编译。";
 "auth.apple.or" = "或";
 "auth.apple.backup" = "通过 Apple 登录";
@@ -138,7 +142,7 @@
 "settings.account.provider.local" = "本机（开发）";
 "settings.account.signOut" = "退出登录";
 "settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」始终显示于下方。退出后会回到账号闸门。";
-"settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）。未以 Apple 登录时，下方会显示标准「通过 Apple 登录」按钮。横幅会标示 Firebase 或 Stub——与启动闸门相同。";
+"settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）、马来西亚（+60）、新加坡（+65）、泰国（+66）、日本（+81）。未以 Apple 登录时，下方会显示标准「通过 Apple 登录」按钮。横幅会标示 Firebase 或 Stub——与启动闸门相同。";
 "settings.account.phone.success" = "手机登录成功。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
@@ -150,7 +154,7 @@
 "settings.billing.footer" = "StoreKit 2：可用本机 DiaryVault.storekit（或 App Store Sandbox）购买与恢复。可用 DIARY_IAP_* 环境变量或 Info.plist 覆盖产品 ID。仓库不含密钥。";
 "settings.section.language" = "语言";
 "settings.language" = "App 语言";
-"settings.language.footer" = "繁中／简中／English——可随时切换。";
+"settings.language.footer" = "繁中／简中／English／日本語／ไทย——可随时切换。首次启动跟随系统语言（App Store 地区）。";
 "settings.section.advice" = "建议";
 "settings.reminders" = "温和情境提醒";
 "settings.reminders.footer" = "开启时，镜子可在相关节点温柔浮现反映。不做高频或操控式推送。";

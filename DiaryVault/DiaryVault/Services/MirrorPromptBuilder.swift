@@ -16,6 +16,10 @@ enum MirrorPromptBuilder {
             languageInstruction = "Reply in Simplified Chinese (简体中文)."
         } else if locale.hasPrefix("zh") {
             languageInstruction = "Reply in Traditional Chinese (繁體中文)."
+        } else if locale.hasPrefix("ja") {
+            languageInstruction = "Reply in Japanese (日本語)."
+        } else if locale.hasPrefix("th") {
+            languageInstruction = "Reply in Thai (ภาษาไทย)."
         } else {
             languageInstruction = "Reply in English."
         }

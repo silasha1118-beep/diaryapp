@@ -22,7 +22,7 @@ enum SMSAuthError: LocalizedError, Equatable {
     case invalidCode
     case notConfigured(String)
     case rateLimited
-    /// Firebase SMS region policy blocked this country (allow TW / HK / CN in Console).
+    /// Firebase SMS region policy blocked this country (allow TW / HK / CN / MY / SG / TH / JP in Console).
     case regionNotAllowed
     /// reCAPTCHA / APNs app verification failed — usually missing URL scheme (`REVERSED_CLIENT_ID`).
     case appVerificationFailed
@@ -206,6 +206,10 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
             Auth.auth().languageCode = "zh-TW"
         case "zh-Hans":
             Auth.auth().languageCode = "zh-CN"
+        case "ja":
+            Auth.auth().languageCode = "ja"
+        case "th":
+            Auth.auth().languageCode = "th"
         default:
             Auth.auth().languageCode = "en"
         }
@@ -293,19 +297,27 @@ final class TwilioReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
 // MARK: - Phone helpers
 
 enum PhoneNumberNormalizer {
-    /// Launch-region dial codes shown in the gate UI.
+    /// First-market dial codes shown in the gate / Settings phone picker.
     enum RegionDial: String, CaseIterable, Identifiable {
-        case cn = "+86"
-        case hk = "+852"
         case tw = "+886"
+        case hk = "+852"
+        case cn = "+86"
+        case my = "+60"
+        case sg = "+65"
+        case th = "+66"
+        case jp = "+81"
 
         var id: String { rawValue }
 
         var labelKey: String {
             switch self {
-            case .cn: return "auth.dial.cn"
-            case .hk: return "auth.dial.hk"
             case .tw: return "auth.dial.tw"
+            case .hk: return "auth.dial.hk"
+            case .cn: return "auth.dial.cn"
+            case .my: return "auth.dial.my"
+            case .sg: return "auth.dial.sg"
+            case .th: return "auth.dial.th"
+            case .jp: return "auth.dial.jp"
             }
         }
     }
@@ -332,16 +344,23 @@ enum PhoneNumberNormalizer {
         return digits.hasPrefix("0") ? String(digits.dropFirst()) : digits
     }
 
-    /// Launch-region mobile lengths: TW 9, HK 8, CN 11 (after dropping a leading 0).
+    /// First-market mobile lengths after dropping a leading trunk `0`.
+    /// TW 9 · HK 8 · CN 11 · MY 9–10 · SG 8 · TH 9 · JP 10.
     static func isPlausibleNationalNumber(dial: RegionDial, nationalNumber: String) -> Bool {
         let national = nationalDigits(from: nationalNumber)
         switch dial {
         case .tw:
             return national.count == 9
-        case .hk:
+        case .hk, .sg:
             return national.count == 8
         case .cn:
             return national.count == 11
+        case .my:
+            return (9...10).contains(national.count)
+        case .th:
+            return national.count == 9
+        case .jp:
+            return national.count == 10
         }
     }
 

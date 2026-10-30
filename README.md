@@ -83,17 +83,17 @@ See also `DiaryVault/DiaryVault/GoogleService-Info.plist.example` (placeholders 
 
 Do these in order. Phone Auth is already **Enabled** for project **`diaryappsilas`** — focus on regions, URL scheme, and device run.
 
-**A. Firebase Console — allow TW / HK / CN SMS**
+**A. Firebase Console — allow first-market SMS regions (manual — not changed by app code)**
 
 1. Open [Firebase Console](https://console.firebase.google.com/) → project **`diaryappsilas`**.
 2. Left menu → **Build** → **Authentication**.
 3. Tab **Sign-in method** → confirm **Phone** is **Enabled** (you already did this).
 4. Tab **Settings** (still under Authentication) → section **SMS region policy** (sometimes labeled “SMS regions”).
 5. Choose **Allow** / allowlist and add at least:
-   - **Taiwan (TW)**
-   - **Hong Kong (HK)**
-   - **China (CN)** / Mainland China  
-   New projects often allow **no** regions by default — if your country is missing, Send code fails with a region error in the app.
+   - **Taiwan (TW)** · **Hong Kong (HK)** · **China (CN)** / Mainland China  
+   - **Malaysia (MY)** · **Singapore (SG)** · **Thailand (TH)** · **Japan (JP)**  
+   New projects often allow **no** regions by default — if your country is missing, Send code fails with a region error in the app.  
+   **You must do this in Firebase Console yourself**; the app only shows these dial codes in the UI.
 6. Save.
 
 **B. Optional — Firebase test phone numbers (saves Spark quota)**
@@ -117,7 +117,7 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 
 1. If you previously used DEBUG **“Dev: continue with local session”**, open **Settings** → **帳號 / 手機登入** → **登出** (Sign out). That returns you to the auth gate.
 2. Or stay in Settings and use the same phone + OTP fields under **帳號 / 手機登入**.
-3. Pick region **+886 / +852 / +86** → enter the mobile number **without** the country code (leading `0` is OK; the app strips it) → **傳送驗證碼**.
+3. Pick region **+886 / +852 / +86 / +60 / +65 / +66 / +81** → enter the mobile number **without** the country code (leading `0` is OK; the app strips it) → **傳送驗證碼**.
 4. Complete reCAPTCHA if the phone shows a browser sheet → wait for SMS → enter the 6-digit code → **驗證並繼續**.
 5. Settings should show provider **Phone (SMS OTP)** and a masked number.
 
@@ -125,7 +125,7 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 
 | App message / symptom | What to do |
 |----------------------|------------|
-| Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN |
+| Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN / MY / SG / TH / JP |
 | App verification / reCAPTCHA | Add `REVERSED_CLIENT_ID` URL scheme, rebuild; or set up APNs |
 | SMS not ready / plist | File at `DiaryVault/DiaryVault/GoogleService-Info.plist`; rebuild so the Copy script bundles it |
 | Too many attempts / quota | Wait, or use a **test phone number**; Spark ≈ **10 real SMS/day** |
