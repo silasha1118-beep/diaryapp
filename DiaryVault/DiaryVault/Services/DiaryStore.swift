@@ -43,8 +43,9 @@ final class DiaryStore: ObservableObject {
         }
     }
 
+    /// Vault list order: newest `createdAt` first (never document-ID / insertion order).
     var sortedEntries: [DiaryEntry] {
-        entries.sorted { $0.createdAt > $1.createdAt }
+        entries.sorted(by: DiaryCloudSync.chronologicalDescending)
     }
 
     /// Call once from the app root after `AccountSession` exists. Triggers pull+push when signed in.
@@ -78,6 +79,7 @@ final class DiaryStore: ObservableObject {
             updatedAt: now
         )
         entries.insert(entry, at: 0)
+        resortEntries()
         save()
         enqueue(.upsert(entry.id))
         scheduleSynchronize()
@@ -88,6 +90,7 @@ final class DiaryStore: ObservableObject {
         var updated = entry
         updated.updatedAt = Date()
         entries[index] = updated
+        resortEntries()
         save()
         enqueue(.upsert(updated.id))
         scheduleSynchronize()
@@ -168,6 +171,18 @@ final class DiaryStore: ObservableObject {
                 needsResync = false
                 scheduleSynchronize()
             }
+        }
+
+        // Upsert identity on every sync so Console can show phone / Apple even with zero entries.
+        do {
+            try await DiaryCloudSync.upsertUserProfile(
+                uid: uid,
+                hasTextEntries: !entries.isEmpty
+            )
+        } catch {
+            #if DEBUG
+            print("DiaryCloudSync user profile upsert failed: \(error)")
+            #endif
         }
 
         var remote: [DiaryEntry] = []
@@ -256,8 +271,14 @@ final class DiaryStore: ObservableObject {
             }
         }
         if changed {
+            resortEntries()
             save()
         }
+    }
+
+    /// Keep the in-memory array chronological so any consumer (and JSON on disk) matches Vault order.
+    private func resortEntries() {
+        entries.sort(by: DiaryCloudSync.chronologicalDescending)
     }
 
     private func flushPending(uid: String) async throws {
@@ -348,6 +369,7 @@ final class DiaryStore: ObservableObject {
         do {
             let data = try Data(contentsOf: fileURL)
             entries = try decoder.decode([DiaryEntry].self, from: data)
+            resortEntries()
         } catch {
             entries = []
         }
@@ -355,7 +377,8 @@ final class DiaryStore: ObservableObject {
 
     private func save() {
         do {
-            let data = try encoder.encode(entries)
+            // Persist in Vault display order (createdAt newest-first), not Firestore doc-ID order.
+            let data = try encoder.encode(sortedEntries)
             try data.write(to: fileURL, options: [.atomic])
         } catch {
             // MVP: silent fail; production would surface error UI.

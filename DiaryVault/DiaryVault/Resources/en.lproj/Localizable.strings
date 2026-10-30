@@ -174,7 +174,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "Entries on server";
 "settings.cloud.syncNow" = "Sync now";
-"settings.cloud.footer" = "Text diaries upload to users/{uid}/entries on database (default). Open Firebase Console for the Project ID shown above (from GoogleService-Info.plist) — not a different project. Path: users/{Auth UID}/entries. If status says “Local session only”, sign out and sign in again with real Firebase SMS (banner must say Firebase, not Stub). Permission errors mean paste firebase/firestore.rules and Publish.";
+"settings.cloud.footer" = "Text diaries upload to users/{uid}/entries on database (default). Open Firebase Console for the Project ID shown above (from GoogleService-Info.plist) — not a different project. Path: users/{Auth UID}/entries (UID stays the document path). On users/{uid} the app also stores phoneNumber / appleUserId / displayName so Console can look up by phoneNumber — filter the users collection; do not expect the doc ID to be the phone. If status says “Local session only”, sign out and sign in again with real Firebase SMS (banner must say Firebase, not Stub). Permission errors mean paste firebase/firestore.rules and Publish.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";

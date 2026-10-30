@@ -11,7 +11,8 @@ struct DiaryListView: View {
         let f = DateFormatter()
         f.locale = localization.locale
         f.dateStyle = .medium
-        f.timeStyle = .none
+        // Show time so same-day entries read as chronological, not unordered.
+        f.timeStyle = .short
         return f
     }
 

@@ -23,8 +23,13 @@ class DiaryStore(context: Context) {
         }
     }
 
+    /** Vault list: newest createdAt first; never document-ID / insertion order. */
     val sortedEntries: List<DiaryEntry>
-        get() = _entries.value.sortedByDescending { it.createdAt }
+        get() = _entries.value.sortedWith(
+            compareByDescending<DiaryEntry> { it.createdAt }
+                .thenByDescending { it.updatedAt }
+                .thenByDescending { it.id },
+        )
 
     fun entry(id: String): DiaryEntry? = _entries.value.firstOrNull { it.id == id }
 

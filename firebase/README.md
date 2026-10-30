@@ -19,11 +19,15 @@ On-device JSON remains the offline source of truth. Multimedia upload is **not**
 ## Schema
 
 ```
-users/{uid}
-  ownerUid: string
+users/{uid}                     // uid = Firebase Auth UID (path key — do not use phone/Apple id)
+  ownerUid: string              // same as uid
   updatedAt: timestamp
-  schemaVersion: number   // 1
+  schemaVersion: number         // 1
   hasTextEntries: bool
+  phoneNumber?: string          // E.164 from Firebase Auth (Console filter / search)
+  appleUserId?: string          // Apple provider UID from providerData
+  displayName?: string
+  authProviders?: string[]      // e.g. ["phone"], ["apple"], or both
 
 users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string
   id: string
@@ -36,6 +40,10 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string
   schemaVersion: number         // 1
   contentType: string           // "text" (media later)
 ```
+
+**Console tip:** Data → `users` → open a doc, or filter by `phoneNumber`. Document ID remains the Auth UID. Identity fields are written on sign-in and each cloud sync (user doc only — not mirrored onto entries).
+
+**Entry order:** Document IDs are entry UUIDs — Console’s default list is **not** chronological. Open `users/{uid}/entries` and sort/filter by the `createdAt` Timestamp field (or `updatedAt`). The app Vault list always sorts newest-`createdAt`-first and never trusts doc-ID order.
 
 ## Client behavior
 
