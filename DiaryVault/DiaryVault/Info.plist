@@ -81,8 +81,9 @@
 	<key>DIARY_IAP_YEARLY_PRODUCT_ID</key>
 	<string></string>
 	<!-- Hosted legal pages for App Store subscription disclosure. Empty → in-app privacy sheet + Apple Standard EULA. -->
+	<!-- Requires GitHub Pages: Settings → Pages → Deploy from a branch → main / docs (see README). -->
 	<key>DIARY_PRIVACY_POLICY_URL</key>
-	<string></string>
+	<string>https://silasha1118-beep.github.io/diaryapp/privacy.html</string>
 	<key>DIARY_TERMS_OF_USE_URL</key>
 	<string></string>
 	<!-- SMS OTP — leave empty. Empty → firebase when GoogleService-Info.plist is bundled (Run Script copies DiaryVault/GoogleService-Info.plist), else stub. Explicit stub only when you set "stub". Never put secrets here. -->
