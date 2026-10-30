@@ -173,7 +173,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "จำนวนบนเซิร์ฟเวอร์";
 "settings.cloud.syncNow" = "ซิงค์ตอนนี้";
-"settings.cloud.footer" = "ไดอารี่ข้อความอัปโหลดไป DB (default) ที่ users/{uid}/entries เปิด Console ของโปรเจกต์ที่แสดงด้านบน (จาก GoogleService-Info.plist) เท่านั้น เส้นทาง: users/{Auth UID}/entries (UID ยังเป็น path ของเอกสาร) บน users/{uid} จะเก็บ phoneNumber / appleUserId / displayName ด้วย — ค้นใน Console ด้วย phoneNumber ได้ อย่าคาดว่า doc ID เป็นเบอร์โทร หากเป็นเซสชันในเครื่อง ให้ลงชื่อออกแล้วเข้าด้วย Firebase SMS จริง หากสิทธิ์ถูกปฏิเสธ ให้วาง firebase/firestore.rules แล้ว Publish";
+"settings.cloud.footer" = "ไดอารี่ข้อความอัปโหลดไป DB (default) ที่ users/{uid}/entries เปิด Console ของโปรเจกต์ที่แสดงด้านบน (จาก GoogleService-Info.plist) เท่านั้น เส้นทาง: users/{Auth UID}/entries (path ผู้ใช้ยังเป็น UID; doc ID ของแต่ละไดอารี่ยังเป็น UUID — ดูช่อง label เช่น “2026-10-30 18:22 · title” และเรียงด้วย createdAt) บน users/{uid} จะเก็บ phoneNumber / appleUserId / displayName ด้วย — ค้นด้วย phoneNumber ได้ อย่าคาดว่า doc ID เป็นเบอร์โทร หากเป็นเซสชันในเครื่อง ให้ลงชื่อออกแล้วเข้าด้วย Firebase SMS จริง หากสิทธิ์ถูกปฏิเสธ ให้วาง firebase/firestore.rules แล้ว Publish";
 "settings.section.billing" = "การสมัคร";
 "settings.billing.plan" = "แผน";
 "settings.billing.free" = "ฟรี";

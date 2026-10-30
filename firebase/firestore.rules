@@ -21,7 +21,9 @@ service cloud.firestore {
         && request.resource.data.ownerUid == userId;
       allow delete: if isOwner(userId);
 
-      // Text diary entries (phase 1). Multimedia Storage paths come later (DA-15).
+      // Text diary entries (phase 1). entryId MUST stay the DiaryEntry UUID
+      // (not phone+datetime). Optional non-key fields: label, bodyPreview, moodTag.
+      // Multimedia Storage paths come later (DA-15).
       match /entries/{entryId} {
         allow read: if isOwner(userId);
 

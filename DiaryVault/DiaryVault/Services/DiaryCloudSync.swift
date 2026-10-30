@@ -10,11 +10,13 @@ import FirebaseFirestore
 /// users/{uid}                          // path key = Firebase Auth UID (never phone/Apple id)
 ///   ownerUid, updatedAt, schemaVersion, hasTextEntries,
 ///   phoneNumber?, appleUserId?, displayName?, authProviders?
-/// users/{uid}/entries/{entryId}        // entryId = DiaryEntry.id.uuidString
+/// users/{uid}/entries/{entryId}        // entryId = stable DiaryEntry UUID (never phone+datetime)
 ///   id, title, body, moodTag?, createdAt, updatedAt,
-///   ownerUid, schemaVersion, contentType ("text")
+///   ownerUid, schemaVersion, contentType ("text"),
+///   label?, bodyPreview?               // Console browsing aids — not path keys
 /// ```
 /// Identity fields live on the user doc only (Console lookup by phoneNumber).
+/// Entry document IDs stay UUIDs (local sync / privacy / phone changes). Use `label` in Console.
 /// Multimedia (DA-15) can add Storage paths later without changing this text shape.
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
@@ -230,6 +232,7 @@ enum DiaryCloudSync {
 
     static func encode(entry: DiaryEntry, ownerUid: String) -> [String: Any] {
         // Always write Firebase Timestamp (not ISO strings / numbers) so Console can sort by createdAt.
+        // Document ID remains the entry UUID — do not use phone+datetime as the path key.
         var data: [String: Any] = [
             "id": entry.id.uuidString,
             "title": entry.title,
@@ -239,13 +242,39 @@ enum DiaryCloudSync {
             "ownerUid": ownerUid,
             // Explicit Int so rules `schemaVersion is int` never sees a Double bridge.
             "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion),
-            "contentType": DiaryFirestoreSchema.contentTypeText
+            "contentType": DiaryFirestoreSchema.contentTypeText,
+            // Non-key Console aids (UUID doc IDs are opaque in the list view).
+            "label": consoleLabel(for: entry),
+            "bodyPreview": bodyPreview(for: entry)
         ]
         // Omit nil moodTag (do not write NSNull — merge deletes the field and confuses rules debugging).
         if let mood = entry.moodTag {
             data["moodTag"] = mood
         }
         return data
+    }
+
+    /// Human-readable Console scan line: `yyyy-MM-dd HH:mm · title` (falls back to body snippet).
+    static func consoleLabel(for entry: DiaryEntry) -> String {
+        let stamp = ConsoleLabelDateFormatter.string(from: entry.createdAt)
+        let title = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !title.isEmpty {
+            return "\(stamp) · \(title)"
+        }
+        let snippet = bodyPreview(for: entry, maxChars: 40)
+        if !snippet.isEmpty {
+            return "\(stamp) · \(snippet)"
+        }
+        return stamp
+    }
+
+    /// Short body excerpt for Console list scanning (full `body` remains on the doc).
+    static func bodyPreview(for entry: DiaryEntry, maxChars: Int = 120) -> String {
+        let trimmed = entry.body.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\n", with: " ")
+        guard !trimmed.isEmpty else { return "" }
+        if trimmed.count <= maxChars { return trimmed }
+        return String(trimmed.prefix(maxChars)) + "…"
     }
 
     static func decode(document: QueryDocumentSnapshot) -> DiaryEntry? {
@@ -350,6 +379,20 @@ private extension Array {
         }
         return result
     }
+}
+
+private enum ConsoleLabelDateFormatter {
+    static func string(from date: Date) -> String {
+        formatter.string(from: date)
+    }
+
+    private static let formatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        return f
+    }()
 }
 
 private extension ISO8601DateFormatter {
