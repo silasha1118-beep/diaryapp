@@ -128,13 +128,111 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     }
 }
 
+// MARK: - Firebase Phone Auth URL scheme gate
+
+/// Pre-flight for Firebase `PhoneAuthProvider` — mirrors Auth's `mainBundleUrlTypes` read but
+/// never force-unwraps. Used so SMS Send can soft-fail instead of crashing at PhoneAuthProvider.swift:649.
+enum FirebasePhoneAuthURLScheme {
+    private static let placeholderMarkers = ["REPLACE_ME", "DIARYVAULT_", "REPLACE_WITH_"]
+
+    struct Readiness: Equatable {
+        var urlTypesPresent: Bool
+        var registeredSchemes: [String]
+        var expectedReversedClientID: String?
+        var expectedEncodedAppID: String?
+        var reversedClientIDRegistered: Bool
+        var encodedAppIDRegistered: Bool
+
+        /// Only true when Firebase's IUO path is safe **and** reCAPTCHA has a usable callback scheme.
+        var canInstantiatePhoneAuthProvider: Bool {
+            urlTypesPresent
+                && !registeredSchemes.isEmpty
+                && (reversedClientIDRegistered || encodedAppIDRegistered)
+        }
+
+        var debugSummary: String {
+            "urlTypesPresent=\(urlTypesPresent) schemes=\(registeredSchemes) reversed=\(expectedReversedClientID ?? "nil")(ok=\(reversedClientIDRegistered)) app=\(expectedEncodedAppID ?? "nil")(ok=\(encodedAppIDRegistered))"
+        }
+    }
+
+    static func readinessCheck() -> Readiness {
+        let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]]
+        let schemes = registeredSchemes(from: urlTypes)
+        let reversed = expectedReversedClientID()
+        let encoded = expectedEncodedAppIDScheme()
+        return Readiness(
+            urlTypesPresent: urlTypes != nil,
+            registeredSchemes: schemes,
+            expectedReversedClientID: reversed,
+            expectedEncodedAppID: encoded,
+            reversedClientIDRegistered: schemeRegistered(reversed, in: schemes),
+            encodedAppIDRegistered: schemeRegistered(encoded, in: schemes)
+        )
+    }
+
+    /// Prefer `REVERSED_CLIENT_ID`; fall back to inverting `CLIENT_ID` the same way Firebase Auth does.
+    static func expectedReversedClientID() -> String? {
+        guard let dict = googleServiceInfoDictionary() else { return nil }
+        if let reversed = sanitizedScheme(dict["REVERSED_CLIENT_ID"] as? String) {
+            return reversed
+        }
+        if let clientID = sanitizedScheme(dict["CLIENT_ID"] as? String) {
+            return clientID.split(separator: ".").reversed().joined(separator: ".")
+        }
+        return nil
+    }
+
+    /// Firebase fallback callback scheme: `app-` + `GOOGLE_APP_ID` with `:` → `-`.
+    static func expectedEncodedAppIDScheme() -> String? {
+        guard let dict = googleServiceInfoDictionary(),
+              let appID = sanitizedScheme(dict["GOOGLE_APP_ID"] as? String) else {
+            return nil
+        }
+        return "app-" + appID.replacingOccurrences(of: ":", with: "-")
+    }
+
+    private static func googleServiceInfoDictionary() -> [String: Any]? {
+        guard let url = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist"),
+              let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
+            return nil
+        }
+        return dict
+    }
+
+    private static func registeredSchemes(from urlTypes: [[String: Any]]?) -> [String] {
+        guard let urlTypes else { return [] }
+        var schemes: [String] = []
+        for entry in urlTypes {
+            guard let list = entry["CFBundleURLSchemes"] as? [String] else { continue }
+            schemes.append(contentsOf: list)
+        }
+        return schemes
+    }
+
+    private static func schemeRegistered(_ scheme: String?, in registered: [String]) -> Bool {
+        guard let scheme, isRealScheme(scheme) else { return false }
+        return registered.contains { $0.caseInsensitiveCompare(scheme) == .orderedSame }
+    }
+
+    private static func sanitizedScheme(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, isRealScheme(trimmed) else { return nil }
+        return trimmed
+    }
+
+    private static func isRealScheme(_ value: String) -> Bool {
+        !placeholderMarkers.contains { value.contains($0) }
+    }
+}
+
 // MARK: - Firebase Auth Phone
 
 /// Real Firebase Phone Auth: send SMS OTP → verify code → `Auth.auth().signIn`.
 /// Requires `GoogleService-Info.plist` in the app target (gitignored) and Phone provider enabled in Console.
 ///
-/// `PhoneAuthProvider.provider()` is created only inside send/verify. Firebase Auth force-unwraps
-/// when the `REVERSED_CLIENT_ID` URL scheme is missing from Info.plist — we soft-check first.
+/// `PhoneAuthProvider.provider()` is created only inside send/verify after `FirebasePhoneAuthURLScheme`
+/// confirms Bundle URL Types are safe for Firebase's IUO `mainBundleUrlTypes` read.
 final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     func sendCode(toPhoneE164 phone: String) async throws -> SMSCodeSession {
         let normalized = PhoneNumberNormalizer.normalizeToE164(phone)
@@ -205,53 +303,23 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
 
     private static let verificationIDDefaultsKey = "diary.firebase.authVerificationID"
 
-    /// Lazy Firebase Phone Auth factory. Soft-fails when URL scheme is missing instead of crashing
-    /// inside `PhoneAuthProvider.init` (`mainBundleUrlTypes` / nil unwrap).
+    /// Lazy Firebase Phone Auth factory.
+    ///
+    /// Firebase Auth 11+/12 `PhoneAuthProvider.init` passes `auth.mainBundleUrlTypes`
+    /// (an IUO filled from `CFBundleURLTypes`) into `AuthWebUtils.isCallbackSchemeRegistered`.
+    /// If that IUO is nil — empty/missing URL Types get stripped from the processed Info.plist —
+    /// the SDK fatalErrors at PhoneAuthProvider.swift:649. Never call `provider()` unless our
+    /// own `Bundle.main` read shows a non-nil, non-empty URL Types array **and** a real
+    /// (non-placeholder) reverse-client or encoded-app scheme.
     private func makePhoneAuthProvider() throws -> PhoneAuthProvider {
-        guard let scheme = Self.expectedCallbackURLScheme() else {
-            throw SMSAuthError.appVerificationFailed
-        }
-        guard Self.isURLSchemeRegistered(scheme) else {
+        let readiness = FirebasePhoneAuthURLScheme readinessCheck()
+        guard readiness.canInstantiatePhoneAuthProvider else {
             #if DEBUG
-            print("DiaryVault Phone Auth: URL scheme \(scheme) not in CFBundleURLTypes — refusing PhoneAuthProvider.provider() to avoid Firebase fatalError")
+            print("DiaryVault Phone Auth: refusing PhoneAuthProvider.provider() — \(readiness.debugSummary)")
             #endif
             throw SMSAuthError.appVerificationFailed
         }
         return PhoneAuthProvider.provider()
-    }
-
-    /// Prefer `REVERSED_CLIENT_ID`; fall back to inverting `CLIENT_ID` the same way Firebase Auth does.
-    private static func expectedCallbackURLScheme() -> String? {
-        guard let url = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist"),
-              let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
-            return nil
-        }
-        if let reversed = dict["REVERSED_CLIENT_ID"] as? String {
-            let trimmed = reversed.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty, !trimmed.contains("REPLACE_ME") {
-                return trimmed
-            }
-        }
-        if let clientID = dict["CLIENT_ID"] as? String {
-            let trimmed = clientID.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty, !trimmed.contains("REPLACE_ME") {
-                return trimmed.split(separator: ".").reversed().joined(separator: ".")
-            }
-        }
-        return nil
-    }
-
-    private static func isURLSchemeRegistered(_ scheme: String) -> Bool {
-        guard let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]] else {
-            return false
-        }
-        for entry in urlTypes {
-            guard let schemes = entry["CFBundleURLSchemes"] as? [String] else { continue }
-            if schemes.contains(where: { $0.caseInsensitiveCompare(scheme) == .orderedSame }) {
-                return true
-            }
-        }
-        return false
     }
 
     private func applySMSLanguageCode() {

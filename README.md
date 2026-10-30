@@ -64,10 +64,11 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
    A **Run Script** build phase copies it into the app bundle automatically — you do **not** need Target Membership / Copy Bundle Resources for beginners. (Dragging into the DiaryVault group with membership checked still works too.)
 3. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console iOS app).
 4. **URL scheme (reCAPTCHA fallback — required if APNs is not set up):**
-   - The **Copy GoogleService-Info.plist** Run Script reads **`REVERSED_CLIENT_ID`** from your local plist and injects it into the app’s **CFBundleURLTypes** at build time (source `Info.plist` keeps an empty array in git — do not commit a real client id).
-   - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then rebuild.
-   - Optional manual check: Xcode → DiaryVault **target** → **Info** → **URL Types** should show `com.googleusercontent.apps.…` after a successful build with the plist present.
-   - Without the scheme, Send code soft-fails with an in-app message (Firebase Auth would otherwise crash in `PhoneAuthProvider.init`).
+   - Source `Info.plist` commits **non-empty** `CFBundleURLTypes` placeholders (an empty array can be stripped → Firebase `mainBundleUrlTypes` stays nil → fatal in `PhoneAuthProvider.init` at line 649).
+   - The **Copy GoogleService-Info.plist** Run Script runs `scripts/inject-firebase-url-schemes.py` to replace those placeholders with real **`REVERSED_CLIENT_ID`** + encoded **`GOOGLE_APP_ID`** from your local plist.
+   - If `REVERSED_CLIENT_ID` is **missing**: Firebase Console → enable **Google** sign-in (generates the client id) → re-download `GoogleService-Info.plist` → replace the local file → **Product → Clean Build Folder** → delete the app from the phone → reinstall.
+   - Confirm: Xcode → DiaryVault **target** → **Info** → **URL Types** shows `com.googleusercontent.apps.…` (not `DIARYVAULT_REVERSED_CLIENT_ID`).
+   - App code never calls `PhoneAuthProvider.provider()` until `Bundle.main` URL Types contain a real scheme; otherwise Send stays disabled with an in-app message.
 5. **APNs (recommended before launch — especially CN):** silent push avoids Google reCAPTCHA.
    - Repo already sets Push + `registerForRemoteNotifications` + `Auth.setAPNSToken`.
    - **Paid Apple Developer required** to create an APNs Auth Key (.p8) and to sign with the Push capability.
@@ -134,7 +135,7 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 | App message / symptom | What to do |
 |----------------------|------------|
 | Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN / MY / SG / TH / JP |
-| App verification / reCAPTCHA | Rebuild with plist so Copy script injects `REVERSED_CLIENT_ID`; or set up APNs |
+| App verification / reCAPTCHA / Xcode fatal at PhoneAuthProvider:649 | Confirm plist has `REVERSED_CLIENT_ID`; Clean Build Folder; delete app; reinstall; URL Types must show `com.googleusercontent.apps.…`; or set up APNs |
 | SMS not ready / plist | File at `DiaryVault/DiaryVault/GoogleService-Info.plist`; rebuild so the Copy script bundles it |
 | Too many attempts / quota | Wait, or use a **test phone number**; Spark ≈ **10 real SMS/day** |
 | Banner says Stub / stub hint with a code | Stub is active: plist not on disk at that path, or scheme still has `DIARY_SMS_PROVIDER=stub` — fix & rebuild |
