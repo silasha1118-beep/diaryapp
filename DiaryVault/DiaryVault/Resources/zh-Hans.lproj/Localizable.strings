@@ -168,8 +168,12 @@
 "settings.cloud.status.localSession" = "仅本机会话（无 Firebase Auth）";
 "settings.cloud.status.signedOut" = "未登录 — 仅本机";
 "settings.cloud.lastSync" = "上次同步";
+"settings.cloud.project" = "Firebase 项目";
+"settings.cloud.database" = "Firestore 数据库";
+"settings.cloud.uid" = "Auth UID";
+"settings.cloud.serverCount" = "服务器日记数";
 "settings.cloud.syncNow" = "立即同步";
-"settings.cloud.footer" = "当 Firebase Auth 有效（手机短信或 Apple）时，文字日记会上传到 users/{uid}/entries。若状态显示“仅本机会话”，请退出后以真实 Firebase 短信重新登录（横幅须显示 Firebase，而非 Stub）。并确认 Console 已 Publish firebase/firestore.rules。";
+"settings.cloud.footer" = "文字日记会上传到数据库 (default) 的 users/{uid}/entries。请打开上方「Firebase 项目」显示的 Console 项目（来自 GoogleService-Info.plist），不要开错项目。路径：users/{Auth UID}/entries。若状态显示“仅本机会话”，请退出后以真实 Firebase 短信重新登录（横幅须显示 Firebase，而非 Stub）。权限错误时请粘贴 firebase/firestore.rules 并 Publish。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";

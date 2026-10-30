@@ -169,8 +169,12 @@
 "settings.cloud.status.localSession" = "Local session only (no Firebase Auth)";
 "settings.cloud.status.signedOut" = "Signed out — on-device only";
 "settings.cloud.lastSync" = "Last sync";
+"settings.cloud.project" = "Firebase project";
+"settings.cloud.database" = "Firestore DB";
+"settings.cloud.uid" = "Auth UID";
+"settings.cloud.serverCount" = "Entries on server";
 "settings.cloud.syncNow" = "Sync now";
-"settings.cloud.footer" = "Text diaries upload to users/{uid}/entries when Firebase Auth is live (phone SMS or Apple). If status says “Local session only”, sign out and sign in again with real Firebase SMS (banner must say Firebase, not Stub). Also confirm Firestore rules from firebase/firestore.rules are Published in Console.";
+"settings.cloud.footer" = "Text diaries upload to users/{uid}/entries on database (default). Open Firebase Console for the Project ID shown above (from GoogleService-Info.plist) — not a different project. Path: users/{Auth UID}/entries. If status says “Local session only”, sign out and sign in again with real Firebase SMS (banner must say Firebase, not Stub). Permission errors mean paste firebase/firestore.rules and Publish.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";

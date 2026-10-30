@@ -168,8 +168,12 @@
 "settings.cloud.status.localSession" = "僅本機會話（無 Firebase Auth）";
 "settings.cloud.status.signedOut" = "未登入 — 僅本機";
 "settings.cloud.lastSync" = "上次同步";
+"settings.cloud.project" = "Firebase 專案";
+"settings.cloud.database" = "Firestore 資料庫";
+"settings.cloud.uid" = "Auth UID";
+"settings.cloud.serverCount" = "伺服器日記數";
 "settings.cloud.syncNow" = "立即同步";
-"settings.cloud.footer" = "當 Firebase Auth 有效（手機簡訊或 Apple）時，文字日記會上傳到 users/{uid}/entries。若狀態顯示「僅本機會話」，請登出後以真實 Firebase 簡訊重新登入（橫幅須顯示 Firebase，而非 Stub）。並確認 Console 已 Publish firebase/firestore.rules。";
+"settings.cloud.footer" = "文字日記會上傳到資料庫 (default) 的 users/{uid}/entries。請開啟上方「Firebase 專案」顯示的 Console 專案（來自 GoogleService-Info.plist），不要開錯專案。路徑：users/{Auth UID}/entries。若狀態顯示「僅本機會話」，請登出後以真實 Firebase 簡訊重新登入（橫幅須顯示 Firebase，而非 Stub）。權限錯誤時請貼上 firebase/firestore.rules 並 Publish。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免費";

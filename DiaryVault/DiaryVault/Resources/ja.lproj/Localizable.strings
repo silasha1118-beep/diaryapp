@@ -168,8 +168,12 @@
 "settings.cloud.status.localSession" = "ローカルセッションのみ（Firebase Auth なし）";
 "settings.cloud.status.signedOut" = "未サインイン — 端末のみ";
 "settings.cloud.lastSync" = "前回の同期";
+"settings.cloud.project" = "Firebase プロジェクト";
+"settings.cloud.database" = "Firestore DB";
+"settings.cloud.uid" = "Auth UID";
+"settings.cloud.serverCount" = "サーバー上の件数";
 "settings.cloud.syncNow" = "今すぐ同期";
-"settings.cloud.footer" = "Firebase Auth が有効なとき（SMS または Apple）、テキスト日記は users/{uid}/entries にアップロードされます。「ローカルセッションのみ」の場合はサインアウトし、本物の Firebase SMS で再ログインしてください（バナーは Stub ではなく Firebase）。Console で firebase/firestore.rules が Publish 済みかも確認。";
+"settings.cloud.footer" = "テキスト日記は DB (default) の users/{uid}/entries にアップロードされます。上に表示される Firebase プロジェクト（GoogleService-Info.plist）の Console を開いてください。パス: users/{Auth UID}/entries。「ローカルセッションのみ」の場合はサインアウトし本物の Firebase SMS で再ログイン（バナーは Firebase）。権限エラー時は firebase/firestore.rules を貼って Publish。";
 "settings.section.billing" = "サブスクリプション";
 "settings.billing.plan" = "プラン";
 "settings.billing.free" = "無料";
