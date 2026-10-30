@@ -64,10 +64,10 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
    A **Run Script** build phase copies it into the app bundle automatically — you do **not** need Target Membership / Copy Bundle Resources for beginners. (Dragging into the DiaryVault group with membership checked still works too.)
 3. Bundle ID must be **`com.silasha.diaryvault`** (project setting matches Firebase Console iOS app).
 4. **URL scheme (reCAPTCHA fallback — required if APNs is not set up):**
-   - Open the real plist → copy the string for **`REVERSED_CLIENT_ID`** (looks like `com.googleusercontent.apps.…`).
-   - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then copy the new value.
-   - Xcode → DiaryVault **target** → **Info** tab → **URL Types** → **+** → **URL Schemes** = paste `REVERSED_CLIENT_ID`. Leave Identifier / Role blank.
-   - Rebuild after changing URL Types.
+   - The **Copy GoogleService-Info.plist** Run Script reads **`REVERSED_CLIENT_ID`** from your local plist and injects it into the app’s **CFBundleURLTypes** at build time (source `Info.plist` keeps an empty array in git — do not commit a real client id).
+   - If that key is **missing**, re-download the plist from Firebase Console → Project settings → Your apps → iOS app → **Download GoogleService-Info.plist**, replace the local file, then rebuild.
+   - Optional manual check: Xcode → DiaryVault **target** → **Info** → **URL Types** should show `com.googleusercontent.apps.…` after a successful build with the plist present.
+   - Without the scheme, Send code soft-fails with an in-app message (Firebase Auth would otherwise crash in `PhoneAuthProvider.init`).
 5. **APNs (recommended before launch — especially CN):** silent push avoids Google reCAPTCHA.
    - Repo already sets Push + `registerForRemoteNotifications` + `Auth.setAPNSToken`.
    - **Paid Apple Developer required** to create an APNs Auth Key (.p8) and to sign with the Push capability.
@@ -134,7 +134,7 @@ Spark (free) Phone Auth is limited to about **10 real SMS / day** per project. T
 | App message / symptom | What to do |
 |----------------------|------------|
 | Region blocked | Console → Authentication → Settings → SMS region policy → allow TW / HK / CN / MY / SG / TH / JP |
-| App verification / reCAPTCHA | Add `REVERSED_CLIENT_ID` URL scheme, rebuild; or set up APNs |
+| App verification / reCAPTCHA | Rebuild with plist so Copy script injects `REVERSED_CLIENT_ID`; or set up APNs |
 | SMS not ready / plist | File at `DiaryVault/DiaryVault/GoogleService-Info.plist`; rebuild so the Copy script bundles it |
 | Too many attempts / quota | Wait, or use a **test phone number**; Spark ≈ **10 real SMS/day** |
 | Banner says Stub / stub hint with a code | Stub is active: plist not on disk at that path, or scheme still has `DIARY_SMS_PROVIDER=stub` — fix & rebuild |

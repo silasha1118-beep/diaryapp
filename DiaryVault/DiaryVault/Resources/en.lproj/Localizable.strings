@@ -59,7 +59,7 @@
 "auth.sms.notConfigured" = "SMS is not ready. Place GoogleService-Info.plist at DiaryVault/DiaryVault/ (gitignored) and rebuild, or set DIARY_SMS_PROVIDER=stub.";
 "auth.sms.rateLimited" = "Too many attempts. Wait a moment and try again. Spark plan allows about 10 real SMS per day — use a Firebase test number to save quota.";
 "auth.sms.regionBlocked" = "This phone region is blocked in Firebase. In Console → Authentication → Settings → SMS region policy, allow Taiwan, Hong Kong, Mainland China, Malaysia, Singapore, Thailand, and Japan.";
-"auth.sms.appVerification" = "App verification failed (reCAPTCHA). In Xcode → Target → Info → URL Types, add REVERSED_CLIENT_ID from GoogleService-Info.plist, then rebuild.";
+"auth.sms.appVerification" = "App verification failed (reCAPTCHA / missing URL scheme). Place GoogleService-Info.plist at DiaryVault/DiaryVault/, rebuild so the Copy script injects REVERSED_CLIENT_ID into URL Types, then try again.";
 "auth.apple.or" = "or";
 "auth.apple.backup" = "Sign in with Apple";
 "auth.apple.secondaryNote" = "Use this if you prefer not to receive SMS, or want to link an Apple ID.";

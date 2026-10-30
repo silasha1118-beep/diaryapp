@@ -132,6 +132,9 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
 
 /// Real Firebase Phone Auth: send SMS OTP → verify code → `Auth.auth().signIn`.
 /// Requires `GoogleService-Info.plist` in the app target (gitignored) and Phone provider enabled in Console.
+///
+/// `PhoneAuthProvider.provider()` is created only inside send/verify. Firebase Auth force-unwraps
+/// when the `REVERSED_CLIENT_ID` URL scheme is missing from Info.plist — we soft-check first.
 final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     func sendCode(toPhoneE164 phone: String) async throws -> SMSCodeSession {
         let normalized = PhoneNumberNormalizer.normalizeToE164(phone)
@@ -149,14 +152,16 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         applySMSLanguageCode()
 
         do {
-            let verificationID = try await PhoneAuthProvider.provider()
-                .verifyPhoneNumber(normalized, uiDelegate: nil)
+            let phoneAuth = try makePhoneAuthProvider()
+            let verificationID = try await phoneAuth.verifyPhoneNumber(normalized, uiDelegate: nil)
             UserDefaults.standard.set(verificationID, forKey: Self.verificationIDDefaultsKey)
             return SMSCodeSession(
                 verificationID: verificationID,
                 phoneE164: normalized,
                 stubDebugHint: nil
             )
+        } catch let error as SMSAuthError {
+            throw error
         } catch {
             throw mapFirebaseError(error)
         }
@@ -182,7 +187,8 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
             throw SMSAuthError.underlying("Missing verification session. Request a new code.")
         }
 
-        let credential = PhoneAuthProvider.provider().credential(
+        let phoneAuth = try makePhoneAuthProvider()
+        let credential = phoneAuth.credential(
             withVerificationID: verificationID,
             verificationCode: trimmed
         )
@@ -198,6 +204,55 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
     }
 
     private static let verificationIDDefaultsKey = "diary.firebase.authVerificationID"
+
+    /// Lazy Firebase Phone Auth factory. Soft-fails when URL scheme is missing instead of crashing
+    /// inside `PhoneAuthProvider.init` (`mainBundleUrlTypes` / nil unwrap).
+    private func makePhoneAuthProvider() throws -> PhoneAuthProvider {
+        guard let scheme = Self.expectedCallbackURLScheme() else {
+            throw SMSAuthError.appVerificationFailed
+        }
+        guard Self.isURLSchemeRegistered(scheme) else {
+            #if DEBUG
+            print("DiaryVault Phone Auth: URL scheme \(scheme) not in CFBundleURLTypes — refusing PhoneAuthProvider.provider() to avoid Firebase fatalError")
+            #endif
+            throw SMSAuthError.appVerificationFailed
+        }
+        return PhoneAuthProvider.provider()
+    }
+
+    /// Prefer `REVERSED_CLIENT_ID`; fall back to inverting `CLIENT_ID` the same way Firebase Auth does.
+    private static func expectedCallbackURLScheme() -> String? {
+        guard let url = Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist"),
+              let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
+            return nil
+        }
+        if let reversed = dict["REVERSED_CLIENT_ID"] as? String {
+            let trimmed = reversed.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty, !trimmed.contains("REPLACE_ME") {
+                return trimmed
+            }
+        }
+        if let clientID = dict["CLIENT_ID"] as? String {
+            let trimmed = clientID.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty, !trimmed.contains("REPLACE_ME") {
+                return trimmed.split(separator: ".").reversed().joined(separator: ".")
+            }
+        }
+        return nil
+    }
+
+    private static func isURLSchemeRegistered(_ scheme: String) -> Bool {
+        guard let urlTypes = Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]] else {
+            return false
+        }
+        for entry in urlTypes {
+            guard let schemes = entry["CFBundleURLSchemes"] as? [String] else { continue }
+            if schemes.contains(where: { $0.caseInsensitiveCompare(scheme) == .orderedSame }) {
+                return true
+            }
+        }
+        return false
+    }
 
     private func applySMSLanguageCode() {
         let stored = UserDefaults.standard.string(forKey: "appLanguage") ?? ""

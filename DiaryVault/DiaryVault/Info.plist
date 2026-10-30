@@ -44,6 +44,15 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<!--
+	  Firebase Phone Auth reCAPTCHA callback scheme.
+	  The "Copy GoogleService-Info.plist" Run Script injects REVERSED_CLIENT_ID from the
+	  gitignored GoogleService-Info.plist into this array at build time. Do not commit a
+	  real client id here — leave the array empty in git.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

@@ -12,12 +12,13 @@
      Leave DIARY_SMS_PROVIDER empty so the app auto-selects Firebase.
   2. Optional: drag into the DiaryVault Xcode group with Target Membership —
      not required when the file sits at the path above.
-  3. From the real plist, copy REVERSED_CLIENT_ID and add it as a URL Type
-     (Xcode → target → Info → URL Types). That value looks like:
+  3. REVERSED_CLIENT_ID is injected into Info.plist CFBundleURLTypes by the
+     "Copy GoogleService-Info.plist" Run Script at build time (required for
+     Phone Auth reCAPTCHA). Value looks like:
        com.googleusercontent.apps.1234567890-abcdef
      If REVERSED_CLIENT_ID is missing after an older download, re-download
      the plist from Firebase Console → Project settings → Your apps → iOS,
-     replace this local file, then add the new URL scheme and rebuild.
+     replace this local file, then rebuild (no manual URL Type paste needed).
   4. Phone Auth also needs Console SMS region policy allowing
      TW / HK / CN / MY / SG / TH / JP (see README “Tonight: receive a real SMS”).
      App code does not change Firebase Console — you must allow these regions.
