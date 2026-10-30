@@ -26,8 +26,8 @@ struct PhoneOTPLoginForm: View {
     @State private var isVerifying = false
     @State private var errorMessage: String?
     @State private var infoMessage: String?
-
-    private let sms = SMSAuthProviderFactory.make()
+    /// Created on first Send / Verify only — Settings / Apple session UI must not touch Phone Auth.
+    @State private var smsProvider: SMSAuthProviderHolder?
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
@@ -210,7 +210,7 @@ struct PhoneOTPLoginForm: View {
         }
         let e164 = PhoneNumberNormalizer.composeE164(dial: dial, nationalNumber: nationalNumber)
         do {
-            let newSession = try await sms.sendCode(toPhoneE164: e164)
+            let newSession = try await sms().sendCode(toPhoneE164: e164)
             withAnimation(.easeInOut(duration: 0.3)) {
                 session = newSession
             }
@@ -233,7 +233,7 @@ struct PhoneOTPLoginForm: View {
         defer { isVerifying = false }
 
         do {
-            let user = try await sms.verify(code: otpCode, session: session)
+            let user = try await sms().verify(code: otpCode, session: session)
             account.signInWithPhone(
                 userID: user.userID,
                 phoneE164: user.phoneE164,
@@ -272,6 +272,24 @@ struct PhoneOTPLoginForm: View {
             return localization.text("auth.error")
             #endif
         }
+    }
+
+    /// Lazy SMS backend — avoids constructing Firebase phone plumbing until the user sends an OTP.
+    private func sms() -> any SMSAuthProviding {
+        if let smsProvider {
+            return smsProvider.provider
+        }
+        let created = SMSAuthProviderFactory.make()
+        smsProvider = SMSAuthProviderHolder(created)
+        return created
+    }
+}
+
+/// `@State`-friendly box so we do not recreate the SMS backend on every SwiftUI body eval.
+private final class SMSAuthProviderHolder {
+    let provider: any SMSAuthProviding
+    init(_ provider: any SMSAuthProviding) {
+        self.provider = provider
     }
 }
 

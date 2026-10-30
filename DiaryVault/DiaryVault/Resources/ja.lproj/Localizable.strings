@@ -59,7 +59,7 @@
 "auth.sms.notConfigured" = "SMS の準備ができていません。GoogleService-Info.plist を DiaryVault/DiaryVault/ に置いて再ビルドするか、DIARY_SMS_PROVIDER=stub を設定してください。";
 "auth.sms.rateLimited" = "試行が多すぎます。しばらく待ってから再試行してください。Spark プランは1日あたり約10通の実 SMS——枠を節約するには Firebase のテスト番号を使ってください。";
 "auth.sms.regionBlocked" = "この電話地域は Firebase でブロックされています。Console → Authentication → Settings → SMS region policy で、台湾・香港・中国本土・マレーシア・シンガポール・タイ・日本を許可してください。";
-"auth.sms.appVerification" = "アプリ検証に失敗しました（reCAPTCHA）。Xcode → Target → Info → URL Types に GoogleService-Info.plist の REVERSED_CLIENT_ID を追加して再ビルドしてください。";
+"auth.sms.appVerification" = "アプリ検証に失敗しました（reCAPTCHA／URL scheme 不足）。GoogleService-Info.plist を DiaryVault/DiaryVault/ に置き、再ビルドして Copy スクリプトが REVERSED_CLIENT_ID を URL Types に注入してから再試行してください。";
 "auth.apple.or" = "または";
 "auth.apple.backup" = "Apple でサインイン";
 "auth.apple.secondaryNote" = "SMS を受け取りたくない場合や、Apple ID を紐づけたいときに。";
