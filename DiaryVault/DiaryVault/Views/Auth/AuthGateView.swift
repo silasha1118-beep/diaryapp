@@ -34,9 +34,20 @@ struct AuthGateView: View {
 
                     PhoneOTPLoginForm(chrome: .gate)
 
-                    Divider()
-                        .overlay(VaultTheme.line)
-                        .padding(.vertical, 4)
+                    HStack(spacing: 12) {
+                        Rectangle()
+                            .fill(VaultTheme.line)
+                            .frame(height: 1)
+                        Text(localization.text("auth.apple.or"))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(VaultTheme.inkMuted)
+                        Rectangle()
+                            .fill(VaultTheme.line)
+                            .frame(height: 1)
+                    }
+                    .padding(.vertical, 4)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(localization.text("auth.apple.or"))
 
                     AppleSignInBackupView(chrome: .gate)
 

@@ -30,7 +30,7 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "登录，让金库真正属于你。";
-"auth.body" = "使用手机号码与短信验证码登录（主路径）。台／港／陆皆可——只要能收 SMS。「通过 Apple 登录」为可选备援。App 不存密码。本 MVP 尚无云端同步。";
+"auth.body" = "使用手机号码与短信验证码登录（主路径）。台／港／陆皆可——只要能收 SMS。也可直接「通过 Apple 登录」。App 不存密码。本 MVP 尚无云端同步。";
 "auth.error" = "登录未完成，请再试一次。";
 "auth.phone.label" = "手机号码";
 "auth.phone.region" = "地区";
@@ -56,7 +56,9 @@
 "auth.sms.rateLimited" = "尝试次数过多，请稍后再试。Spark 方案每天约 10 条真实短信——可用 Firebase 测试号码节省配额。";
 "auth.sms.regionBlocked" = "此电话地区在 Firebase 被封锁。请到 Console → Authentication → Settings → SMS region policy，允许台湾、香港与中国大陆。";
 "auth.sms.appVerification" = "App 验证失败（reCAPTCHA）。请在 Xcode → Target → Info → URL Types 加入 GoogleService-Info.plist 的 REVERSED_CLIENT_ID，然后重新编译。";
-"auth.apple.backup" = "或使用通过 Apple 登录";
+"auth.apple.or" = "或";
+"auth.apple.backup" = "通过 Apple 登录";
+"auth.apple.secondaryNote" = "适合不想收短信、或想用 Apple ID 绑定账号时使用。";
 "auth.apple.error" = "通过 Apple 登录未完成，请再试一次。";
 "auth.apple.paidNote" = "需要付费 Apple Developer 团队（约每年 99 美元）。免费 Personal Team 无法启用此能力。";
 "auth.devLocal" = "开发：以本机会话继续";
@@ -135,8 +137,8 @@
 "settings.account.provider.apple" = "通过 Apple 登录";
 "settings.account.provider.local" = "本机（开发）";
 "settings.account.signOut" = "退出登录";
-"settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」为可选备援。退出后会回到账号闸门。";
-"settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）。可选：下方展开「通过 Apple 登录」（需付费 Apple Developer）。横幅会标示 Firebase 或 Stub——与启动闸门相同。";
+"settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」始终显示于下方。退出后会回到账号闸门。";
+"settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）。未以 Apple 登录时，下方会显示标准「通过 Apple 登录」按钮。横幅会标示 Firebase 或 Stub——与启动闸门相同。";
 "settings.account.phone.success" = "手机登录成功。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
