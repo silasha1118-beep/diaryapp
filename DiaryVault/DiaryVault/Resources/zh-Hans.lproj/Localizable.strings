@@ -7,6 +7,8 @@
 "common.cancel" = "取消";
 "common.save" = "保存";
 "common.edit" = "编辑";
+"common.done" = "完成";
+"common.delete" = "删除";
 
 /* Tabs */
 "tab.vault" = "金库";
@@ -79,6 +81,8 @@
 "paywall.unavailable" = "商品尚未加载";
 "paywall.productsMissing" = "尚未加载商品。请在 Mac：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit，再重新 Run。真实 App Store Connect 商品需付费 Apple Developer。";
 "paywall.footer" = "订阅会自动续订，可在「设置 → Apple ID」取消。遗产／托管商品属后期——不在此付费墙。";
+"paywall.disclosure" = "Author Plus 为自动续订订阅（月订或年订）。价格与周期见上方各商品（来自 StoreKit）。确认购买后会向你的 Apple ID 收费；除非在当前周期结束前至少 24 小时取消，否则会自动续订。请到「设置 → Apple ID → 订阅」管理或取消。删除日记金库账号不会取消 Apple 订阅。";
+"paywall.privacy.pending" = "隐私政策：上架前请托管网页并在 Info.plist 设置 DIARY_PRIVACY_POLICY_URL（设置页也可打开）。";
 "paywall.status.productsEmpty" = "未取得任何商品。请确认 Scheme 的 StoreKit Configuration，再点重新加载。";
 "paywall.status.productsError" = "无法从 StoreKit 加载商品。";
 "paywall.status.purchaseSuccess" = "购买已记录。Author Plus 已启用。";
@@ -168,3 +172,22 @@
 "settings.section.vault" = "金库";
 "settings.name" = "显示名称";
 "settings.resetOnboarding" = "重新显示导览";
+"settings.section.data" = "隐私与数据";
+"settings.data.export" = "准备导出金库（JSON）";
+"settings.data.export.share" = "分享／保存导出文件";
+"settings.data.export.shareSubject" = "日记金库导出";
+"settings.data.export.shareMessage" = "我的日记金库条目（JSON）。";
+"settings.data.export.error" = "无法创建导出文件，请再试一次。";
+"settings.data.deleteAccount" = "删除账号与金库数据";
+"settings.data.deleteAccount.title" = "删除账号？";
+"settings.data.deleteAccount.message" = "将永久删除此设备上的日记并退出登录。若要保留副本请先导出。可行时会一并删除 Firebase Auth 账号；若 Apple／Firebase 要求近期登录，可能需再登录一次后重试。这不会取消 Author Plus——请到 Apple ID → 订阅管理。";
+"settings.data.deleteAccount.confirm" = "删除账号";
+"settings.data.deleteAccount.done" = "已删除此设备上的账号与金库数据。";
+"settings.data.deleteAccount.reauth" = "本地金库已清空。Firebase 需近期登录才能删除云端账号——请再登录一次后重试删除，或在 Firebase Console 删除该用户。";
+"settings.data.deleteAccount.remoteFailed" = "本地会话与金库已清空。云端账号删除未完成——若用户仍在，请检查 Firebase Console。";
+"settings.data.footer" = "可随时导出（JSON）。有账号创建功能时，App Store 要求提供删除账号。本 MVP 日记存于本机；镜子可能把条目文字送到你配置的云端 AI。";
+"settings.section.legal" = "法律信息";
+"settings.legal.privacy" = "隐私政策";
+"settings.legal.terms" = "使用条款（EULA）";
+"settings.legal.footer" = "上架前请在 Info.plist 设置 DIARY_PRIVACY_POLICY_URL 与可选的 DIARY_TERMS_OF_USE_URL（https）。隐私网址为空时打开 App 内摘要；条款默认使用 Apple 标准 EULA。";
+"settings.legal.privacy.stubNote" = "送审前请以托管的隐私政策网址（DIARY_PRIVACY_POLICY_URL）替换此摘要。须说明短信登录、本机日记、云端镜子 AI 与 StoreKit 购买。";

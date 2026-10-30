@@ -42,6 +42,8 @@
 		A10000000000000000000025 /* FirebaseAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000025 /* FirebaseAppDelegate.swift */; };
 		A10000000000000000000029 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000029 /* AppleSignInCoordinator.swift */; };
 		A1000000000000000000002A /* AppleSignInBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002A /* AppleSignInBackupView.swift */; };
+		A1000000000000000000002B /* LegalConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002B /* LegalConfig.swift */; };
+		A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002C /* PrivacyInfo.xcprivacy */; };
 		A10000000000000000000026 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000002 /* FirebaseAuth */; };
 		A10000000000000000000027 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000003 /* FirebaseCore */; };
 /* End PBXBuildFile section */
@@ -86,6 +88,9 @@
 		B10000000000000000000025 /* FirebaseAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAppDelegate.swift; sourceTree = "<group>"; };
 		B10000000000000000000029 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
 		B1000000000000000000002A /* AppleSignInBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInBackupView.swift; sourceTree = "<group>"; };
+		B1000000000000000000002B /* LegalConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalConfig.swift; sourceTree = "<group>"; };
+		B1000000000000000000002C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B1000000000000000000002D /* DiaryVault-PersonalTeam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "DiaryVault-PersonalTeam.entitlements"; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -115,6 +120,8 @@
 			children = (
 				B10000000000000000000001 /* DiaryVaultApp.swift */,
 				B10000000000000000000022 /* DiaryVault.entitlements */,
+				B1000000000000000000002D /* DiaryVault-PersonalTeam.entitlements */,
+				B1000000000000000000002C /* PrivacyInfo.xcprivacy */,
 				E10000000000000000000004 /* Models */,
 				E10000000000000000000005 /* Services */,
 				E10000000000000000000006 /* Config */,
@@ -171,6 +178,7 @@
 				B10000000000000000000006 /* AIConfig.swift */,
 				B1000000000000000000001C /* BillingConfig.swift */,
 				B10000000000000000000023 /* AuthConfig.swift */,
+				B1000000000000000000002B /* LegalConfig.swift */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -328,6 +336,7 @@
 			files = (
 				A10000000000000000000013 /* Assets.xcassets in Resources */,
 				A10000000000000000000014 /* Localizable.strings in Resources */,
+				A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */,
 				A10000000000000000000021 /* DiaryVault.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -371,6 +380,7 @@
 				A10000000000000000000006 /* AIConfig.swift in Sources */,
 				A1000000000000000000001C /* BillingConfig.swift in Sources */,
 				A10000000000000000000023 /* AuthConfig.swift in Sources */,
+				A1000000000000000000002B /* LegalConfig.swift in Sources */,
 				A10000000000000000000007 /* MirrorAIService.swift in Sources */,
 				A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */,
 				A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */,

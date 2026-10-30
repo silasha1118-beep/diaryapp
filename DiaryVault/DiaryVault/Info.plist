@@ -4,8 +4,18 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<!-- Launch locales: Traditional Chinese, Simplified Chinese, English (TW / HK / CN + EN UI). -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hant</string>
+		<string>zh-Hans</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Diary Vault</string>
+	<!-- Standard HTTPS only (Firebase Auth, StoreKit, cloud AI). No custom crypto → export compliance = No. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -67,6 +77,11 @@
 	<key>DIARY_IAP_MONTHLY_PRODUCT_ID</key>
 	<string></string>
 	<key>DIARY_IAP_YEARLY_PRODUCT_ID</key>
+	<string></string>
+	<!-- Hosted legal pages for App Store subscription disclosure. Empty → in-app privacy sheet + Apple Standard EULA. -->
+	<key>DIARY_PRIVACY_POLICY_URL</key>
+	<string></string>
+	<key>DIARY_TERMS_OF_USE_URL</key>
 	<string></string>
 	<!-- SMS OTP — leave empty. Empty → firebase when GoogleService-Info.plist is bundled (Run Script copies DiaryVault/GoogleService-Info.plist), else stub. Explicit stub only when you set "stub". Never put secrets here. -->
 	<key>DIARY_SMS_PROVIDER</key>

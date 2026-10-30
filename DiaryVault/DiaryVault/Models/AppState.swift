@@ -41,4 +41,9 @@ final class AppState: ObservableObject {
     func resetOnboardingForDemo() {
         didCompleteOnboarding = false
     }
+
+    /// Clears display name after account deletion (onboarding flag stays so gate is reachable).
+    func clearIdentityAfterAccountDeletion() {
+        displayName = ""
+    }
 }

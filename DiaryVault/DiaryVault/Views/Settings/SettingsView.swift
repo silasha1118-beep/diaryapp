@@ -5,8 +5,15 @@ struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var account: AccountSession
     @EnvironmentObject private var subscriptions: SubscriptionStore
+    @EnvironmentObject private var diaryStore: DiaryStore
 
     @State private var showPaywall = false
+    @State private var showDeleteConfirm = false
+    @State private var showPrivacySheet = false
+    @State private var exportURL: URL?
+    @State private var exportError: String?
+    @State private var deleteOutcomeMessage: String?
+    @State private var isDeleting = false
 
     var body: some View {
         NavigationStack {
@@ -87,6 +94,68 @@ struct SettingsView: View {
                         Text(localization.text("settings.section.billing"))
                     } footer: {
                         Text(localization.text("settings.billing.footer"))
+                    }
+
+                    Section {
+                        Button {
+                            prepareExport()
+                        } label: {
+                            Text(localization.text("settings.data.export"))
+                                .foregroundStyle(VaultTheme.seal)
+                        }
+                        if let exportURL {
+                            ShareLink(
+                                item: exportURL,
+                                subject: Text(localization.text("settings.data.export.shareSubject")),
+                                message: Text(localization.text("settings.data.export.shareMessage"))
+                            ) {
+                                Text(localization.text("settings.data.export.share"))
+                                    .foregroundStyle(VaultTheme.seal)
+                            }
+                        }
+                        if let exportError {
+                            Text(exportError)
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.seal)
+                        }
+                        if account.isSignedIn {
+                            Button(role: .destructive) {
+                                showDeleteConfirm = true
+                            } label: {
+                                Text(localization.text("settings.data.deleteAccount"))
+                            }
+                            .disabled(isDeleting)
+                        }
+                        if let deleteOutcomeMessage {
+                            Text(deleteOutcomeMessage)
+                                .font(.system(size: 13))
+                                .foregroundStyle(VaultTheme.inkMuted)
+                        }
+                    } header: {
+                        Text(localization.text("settings.section.data"))
+                    } footer: {
+                        Text(localization.text("settings.data.footer"))
+                    }
+
+                    Section {
+                        if let privacy = LegalConfig.privacyPolicyURL {
+                            Link(localization.text("settings.legal.privacy"), destination: privacy)
+                        } else {
+                            Button {
+                                showPrivacySheet = true
+                            } label: {
+                                Text(localization.text("settings.legal.privacy"))
+                                    .foregroundStyle(VaultTheme.seal)
+                            }
+                        }
+                        Link(
+                            localization.text("settings.legal.terms"),
+                            destination: LegalConfig.effectiveTermsURL
+                        )
+                    } header: {
+                        Text(localization.text("settings.section.legal"))
+                    } footer: {
+                        Text(localization.text("settings.legal.footer"))
                     }
 
                     Section {
@@ -199,6 +268,22 @@ struct SettingsView: View {
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
             }
+            .sheet(isPresented: $showPrivacySheet) {
+                PrivacyPolicySheet()
+                    .environmentObject(localization)
+            }
+            .confirmationDialog(
+                localization.text("settings.data.deleteAccount.title"),
+                isPresented: $showDeleteConfirm,
+                titleVisibility: .visible
+            ) {
+                Button(localization.text("settings.data.deleteAccount.confirm"), role: .destructive) {
+                    Task { await performDeleteAccount() }
+                }
+                Button(localization.text("common.cancel"), role: .cancel) {}
+            } message: {
+                Text(localization.text("settings.data.deleteAccount.message"))
+            }
         }
     }
 
@@ -223,5 +308,73 @@ struct SettingsView: View {
             return localization.text("settings.ai.quota.unlimited")
         }
         return String(format: localization.text("settings.ai.quota.value"), used, limit)
+    }
+
+    private func prepareExport() {
+        exportError = nil
+        do {
+            exportURL = try diaryStore.makeExportFileURL()
+        } catch {
+            exportURL = nil
+            exportError = localization.text("settings.data.export.error")
+        }
+    }
+
+    @MainActor
+    private func performDeleteAccount() async {
+        isDeleting = true
+        defer { isDeleting = false }
+        deleteOutcomeMessage = nil
+        // Recommend export first is in the dialog copy; wipe vault + session either way.
+        diaryStore.deleteAllEntries()
+        let outcome = await account.deleteAccount()
+        appState.clearIdentityAfterAccountDeletion()
+        switch outcome {
+        case .deletedRemote, .localOnly:
+            deleteOutcomeMessage = localization.text("settings.data.deleteAccount.done")
+        case .requiresReauthentication:
+            deleteOutcomeMessage = localization.text("settings.data.deleteAccount.reauth")
+        case .remoteFailed:
+            deleteOutcomeMessage = localization.text("settings.data.deleteAccount.remoteFailed")
+        }
+    }
+}
+
+/// In-app privacy summary when `DIARY_PRIVACY_POLICY_URL` is not yet hosted.
+private struct PrivacyPolicySheet: View {
+    @EnvironmentObject private var localization: LocalizationManager
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(localization.text("onboarding.privacy.title"))
+                        .font(.system(size: 22, weight: .semibold, design: .serif))
+                        .foregroundStyle(VaultTheme.ink)
+                    Text(localization.text("onboarding.privacy.point1"))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                    Text(localization.text("onboarding.privacy.point2"))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                    Text(localization.text("onboarding.privacy.point3"))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                    Text(localization.text("onboarding.privacy.residency"))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                    Text(localization.text("settings.legal.privacy.stubNote"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background(VaultBackground())
+            .navigationTitle(localization.text("settings.legal.privacy"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(localization.text("common.done")) { dismiss() }
+                }
+            }
+        }
     }
 }

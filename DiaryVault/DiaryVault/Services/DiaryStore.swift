@@ -62,6 +62,33 @@ final class DiaryStore: ObservableObject {
         save()
     }
 
+    /// Wipe every entry (account-deletion / leave-vault path). Does not touch auth session.
+    func deleteAllEntries() {
+        entries = []
+        save()
+    }
+
+    /// JSON export for Share Sheet / Files — fulfills onboarding “export and leave” promise.
+    func exportJSONData() throws -> Data {
+        try encoder.encode(sortedEntries)
+    }
+
+    /// Writes a temp `.json` suitable for `ShareLink` / `UIActivityViewController`.
+    func makeExportFileURL() throws -> URL {
+        let data = try exportJSONData()
+        let name = "DiaryVault-export-\(Self.exportStamp()).json"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        try data.write(to: url, options: [.atomic])
+        return url
+    }
+
+    private static func exportStamp() -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyyMMdd-HHmmss"
+        return f.string(from: Date())
+    }
+
     // MARK: - Persistence
 
     private func load() {
