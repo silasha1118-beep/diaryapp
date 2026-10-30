@@ -122,6 +122,8 @@
 "diary.field.title" = "標題（可選）";
 "diary.field.mood" = "心情標籤（可選）";
 "diary.detail.owned" = "這一頁屬於你。";
+"diary.delete.title" = "刪除這則日記？";
+"diary.delete.message" = "會從此裝置移除。若已登入，連線時也會從雲端同步刪除。";
 "diary.missing" = "這篇日記已不在金庫中。";
 
 /* Mirror */
@@ -202,12 +204,12 @@
 "settings.data.export.error" = "無法建立匯出檔，請再試一次。";
 "settings.data.deleteAccount" = "刪除帳號與金庫資料";
 "settings.data.deleteAccount.title" = "刪除帳號？";
-"settings.data.deleteAccount.message" = "將永久刪除此裝置上的日記並登出。若要保留副本請先匯出。可行時會一併刪除 Firebase Auth 帳號；若 Apple／Firebase 要求近期登入，可能需再登入一次後重試。這不會取消 Author Plus——請至 Apple ID → 訂閱項目管理。";
+"settings.data.deleteAccount.message" = "將永久刪除此裝置與雲端同步（已登入時）的日記，然後登出。若要保留副本請先匯出。可行時會一併刪除 Firebase Auth 帳號；若 Apple／Firebase 要求近期登入，可能需再登入一次後重試。這不會取消 Author Plus——請至 Apple ID → 訂閱項目管理。";
 "settings.data.deleteAccount.confirm" = "刪除帳號";
-"settings.data.deleteAccount.done" = "已刪除此裝置上的帳號與金庫資料。";
+"settings.data.deleteAccount.done" = "已刪除此裝置上的帳號與金庫資料（已登入時含雲端同步）。";
 "settings.data.deleteAccount.reauth" = "本機金庫已清空。Firebase 需近期登入才能刪除雲端帳號——請再登入一次後重試刪除，或於 Firebase Console 刪除該使用者。";
 "settings.data.deleteAccount.remoteFailed" = "本機會話與金庫已清空。雲端帳號刪除未完成——若使用者仍在，請檢查 Firebase Console。";
-"settings.data.footer" = "可隨時匯出（JSON）。有帳號建立功能時，App Store 要求提供刪除帳號。本 MVP 日記存於本機；鏡子可能把條目文字送到你設定的雲端 AI。";
+"settings.data.footer" = "可隨時匯出（JSON）。有帳號建立功能時，App Store 要求提供刪除帳號。已登入的文字日記會同步至 Firestore；未登入僅存本機。鏡子可能把條目文字送到你設定的雲端 AI。";
 "settings.section.legal" = "法律資訊";
 "settings.legal.privacy" = "隱私權政策";
 "settings.legal.terms" = "使用條款（EULA）";

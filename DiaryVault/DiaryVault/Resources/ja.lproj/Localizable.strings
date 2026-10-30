@@ -122,6 +122,8 @@
 "diary.field.title" = "タイトル（任意）";
 "diary.field.mood" = "気分タグ（任意）";
 "diary.detail.owned" = "このページはあなたのもの。";
+"diary.delete.title" = "この日記を削除しますか？";
+"diary.delete.message" = "この端末から削除します。サインイン中なら、オンライン時にクラウド同期からも削除されます。";
 "diary.missing" = "この記録はボールトにありません。";
 
 /* Mirror */
@@ -202,12 +204,12 @@
 "settings.data.export.error" = "書き出しファイルを作れませんでした。もう一度お試しください。";
 "settings.data.deleteAccount" = "アカウントとボールトデータを削除";
 "settings.data.deleteAccount.title" = "アカウントを削除しますか？";
-"settings.data.deleteAccount.message" = "この端末の日記を完全に削除し、サインアウトします。コピーが必要なら先に書き出してください。可能なら Firebase Auth アカウントも削除します；Apple／Firebase が最近のログインを求める場合は再サインインが必要かもしれません。Author Plus はキャンセルされません——Apple ID → サブスクリプションで管理してください。";
+"settings.data.deleteAccount.message" = "この端末とクラウド同期（サインイン時）の日記を完全に削除してサインアウトします。コピーが必要なら先に書き出してください。可能なら Firebase Auth アカウントも削除します；Apple／Firebase が最近のログインを求める場合は再サインインが必要かもしれません。Author Plus はキャンセルされません——Apple ID → サブスクリプションで管理してください。";
 "settings.data.deleteAccount.confirm" = "アカウントを削除";
-"settings.data.deleteAccount.done" = "この端末のアカウントとボールトデータを削除しました。";
+"settings.data.deleteAccount.done" = "この端末のアカウントとボールトデータを削除しました（サインイン時はクラウド同期も含む）。";
 "settings.data.deleteAccount.reauth" = "ローカルボールトを消去しました。クラウドアカウント削除には最近のサインインが必要です——もう一度サインインしてから削除するか、Firebase Console でユーザーを削除してください。";
 "settings.data.deleteAccount.remoteFailed" = "ローカルのボールトとセッションを消去しました。クラウドアカウント削除は完了しませんでした——ユーザーが残る場合は Firebase Console を確認してください。";
-"settings.data.footer" = "いつでも書き出し（JSON）。サインインがある場合、App Store はアカウント削除を要求します。この MVP の日記は端末内；ミラーは設定したクラウド AI に本文を送ることがあります。";
+"settings.data.footer" = "いつでも書き出し（JSON）。サインインがある場合、App Store はアカウント削除を要求します。サインイン中のテキスト日記は Firestore に同期；未サインインは端末のみ。ミラーは設定したクラウド AI に本文を送ることがあります。";
 "settings.section.legal" = "法務";
 "settings.legal.privacy" = "プライバシーポリシー";
 "settings.legal.terms" = "利用規約（EULA）";

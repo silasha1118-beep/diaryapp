@@ -122,6 +122,8 @@
 "diary.field.title" = "标题（可选）";
 "diary.field.mood" = "心情标签（可选）";
 "diary.detail.owned" = "这一页属于你。";
+"diary.delete.title" = "删除这则日记？";
+"diary.delete.message" = "将从此设备移除。若已登录，联网时也会从云端同步删除。";
 "diary.missing" = "这篇日记已不在金库中。";
 
 /* Mirror */
@@ -202,12 +204,12 @@
 "settings.data.export.error" = "无法创建导出文件，请再试一次。";
 "settings.data.deleteAccount" = "删除账号与金库数据";
 "settings.data.deleteAccount.title" = "删除账号？";
-"settings.data.deleteAccount.message" = "将永久删除此设备上的日记并退出登录。若要保留副本请先导出。可行时会一并删除 Firebase Auth 账号；若 Apple／Firebase 要求近期登录，可能需再登录一次后重试。这不会取消 Author Plus——请到 Apple ID → 订阅管理。";
+"settings.data.deleteAccount.message" = "将永久删除此设备与云端同步（已登录时）的日记，然后退出登录。若要保留副本请先导出。可行时会一并删除 Firebase Auth 账号；若 Apple／Firebase 要求近期登录，可能需再登录一次后重试。这不会取消 Author Plus——请到 Apple ID → 订阅管理。";
 "settings.data.deleteAccount.confirm" = "删除账号";
-"settings.data.deleteAccount.done" = "已删除此设备上的账号与金库数据。";
+"settings.data.deleteAccount.done" = "已删除此设备上的账号与金库数据（已登录时含云端同步）。";
 "settings.data.deleteAccount.reauth" = "本地金库已清空。Firebase 需近期登录才能删除云端账号——请再登录一次后重试删除，或在 Firebase Console 删除该用户。";
 "settings.data.deleteAccount.remoteFailed" = "本地会话与金库已清空。云端账号删除未完成——若用户仍在，请检查 Firebase Console。";
-"settings.data.footer" = "可随时导出（JSON）。有账号创建功能时，App Store 要求提供删除账号。本 MVP 日记存于本机；镜子可能把条目文字送到你配置的云端 AI。";
+"settings.data.footer" = "可随时导出（JSON）。有账号创建功能时，App Store 要求提供删除账号。已登录的文字日记会同步至 Firestore；未登录仅存本机。镜子可能把条目文字送到你配置的云端 AI。";
 "settings.section.legal" = "法律信息";
 "settings.legal.privacy" = "隐私政策";
 "settings.legal.terms" = "使用条款（EULA）";

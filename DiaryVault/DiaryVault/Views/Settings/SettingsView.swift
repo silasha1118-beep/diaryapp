@@ -339,8 +339,8 @@ struct SettingsView: View {
         isDeleting = true
         defer { isDeleting = false }
         deleteOutcomeMessage = nil
-        // Recommend export first is in the dialog copy; wipe vault + session either way.
-        diaryStore.deleteAllEntries()
+        // Recommend export first is in the dialog copy; purge cloud while Auth is live, then wipe local + session.
+        await diaryStore.deleteAllEntries(purgeCloud: true)
         let outcome = await account.deleteAccount()
         appState.clearIdentityAfterAccountDeletion()
         switch outcome {

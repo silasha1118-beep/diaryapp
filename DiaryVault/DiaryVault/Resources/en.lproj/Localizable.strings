@@ -122,6 +122,8 @@
 "diary.field.title" = "Title (optional)";
 "diary.field.mood" = "Mood tag (optional)";
 "diary.detail.owned" = "This page belongs to you.";
+"diary.delete.title" = "Delete this entry?";
+"diary.delete.message" = "Removes it from this device. If you are signed in, it is also removed from cloud sync when online.";
 "diary.missing" = "This entry is no longer in the vault.";
 
 /* Mirror */
@@ -203,14 +205,14 @@
 "settings.data.export.error" = "Could not build the export file. Try again.";
 "settings.data.deleteAccount" = "Delete account & vault data";
 "settings.data.deleteAccount.title" = "Delete account?";
-"settings.data.deleteAccount.message" = "This permanently deletes diary entries on this device and signs you out. Export first if you want a copy. Firebase Auth account is removed when possible; you may need to sign in again if Apple/Firebase asks for recent login. This does not cancel Author Plus — manage that in Apple ID → Subscriptions.";
+"settings.data.deleteAccount.message" = "This permanently deletes diary entries on this device and in cloud sync (when signed in), then signs you out. Export first if you want a copy. Firebase Auth account is removed when possible; you may need to sign in again if Apple/Firebase asks for recent login. This does not cancel Author Plus — manage that in Apple ID → Subscriptions.";
 "settings.data.deleteAccount.confirm" = "Delete account";
-"settings.data.deleteAccount.done" = "Account and vault data deleted on this device.";
+"settings.data.deleteAccount.done" = "Account and vault data deleted on this device (and cloud sync when signed in).";
 "settings.data.deleteAccount.reauth" = "Local vault cleared. Firebase needs a recent sign-in to finish cloud account deletion — sign in once more, then delete again, or delete the user in Firebase Console.";
 "settings.data.deleteAccount.remoteFailed" = "Local vault and session cleared. Cloud account deletion did not finish — check Firebase Console if the user remains.";
-"settings.data.footer" = "Export anytime (JSON). Account deletion is required by App Store when sign-in exists. Diary stays on device for this MVP; Mirror may send entry text to the cloud AI provider you configured.";
+"settings.data.footer" = "Export anytime (JSON). Account deletion is required by App Store when sign-in exists. Signed-in text diaries sync to Firestore; signed-out stays on device only. Mirror may send entry text to the cloud AI provider you configured.";
 "settings.section.legal" = "Legal";
 "settings.legal.privacy" = "Privacy Policy";
 "settings.legal.terms" = "Terms of Use (EULA)";
 "settings.legal.footer" = "Set DIARY_PRIVACY_POLICY_URL and optional DIARY_TERMS_OF_USE_URL (https) in Info.plist before submit. Empty privacy URL opens this in-app summary; Terms default to Apple’s Standard EULA.";
-"settings.legal.privacy.stubNote" = "Replace this sheet with a hosted Privacy Policy URL (DIARY_PRIVACY_POLICY_URL) before App Review. Describe SMS auth, on-device diary storage, cloud Mirror AI, and StoreKit purchases.";
+"settings.legal.privacy.stubNote" = "Replace this sheet with a hosted Privacy Policy URL (DIARY_PRIVACY_POLICY_URL) before App Review. Describe SMS auth, on-device diary storage, signed-in Firestore text sync, cloud Mirror AI, and StoreKit purchases.";
