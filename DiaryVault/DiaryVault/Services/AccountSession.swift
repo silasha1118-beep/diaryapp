@@ -105,6 +105,7 @@ final class AccountSession: ObservableObject {
             phoneE164: usesApple ? nil : phone,
             provider: usesApple ? .apple : .phone
         )
+        scheduleUserProfileUpsert(uid: fbUser.uid, displayName: fullName)
     }
 
     func signInWithPhone(userID: String, phoneE164: String, displayName: String?) {
@@ -118,6 +119,7 @@ final class AccountSession: ObservableObject {
         // Mirror live Auth immediately when OTP went through Firebase (stub leaves this nil).
         if Auth.auth().currentUser?.uid == userID {
             firebaseAuthUID = userID
+            scheduleUserProfileUpsert(uid: userID, displayName: displayName)
         } else {
             firebaseAuthUID = nil
         }
@@ -134,8 +136,29 @@ final class AccountSession: ObservableObject {
         )
         if Auth.auth().currentUser?.uid == userID {
             firebaseAuthUID = userID
+            scheduleUserProfileUpsert(uid: userID, displayName: fullName)
         } else {
             firebaseAuthUID = nil
+        }
+    }
+
+    /// Best-effort Firestore `users/{uid}` identity upsert (phone / Apple readable in Console).
+    private func scheduleUserProfileUpsert(uid: String, displayName: String?) {
+        Task {
+            if let displayName, !displayName.isEmpty,
+               let user = Auth.auth().currentUser, user.uid == uid,
+               user.displayName == nil || user.displayName?.isEmpty == true {
+                let change = user.createProfileChangeRequest()
+                change.displayName = displayName
+                try? await change.commitChanges()
+            }
+            do {
+                try await DiaryCloudSync.upsertUserProfile(uid: uid, displayName: displayName)
+            } catch {
+                #if DEBUG
+                print("User profile upsert failed: \(error)")
+                #endif
+            }
         }
     }
 

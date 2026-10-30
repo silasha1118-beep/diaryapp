@@ -110,6 +110,13 @@ enum AppleSignInCoordinator {
         do {
             let result = try await Auth.auth().signIn(with: oauth)
             let email = result.user.email ?? credential.email
+            // Persist displayName on the Auth user so users/{uid}.displayName can be filled from Auth.
+            if let fullName, !fullName.isEmpty,
+               result.user.displayName == nil || result.user.displayName?.isEmpty == true {
+                let change = result.user.createProfileChangeRequest()
+                change.displayName = fullName
+                try? await change.commitChanges()
+            }
             account.signInWithApple(
                 userID: result.user.uid,
                 email: email,

@@ -48,7 +48,13 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     val gentleReminders: StateFlow<Boolean> = _gentleReminders.asStateFlow()
 
     val entries: StateFlow<List<DiaryEntry>> = store.entries
-        .map { list -> list.sortedByDescending { it.createdAt } }
+        .map { list ->
+            list.sortedWith(
+                compareByDescending<DiaryEntry> { it.createdAt }
+                    .thenByDescending { it.updatedAt }
+                    .thenByDescending { it.id },
+            )
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, store.sortedEntries)
 
     private val _mirrorMessages = MutableStateFlow<List<MirrorMessage>>(emptyList())
