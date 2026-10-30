@@ -266,9 +266,32 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 - **App Store assets / App Icon art** — placeholder asset catalog slot
 - **Unit / UI tests** — not included in this scaffold
 
+## Privacy & Support (GitHub Pages)
+
+Static legal pages live in [`docs/`](docs/) for App Store Connect and `DIARY_PRIVACY_POLICY_URL`:
+
+| Page | Public URL (after Pages is on) |
+|------|--------------------------------|
+| Privacy Policy | `https://silasha1118-beep.github.io/diaryapp/privacy.html` |
+| Support | `https://silasha1118-beep.github.io/diaryapp/support.html` |
+| Hub | `https://silasha1118-beep.github.io/diaryapp/` |
+
+**Enable Pages once (after this lands on `main`):**
+
+1. Open [github.com/silasha1118-beep/diaryapp](https://github.com/silasha1118-beep/diaryapp) → **Settings**.
+2. Left sidebar → **Pages**.
+3. Under **Build and deployment** → **Source** → choose **Deploy from a branch**.
+4. **Branch:** `main` · **Folder:** `/docs` → **Save**.
+5. Wait 1–2 minutes; open the Privacy URL above to confirm HTTPS works.
+6. App Store Connect → App Information → **Privacy Policy URL** = Privacy URL; Support URL = Support URL.
+7. `Info.plist` already sets `DIARY_PRIVACY_POLICY_URL` to the Privacy URL (rebuild after merge).
+
+Contact on the Support page: **silasha11@icloud.com**.
+
 ## Project layout
 
 ```
+docs/                # GitHub Pages: privacy.html, support.html, index.html
 DiaryVault/
   DiaryVault.xcodeproj
   DiaryVault/
