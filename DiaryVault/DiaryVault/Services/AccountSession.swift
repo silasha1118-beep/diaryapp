@@ -120,8 +120,8 @@ final class AccountSession: ObservableObject {
             } catch {
                 let ns = error as NSError
                 let needsRecentLogin =
-                    (ns.domain == AuthErrorDomain && ns.code == AuthErrorCode.requiresRecentLogin.rawValue)
-                    || (error as? AuthErrorCode) == .requiresRecentLogin
+                    ns.domain == AuthErrorDomain
+                    && ns.code == AuthErrorCode.requiresRecentLogin.rawValue
                 try? Auth.auth().signOut()
                 outcome = needsRecentLogin ? .requiresReauthentication : .remoteFailed
             }
