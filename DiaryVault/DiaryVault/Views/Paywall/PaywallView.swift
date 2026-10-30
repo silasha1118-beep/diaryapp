@@ -84,6 +84,28 @@ struct PaywallView: View {
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
 
+                        Text(localization.text("paywall.disclosure"))
+                            .font(.system(size: 12))
+                            .foregroundStyle(VaultTheme.inkMuted)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 4)
+
+                        HStack(spacing: 16) {
+                            if let privacy = LegalConfig.privacyPolicyURL {
+                                Link(localization.text("settings.legal.privacy"), destination: privacy)
+                                    .font(.system(size: 13, weight: .medium))
+                            } else {
+                                Text(localization.text("paywall.privacy.pending"))
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
+                            Link(
+                                localization.text("settings.legal.terms"),
+                                destination: LegalConfig.effectiveTermsURL
+                            )
+                            .font(.system(size: 13, weight: .medium))
+                        }
+
                         Text(localization.text("paywall.footer"))
                             .font(.system(size: 12))
                             .foregroundStyle(VaultTheme.inkMuted)

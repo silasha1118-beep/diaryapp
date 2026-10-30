@@ -103,6 +103,41 @@ final class AccountSession: ObservableObject {
         if FirebaseApp.app() != nil {
             try? Auth.auth().signOut()
         }
+        clearLocalSession()
+    }
+
+    /// App Store Guideline 5.1.1(v): apps with account creation must offer account deletion.
+    /// Clears the local session and diary is wiped by the caller. Attempts Firebase Auth
+    /// `delete()` when a live user exists; if Firebase requires recent login, local wipe still
+    /// proceeds and `requiresReauthentication` is returned so UI can show a re-auth hint.
+    @discardableResult
+    func deleteAccount() async -> DeleteAccountOutcome {
+        var outcome: DeleteAccountOutcome = .localOnly
+        if FirebaseApp.app() != nil, let user = Auth.auth().currentUser {
+            do {
+                try await user.delete()
+                outcome = .deletedRemote
+            } catch {
+                let ns = error as NSError
+                let needsRecentLogin =
+                    (ns.domain == AuthErrorDomain && ns.code == AuthErrorCode.requiresRecentLogin.rawValue)
+                    || (error as? AuthErrorCode) == .requiresRecentLogin
+                try? Auth.auth().signOut()
+                outcome = needsRecentLogin ? .requiresReauthentication : .remoteFailed
+            }
+        }
+        clearLocalSession()
+        return outcome
+    }
+
+    enum DeleteAccountOutcome {
+        case localOnly
+        case deletedRemote
+        case requiresReauthentication
+        case remoteFailed
+    }
+
+    private func clearLocalSession() {
         userID = nil
         email = nil
         fullName = nil

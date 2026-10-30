@@ -7,6 +7,8 @@
 "common.cancel" = "Cancel";
 "common.save" = "Save";
 "common.edit" = "Edit";
+"common.done" = "Done";
+"common.delete" = "Delete";
 
 /* Tabs */
 "tab.vault" = "Vault";
@@ -79,6 +81,8 @@
 "paywall.unavailable" = "Product not loaded yet";
 "paywall.productsMissing" = "No products loaded. On Mac: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit, then Run again. Paid Apple Developer is required for real App Store Connect products.";
 "paywall.footer" = "Subscriptions renew until cancelled in Settings → Apple ID. Estate / legacy custody products are later — not in this paywall.";
+"paywall.disclosure" = "Author Plus is an auto-renewable subscription (monthly or yearly). Price and period are shown on each product above (from StoreKit). Payment is charged to your Apple ID at confirmation. Subscription renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings → Apple ID → Subscriptions. Deleting the Diary Vault account does not cancel an Apple subscription.";
+"paywall.privacy.pending" = "Privacy Policy: host a URL and set DIARY_PRIVACY_POLICY_URL before App Store submit (also in Settings).";
 "paywall.status.productsEmpty" = "No products returned. Confirm the scheme StoreKit Configuration file, then Reload products.";
 "paywall.status.productsError" = "Could not load products from StoreKit.";
 "paywall.status.purchaseSuccess" = "Purchase recorded. Author Plus is active.";
@@ -168,3 +172,22 @@
 "settings.section.vault" = "Vault";
 "settings.name" = "Display name";
 "settings.resetOnboarding" = "Show onboarding again";
+"settings.section.data" = "Privacy & data";
+"settings.data.export" = "Prepare vault export (JSON)";
+"settings.data.export.share" = "Share / save export file";
+"settings.data.export.shareSubject" = "Diary Vault export";
+"settings.data.export.shareMessage" = "My Diary Vault entries (JSON).";
+"settings.data.export.error" = "Could not build the export file. Try again.";
+"settings.data.deleteAccount" = "Delete account & vault data";
+"settings.data.deleteAccount.title" = "Delete account?";
+"settings.data.deleteAccount.message" = "This permanently deletes diary entries on this device and signs you out. Export first if you want a copy. Firebase Auth account is removed when possible; you may need to sign in again if Apple/Firebase asks for recent login. This does not cancel Author Plus — manage that in Apple ID → Subscriptions.";
+"settings.data.deleteAccount.confirm" = "Delete account";
+"settings.data.deleteAccount.done" = "Account and vault data deleted on this device.";
+"settings.data.deleteAccount.reauth" = "Local vault cleared. Firebase needs a recent sign-in to finish cloud account deletion — sign in once more, then delete again, or delete the user in Firebase Console.";
+"settings.data.deleteAccount.remoteFailed" = "Local vault and session cleared. Cloud account deletion did not finish — check Firebase Console if the user remains.";
+"settings.data.footer" = "Export anytime (JSON). Account deletion is required by App Store when sign-in exists. Diary stays on device for this MVP; Mirror may send entry text to the cloud AI provider you configured.";
+"settings.section.legal" = "Legal";
+"settings.legal.privacy" = "Privacy Policy";
+"settings.legal.terms" = "Terms of Use (EULA)";
+"settings.legal.footer" = "Set DIARY_PRIVACY_POLICY_URL and optional DIARY_TERMS_OF_USE_URL (https) in Info.plist before submit. Empty privacy URL opens this in-app summary; Terms default to Apple’s Standard EULA.";
+"settings.legal.privacy.stubNote" = "Replace this sheet with a hosted Privacy Policy URL (DIARY_PRIVACY_POLICY_URL) before App Review. Describe SMS auth, on-device diary storage, cloud Mirror AI, and StoreKit purchases.";
