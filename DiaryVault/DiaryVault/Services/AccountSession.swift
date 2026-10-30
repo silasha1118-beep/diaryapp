@@ -4,7 +4,8 @@ import FirebaseCore
 import FirebaseAuth
 
 /// Local account session for phone SMS OTP (primary), optional Sign in with Apple backup, and DEBUG local.
-/// When Firebase Auth succeeds, `userID` is the Firebase UID; diary data stays on device for this MVP.
+/// When Firebase Auth succeeds, `userID` is the Firebase UID. Text diary syncs to Firestore while signed in;
+/// signed-out / DEBUG local sessions stay on-device only.
 @MainActor
 final class AccountSession: ObservableObject {
     private let defaults = UserDefaults.standard

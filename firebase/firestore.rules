@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// DiaryVault — paste into Firebase Console → Firestore → Rules → Publish.
+// Clients may only read/write their own users/{uid} tree.
+// Admin / console / Admin SDK bypass these rules (phase-2 viewer can use Admin SDK).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Lightweight profile doc — used later for admin user listing via Admin SDK.
+    match /users/{userId} {
+      allow read, create, update: if isOwner(userId)
+        && request.resource.data.ownerUid == userId;
+      allow delete: if isOwner(userId);
+
+      // Text diary entries (phase 1). Multimedia Storage paths come later (DA-15).
+      match /entries/{entryId} {
+        allow read: if isOwner(userId);
+
+        allow create, update: if isOwner(userId)
+          && request.resource.data.ownerUid == userId
+          && request.resource.data.id == entryId
+          && request.resource.data.keys().hasAll([
+            'id', 'title', 'body', 'createdAt', 'updatedAt',
+            'ownerUid', 'schemaVersion', 'contentType'
+          ])
+          && request.resource.data.schemaVersion is int
+          && request.resource.data.contentType is string;
+
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

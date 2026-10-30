@@ -22,6 +22,13 @@ struct DiaryVaultApp: App {
                 .environmentObject(subscriptions)
                 .environment(\.locale, localization.locale)
                 .preferredColorScheme(.light)
+                .task {
+                    diaryStore.bindCloudSync()
+                }
+                .onChange(of: account.userID) { _, _ in
+                    // Sign-in / sign-out: pull+push when Firebase Auth is live; no-op when local-only.
+                    diaryStore.scheduleSynchronize()
+                }
                 .onOpenURL { url in
                     // reCAPTCHA custom-scheme callback for Phone Auth (SwiftUI path).
                     if FirebaseApp.app() != nil {

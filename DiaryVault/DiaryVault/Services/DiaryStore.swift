@@ -1,12 +1,16 @@
 import Foundation
 import Combine
 
-/// Local JSON persistence for diary entries. Cloud sync is out of scope for this scaffold.
+/// Local JSON persistence for diary entries (source of truth offline).
+/// When Firebase Auth is signed in, text entries sync to Firestore in the background.
 @MainActor
 final class DiaryStore: ObservableObject {
     @Published private(set) var entries: [DiaryEntry] = []
+    @Published private(set) var lastCloudSyncAt: Date?
+    @Published private(set) var lastCloudSyncError: String?
 
     private let fileURL: URL
+    private let pendingURL: URL
     private let encoder: JSONEncoder = {
         let e = JSONEncoder()
         e.dateEncodingStrategy = .iso8601
@@ -19,10 +23,16 @@ final class DiaryStore: ObservableObject {
         return d
     }()
 
+    private var pendingOps: [PendingCloudOp] = []
+    private var syncTask: Task<Void, Never>?
+    private var isSyncing = false
+
     init(filename: String = "diary_entries.json") {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         fileURL = docs.appendingPathComponent(filename)
+        pendingURL = docs.appendingPathComponent("diary_cloud_pending.json")
         load()
+        loadPending()
         if entries.isEmpty {
             seedSampleIfNeeded()
         }
@@ -30,6 +40,22 @@ final class DiaryStore: ObservableObject {
 
     var sortedEntries: [DiaryEntry] {
         entries.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    /// Call once from the app root after `AccountSession` exists. Triggers pull+push when signed in.
+    func bindCloudSync() {
+        scheduleSynchronize()
+    }
+
+    /// Re-run sync after sign-in / returning online.
+    func scheduleSynchronize() {
+        syncTask?.cancel()
+        syncTask = Task { [weak self] in
+            // Brief defer so Auth.currentUser is settled after OTP / Apple.
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard !Task.isCancelled else { return }
+            await self?.synchronizeWithCloud()
+        }
     }
 
     func entry(id: UUID) -> DiaryEntry? {
@@ -47,6 +73,8 @@ final class DiaryStore: ObservableObject {
         )
         entries.insert(entry, at: 0)
         save()
+        enqueue(.upsert(entry.id))
+        scheduleSynchronize()
     }
 
     func update(_ entry: DiaryEntry) {
@@ -55,17 +83,35 @@ final class DiaryStore: ObservableObject {
         updated.updatedAt = Date()
         entries[index] = updated
         save()
+        enqueue(.upsert(updated.id))
+        scheduleSynchronize()
     }
 
     func delete(id: UUID) {
         entries.removeAll { $0.id == id }
         save()
+        enqueue(.delete(id))
+        scheduleSynchronize()
     }
 
-    /// Wipe every entry (account-deletion / leave-vault path). Does not touch auth session.
-    func deleteAllEntries() {
+    /// Wipe every local entry. Optionally purge the signed-in user's Firestore entries first
+    /// (account-deletion path — must run while Auth session is still live).
+    func deleteAllEntries(purgeCloud: Bool = true) async {
+        let uid = DiaryCloudSync.activeFirebaseUID
         entries = []
         save()
+        pendingOps = []
+        persistPending()
+
+        if purgeCloud, let uid {
+            do {
+                try await DiaryCloudSync.deleteAllEntries(uid: uid)
+                lastCloudSyncAt = Date()
+                lastCloudSyncError = nil
+            } catch {
+                lastCloudSyncError = error.localizedDescription
+            }
+        }
     }
 
     /// JSON export for Share Sheet / Files — fulfills onboarding “export and leave” promise.
@@ -87,6 +133,135 @@ final class DiaryStore: ObservableObject {
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "yyyyMMdd-HHmmss"
         return f.string(from: Date())
+    }
+
+    // MARK: - Cloud sync
+
+    /// Merge remote → local (LWW by `updatedAt`), then flush pending upserts/deletes.
+    func synchronizeWithCloud() async {
+        guard !isSyncing else { return }
+        guard let uid = DiaryCloudSync.activeFirebaseUID else {
+            // Signed-out / stub / local DEBUG: keep vault local-only.
+            return
+        }
+
+        isSyncing = true
+        defer { isSyncing = false }
+
+        do {
+            let remote = try await DiaryCloudSync.fetchAllEntries(uid: uid)
+            mergeRemote(remote)
+            try await flushPending(uid: uid)
+            // Push any local-only entries that were never queued (e.g. pre-sign-in writing).
+            try await pushMissingLocals(uid: uid, remoteIDs: Set(remote.map(\.id)))
+            lastCloudSyncAt = Date()
+            lastCloudSyncError = nil
+        } catch {
+            lastCloudSyncError = error.localizedDescription
+        }
+    }
+
+    private func mergeRemote(_ remote: [DiaryEntry]) {
+        var changed = false
+        for remoteEntry in remote {
+            if let index = entries.firstIndex(where: { $0.id == remoteEntry.id }) {
+                if remoteEntry.updatedAt > entries[index].updatedAt {
+                    entries[index] = remoteEntry
+                    changed = true
+                }
+            } else if !pendingOps.contains(where: {
+                if case .delete(let id) = $0 { return id == remoteEntry.id }
+                return false
+            }) {
+                entries.append(remoteEntry)
+                changed = true
+            }
+        }
+        if changed {
+            save()
+        }
+    }
+
+    private func flushPending(uid: String) async throws {
+        guard !pendingOps.isEmpty else { return }
+        var remaining: [PendingCloudOp] = []
+        // Collapse by id: last op wins.
+        var latest: [UUID: PendingCloudOp] = [:]
+        for op in pendingOps {
+            latest[op.entryID] = op
+        }
+        for op in latest.values {
+            do {
+                switch op {
+                case .upsert(let id):
+                    if let entry = entry(id: id) {
+                        try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                    }
+                    // If already deleted locally, skip upsert.
+                case .delete(let id):
+                    try await DiaryCloudSync.delete(entryID: id, uid: uid)
+                }
+            } catch {
+                remaining.append(op)
+            }
+        }
+        pendingOps = remaining
+        persistPending()
+        if !remaining.isEmpty {
+            throw remaining.first.map { _ in CloudSyncError.pendingFlushFailed } ?? CloudSyncError.pendingFlushFailed
+        }
+    }
+
+    private func pushMissingLocals(uid: String, remoteIDs: Set<UUID>) async throws {
+        for entry in entries where !remoteIDs.contains(entry.id) {
+            try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+        }
+    }
+
+    // MARK: - Pending queue
+
+    private enum PendingCloudOp: Codable, Equatable {
+        case upsert(UUID)
+        case delete(UUID)
+
+        var entryID: UUID {
+            switch self {
+            case .upsert(let id), .delete(let id): return id
+            }
+        }
+    }
+
+    private enum CloudSyncError: LocalizedError {
+        case pendingFlushFailed
+        var errorDescription: String? { "Some diary changes are waiting to sync." }
+    }
+
+    private func enqueue(_ op: PendingCloudOp) {
+        // Signed-out / stub / DEBUG local: keep vault local-only (no cloud queue).
+        guard DiaryCloudSync.activeFirebaseUID != nil else { return }
+        // Drop earlier ops for the same id.
+        pendingOps.removeAll { $0.entryID == op.entryID }
+        pendingOps.append(op)
+        persistPending()
+    }
+
+    private func loadPending() {
+        guard FileManager.default.fileExists(atPath: pendingURL.path) else { return }
+        do {
+            let data = try Data(contentsOf: pendingURL)
+            pendingOps = try decoder.decode([PendingCloudOp].self, from: data)
+        } catch {
+            pendingOps = []
+        }
+    }
+
+    private func persistPending() {
+        do {
+            let data = try encoder.encode(pendingOps)
+            try data.write(to: pendingURL, options: [.atomic])
+        } catch {
+            // Best-effort queue; local vault already saved.
+        }
     }
 
     // MARK: - Persistence

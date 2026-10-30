@@ -22,7 +22,7 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
    open DiaryVault/DiaryVault.xcodeproj
    ```
 
-3. Wait for Swift Package Manager to fetch **Firebase** (`firebase-ios-sdk` → FirebaseAuth + FirebaseCore). If needed: **File → Packages → Resolve Package Versions**.
+3. Wait for Swift Package Manager to fetch **Firebase** (`firebase-ios-sdk` → FirebaseAuth + FirebaseCore + FirebaseFirestore). If needed: **File → Packages → Resolve Package Versions**.
 4. Add your local **`GoogleService-Info.plist`** to the DiaryVault target (gitignored — see Firebase Phone Auth below). Bundle ID is **`com.silasha.diaryvault`**.
 5. Select an iPhone Simulator (or **device** for real SMS), then **Run** (⌘R).
 6. If signing prompts appear for a physical device, set your **Team** under the DiaryVault target → Signing & Capabilities. Free **Personal Team** can still run basic builds **only if** you temporarily remove Push / Sign in with Apple from entitlements. **APNs (no reCAPTCHA) and Sign in with Apple require a paid Apple Developer team ($99/yr).** Simulator needs no team for basic runs.
@@ -32,7 +32,7 @@ Android **account / Play Billing** in this PR: **stub hooks only** (Settings sho
 Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 
 - **Primary**: mobile number + SMS one-time code for **CN / HK / TW** (and any phone that can receive SMS). **Sign in with Apple** is an optional backup (paid Apple Developer). WeChat / Google are **not** used.
-- With Firebase: session UID comes from Firebase Auth; diary data stays on device for this MVP.
+- With Firebase: session UID comes from Firebase Auth; **text diary entries sync to Firestore** when signed in (local JSON remains offline source of truth). Signed-out / DEBUG local sessions stay on-device only.
 - Settings shows signed-in identity / provider and **Sign out** (also signs out of Firebase Auth).
 - **DEBUG** builds also offer “Dev: continue with local session”.
 - Do **not** commit `GoogleService-Info.plist` or other secrets (already gitignored).
@@ -44,10 +44,18 @@ Flow: **Onboarding → Auth gate (phone + OTP) → main tabs**.
 | Item | Value |
 |------|--------|
 | Package URL | `https://github.com/firebase/firebase-ios-sdk.git` |
-| Products | **FirebaseAuth**, **FirebaseCore** |
+| Products | **FirebaseAuth**, **FirebaseCore**, **FirebaseFirestore** |
 | Version rule | Up to next major from `11.0.0` |
 
 If Xcode does not resolve packages after pull: **File → Packages → Resolve Package Versions**. You should see Firebase under Package Dependencies. (`-ObjC` is already set on the target.)
+
+#### Firestore text diary sync (Silas — Console)
+
+1. Firebase Console → project **`diaryappsilas`** → **Build → Firestore Database → Create database** (if not already).
+2. Prefer location **`asia-east1` (Taiwan)** when available (product residency narrative); else nearest Asia region. Location is permanent.
+3. **Rules** → paste [`firebase/firestore.rules`](firebase/firestore.rules) → **Publish**. Clients may only read/write `users/{theirUid}/…`.
+4. Schema + behavior notes: [`firebase/README.md`](firebase/README.md). Multimedia upload is **out of scope** (DA-15 later).
+5. Rebuild the iOS app with `GoogleService-Info.plist` present. Sync runs only when Firebase Auth has a live user.
 
 **You already have `GoogleService-Info.plist` locally — do not commit it.** After merge:
 
@@ -271,7 +279,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
 | **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; **Sign in with Apple** optional backup (paid team); DEBUG local session; Settings has the same |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
-| Vault list / create / detail / edit | Works — JSON on device |
+| Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, **Free vs Author Plus** local daily Mirror quotas |
@@ -283,10 +291,11 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 ## What is stubbed / omitted
 
 - **App Store Connect live products / prices** — need paid Apple Developer; IDs are configurable here; local `.storekit` covers Personal Team testing
-- **Auth / receipt backend** — Firebase Phone Auth on iOS (local diary); Twilio / server receipt verify later
+- **Auth / receipt backend** — Firebase Phone Auth + Firestore text sync on iOS; Twilio / server receipt verify later
 - **Android SMS OTP / Play Billing** — stubs only
 - **Voice / video diary** — deferred (no media product tier in this build)
-- **Taiwan sync server** — local vault only; residency is narrative + config label
+- **Multimedia diary upload** — deferred (DA-15); text Firestore sync is phase 1
+- **Taiwan residency** — product narrative + prefer Firestore `asia-east1` when creating the database
 - **Fine-tuning / private model training** — not used; learning = prompt context only
 - **Memorial mode, voice clone, legacy executor** — Settings stub copy only; no Phase 1 UI
 - **Push / contextual reminder scheduling** — toggle only

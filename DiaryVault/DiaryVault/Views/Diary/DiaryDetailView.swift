@@ -3,6 +3,7 @@ import SwiftUI
 struct DiaryDetailView: View {
     @EnvironmentObject private var diaryStore: DiaryStore
     @EnvironmentObject private var localization: LocalizationManager
+    @Environment(\.dismiss) private var dismiss
 
     let entryID: UUID
 
@@ -10,6 +11,7 @@ struct DiaryDetailView: View {
     @State private var draftTitle = ""
     @State private var draftBody = ""
     @State private var draftMood = ""
+    @State private var showDeleteConfirm = false
 
     private var entry: DiaryEntry? { diaryStore.entry(id: entryID) }
 
@@ -88,7 +90,28 @@ struct DiaryDetailView: View {
                     }
                     .foregroundStyle(VaultTheme.ink)
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive) {
+                        showDeleteConfirm = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .accessibilityLabel(localization.text("common.delete"))
+                }
             }
+        }
+        .confirmationDialog(
+            localization.text("diary.delete.title"),
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(localization.text("common.delete"), role: .destructive) {
+                diaryStore.delete(id: entryID)
+                dismiss()
+            }
+            Button(localization.text("common.cancel"), role: .cancel) {}
+        } message: {
+            Text(localization.text("diary.delete.message"))
         }
     }
 

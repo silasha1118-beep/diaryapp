@@ -122,6 +122,8 @@
 "diary.field.title" = "หัวข้อ (ไม่บังคับ)";
 "diary.field.mood" = "แท็กอารมณ์ (ไม่บังคับ)";
 "diary.detail.owned" = "หน้านี้เป็นของคุณ";
+"diary.delete.title" = "ลบบันทึกนี้?";
+"diary.delete.message" = "ลบออกจากเครื่องนี้ หากเข้าสู่ระบบแล้ว จะลบออกจากซิงค์คลาวด์เมื่อออนไลน์ด้วย";
 "diary.missing" = "บันทึกนี้ไม่อยู่ในห้องเก็บแล้ว";
 
 /* Mirror */
@@ -202,12 +204,12 @@
 "settings.data.export.error" = "สร้างไฟล์ส่งออกไม่ได้ ลองอีกครั้ง";
 "settings.data.deleteAccount" = "ลบบัญชีและข้อมูลห้องเก็บ";
 "settings.data.deleteAccount.title" = "ลบบัญชี?";
-"settings.data.deleteAccount.message" = "ลบบันทึกไดอารีบนเครื่องนี้อย่างถาวรและออกจากระบบ ส่งออกก่อนถ้าต้องการสำเนา ลบบัญชี Firebase Auth เมื่อทำได้ อาจต้องเข้าสู่ระบบอีกครั้งถ้า Apple/Firebase ขอการเข้าสู่ระบบล่าสุด การนี้ไม่ยกเลิก Author Plus — จัดการที่ Apple ID → การสมัคร";
+"settings.data.deleteAccount.message" = "ลบบันทึกไดอารีบนเครื่องนี้และซิงค์คลาวด์ (เมื่อเข้าสู่ระบบ) อย่างถาวรแล้วออกจากระบบ ส่งออกก่อนถ้าต้องการสำเนา ลบบัญชี Firebase Auth เมื่อทำได้ อาจต้องเข้าสู่ระบบอีกครั้งถ้า Apple/Firebase ขอการเข้าสู่ระบบล่าสุด การนี้ไม่ยกเลิก Author Plus — จัดการที่ Apple ID → การสมัคร";
 "settings.data.deleteAccount.confirm" = "ลบบัญชี";
-"settings.data.deleteAccount.done" = "ลบบัญชีและข้อมูลห้องเก็บบนเครื่องนี้แล้ว";
+"settings.data.deleteAccount.done" = "ลบบัญชีและข้อมูลห้องเก็บบนเครื่องนี้แล้ว (รวมซิงค์คลาวด์เมื่อเข้าสู่ระบบ)";
 "settings.data.deleteAccount.reauth" = "ล้างห้องเก็บในเครื่องแล้ว Firebase ต้องเข้าสู่ระบบล่าสุดเพื่อลบบัญชีคลาวด์ — เข้าสู่ระบบอีกครั้งแล้วลบใหม่ หรือลบผู้ใช้ใน Firebase Console";
 "settings.data.deleteAccount.remoteFailed" = "ล้างห้องเก็บและเซสชันในเครื่องแล้ว การลบบัญชีคลาวด์ไม่เสร็จ — ตรวจ Firebase Console ถ้าผู้ใช้ยังอยู่";
-"settings.data.footer" = "ส่งออกได้ทุกเมื่อ (JSON) App Store ต้องมีการลบบัญชีเมื่อมีการเข้าสู่ระบบ ไดอารีอยู่บนเครื่องใน MVP นี้ กระจกอาจส่งข้อความไปยังผู้ให้บริการ AI คลาวด์ที่คุณตั้งค่า";
+"settings.data.footer" = "ส่งออกได้ทุกเมื่อ (JSON) App Store ต้องมีการลบบัญชีเมื่อมีการเข้าสู่ระบบ ไดอารีข้อความที่เข้าสู่ระบบซิงค์ไป Firestore; ไมเข้าสู่ระบบอยู่บนเครื่องเท่านั้น กระจกอาจส่งข้อความไปยังผู้ให้บริการ AI คลาวด์ที่คุณตั้งค่า";
 "settings.section.legal" = "กฎหมาย";
 "settings.legal.privacy" = "นโยบายความเป็นส่วนตัว";
 "settings.legal.terms" = "ข้อกำหนดการใช้งาน (EULA)";
