@@ -37,6 +37,7 @@
 "auth.phone.placeholder" = "手機號碼（不含國碼）";
 "auth.phone.send" = "傳送驗證碼";
 "auth.phone.resend" = "重新傳送";
+"auth.phone.resend.cooldown" = "重新傳送（%d）";
 "auth.phone.sent" = "驗證碼已送出，請查看簡訊。";
 "auth.phone.invalid" = "請輸入所選地區的有效手機號碼（台灣 9、港／新 8、中國大陸 11、馬來西亞 9–10、泰國 9、日本 10；開頭 0 可保留）。";
 "auth.otp.label" = "驗證碼";

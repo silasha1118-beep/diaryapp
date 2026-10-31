@@ -37,6 +37,7 @@
 "auth.phone.placeholder" = "携帯番号（国番号なし）";
 "auth.phone.send" = "確認コードを送信";
 "auth.phone.resend" = "コードを再送信";
+"auth.phone.resend.cooldown" = "再送信（%d秒）";
 "auth.phone.sent" = "コードを送信しました。メッセージを確認してください。";
 "auth.phone.invalid" = "選択した地域の有効な携帯番号を入力してください（TW 9、HK/SG 8、CN 11、MY 9–10、TH 9、JP 10——先頭の 0 は可）。";
 "auth.otp.label" = "確認コード";

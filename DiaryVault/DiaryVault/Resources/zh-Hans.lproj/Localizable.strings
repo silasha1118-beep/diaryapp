@@ -37,6 +37,7 @@
 "auth.phone.placeholder" = "手机号码（不含国码）";
 "auth.phone.send" = "发送验证码";
 "auth.phone.resend" = "重新发送";
+"auth.phone.resend.cooldown" = "重新发送（%d）";
 "auth.phone.sent" = "验证码已发送，请查看短信。";
 "auth.phone.invalid" = "请输入所选地区的有效手机号码（台湾 9、港／新 8、中国大陆 11、马来西亚 9–10、泰国 9、日本 10；开头 0 可保留）。";
 "auth.otp.label" = "验证码";

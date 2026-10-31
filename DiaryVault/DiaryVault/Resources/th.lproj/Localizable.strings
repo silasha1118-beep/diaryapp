@@ -37,6 +37,7 @@
 "auth.phone.placeholder" = "เบอร์มือถือ (ไม่ใส่รหัสประเทศ)";
 "auth.phone.send" = "ส่งรหัสยืนยัน";
 "auth.phone.resend" = "ส่งรหัสอีกครั้ง";
+"auth.phone.resend.cooldown" = "ส่งอีกครั้ง (%dวินาที)";
 "auth.phone.sent" = "ส่งรหัสแล้ว ตรวจข้อความของคุณ";
 "auth.phone.invalid" = "ใส่เบอร์มือถือที่ถูกต้องของภูมิภาคที่เลือก (TW 9, HK/SG 8, CN 11, MY 9–10, TH 9, JP 10 — ขึ้นต้นด้วย 0 ได้)";
 "auth.otp.label" = "รหัสยืนยัน";
