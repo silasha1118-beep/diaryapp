@@ -8,8 +8,12 @@ struct DiaryListView: View {
 
     /// Item-based sheet so Edit always receives the tapped entry (not a stale nil capture).
     @State private var composerSession: ComposerSession?
-    @State private var pendingDeleteID: UUID?
-    @State private var showDeleteConfirm = false
+
+    private var vaultSubtitle: String {
+        appState.displayName.isEmpty
+            ? localization.text("diary.subtitle")
+            : String(format: localization.text("diary.subtitle.named"), appState.displayName)
+    }
 
     private enum ComposerSession: Identifiable {
         case create
@@ -60,23 +64,6 @@ struct DiaryListView: View {
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
             }
-            .confirmationDialog(
-                localization.text("diary.delete.title"),
-                isPresented: $showDeleteConfirm,
-                titleVisibility: .visible
-            ) {
-                Button(localization.text("common.delete"), role: .destructive) {
-                    if let id = pendingDeleteID {
-                        diaryStore.delete(id: id)
-                    }
-                    pendingDeleteID = nil
-                }
-                Button(localization.text("common.cancel"), role: .cancel) {
-                    pendingDeleteID = nil
-                }
-            } message: {
-                Text(localization.text("diary.delete.message"))
-            }
         }
     }
 
@@ -84,10 +71,13 @@ struct DiaryListView: View {
         // List (not ScrollView) so `.swipeActions` works on rows.
         List {
             Section {
-                header
-                    .listRowInsets(EdgeInsets(top: 8, leading: 24, bottom: 20, trailing: 24))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                VaultBrandHeader(
+                    title: localization.text("brand.name"),
+                    subtitle: vaultSubtitle
+                )
+                .listRowInsets(EdgeInsets(top: 14, leading: 24, bottom: 28, trailing: 24))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
 
             Section {
@@ -101,9 +91,9 @@ struct DiaryListView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparatorTint(VaultTheme.line.opacity(0.6))
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        // Soft-delete immediately — no confirm dialog; entry stays archived forever.
                         Button(role: .destructive) {
-                            pendingDeleteID = entry.id
-                            showDeleteConfirm = true
+                            diaryStore.delete(id: entry.id)
                         } label: {
                             Label(localization.text("common.delete"), systemImage: "trash")
                         }
@@ -133,24 +123,6 @@ struct DiaryListView: View {
         // Show time so same-day entries read as chronological, not unordered.
         f.timeStyle = .short
         return f.string(from: date)
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(localization.text("brand.name"))
-                .font(.system(size: 34, weight: .semibold, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-
-            Text(
-                appState.displayName.isEmpty
-                    ? localization.text("diary.subtitle")
-                    : String(format: localization.text("diary.subtitle.named"), appState.displayName)
-            )
-            .font(.system(size: 15))
-            .foregroundStyle(VaultTheme.inkMuted)
-        }
-        .padding(.top, 4)
-        .padding(.bottom, 4)
     }
 
     private func entryRow(_ entry: DiaryEntry) -> some View {
@@ -192,29 +164,44 @@ struct DiaryListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 18) {
-            Text(localization.text("diary.empty.title"))
-                .font(.system(size: 24, weight: .semibold, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-            Text(localization.text("diary.empty.body"))
-                .font(.system(size: 15))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .multilineTextAlignment(.center)
-                .lineSpacing(3)
-            Button {
-                composerSession = .create
-            } label: {
-                Text(localization.text("diary.new"))
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(VaultTheme.paper)
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 12)
-                    .background(VaultTheme.ink)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        VStack(alignment: .leading, spacing: 0) {
+            VaultBrandHeader(
+                title: localization.text("brand.name"),
+                subtitle: vaultSubtitle
+            )
+            .padding(.horizontal, 28)
+            .padding(.top, 20)
+
+            Spacer(minLength: 24)
+
+            VStack(spacing: 16) {
+                Text(localization.text("diary.empty.title"))
+                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .foregroundStyle(VaultTheme.ink)
+                    .multilineTextAlignment(.center)
+                Text(localization.text("diary.empty.body"))
+                    .font(.system(size: 15))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                Button {
+                    composerSession = .create
+                } label: {
+                    Text(localization.text("diary.new"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(VaultTheme.paper)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 12)
+                        .background(VaultTheme.ink)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
             }
-            .buttonStyle(.plain)
-            .padding(.top, 4)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 36)
+
+            Spacer(minLength: 40)
         }
-        .padding(36)
     }
 }

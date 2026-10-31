@@ -65,7 +65,10 @@ final class AccountSession: ObservableObject {
             return PhoneNumberNormalizer.maskedDisplay(phoneE164)
         }
         if let email, !email.isEmpty { return email }
+        // Never surface Auth UID fragments to customers; DEBUG builders can still peek.
+        #if DEBUG
         if let userID { return String(userID.prefix(8)) + "…" }
+        #endif
         return ""
     }
 

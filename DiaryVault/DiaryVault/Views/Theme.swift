@@ -152,3 +152,50 @@ struct VaultBackground: View {
         }
     }
 }
+
+/// Brand-first vault title block — large serif name, seal rule, quiet subtitle.
+struct VaultBrandHeader: View {
+    let title: String
+    var subtitle: String? = nil
+    var compact: Bool = false
+
+    @State private var appeared = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.system(size: compact ? 34 : 42, weight: .semibold, design: .serif))
+                .foregroundStyle(VaultTheme.ink)
+                .tracking(compact ? -0.4 : -0.8)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+
+            Capsule()
+                .fill(VaultTheme.seal.opacity(0.9))
+                .frame(width: compact ? 28 : 40, height: compact ? 2.5 : 3)
+                .padding(.top, compact ? 12 : 16)
+                .scaleEffect(x: appeared ? 1 : 0.35, anchor: .leading)
+                .opacity(appeared ? 1 : 0)
+
+            if let subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.system(size: compact ? 14 : 15, weight: .regular))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, compact ? 12 : 14)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 6)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 8)
+        .accessibilityElement(children: .combine)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.65)) {
+                appeared = true
+            }
+        }
+    }
+}

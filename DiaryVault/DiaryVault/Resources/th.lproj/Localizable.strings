@@ -202,6 +202,8 @@
 "settings.account.footer" = "เซสชันอยู่บนเครื่องนี้เท่านั้น เข้าสู่ระบบหลักคือ SMS OTP ทุกภูมิภาค Sign in with Apple แสดงด้านล่างเมื่อพร้อม ออกจากระบบแล้วย้อนไปเกตบัญชี";
 "settings.account.phone.footer" = "ใส่เบอร์มือถือ ส่งรหัส แล้วยืนยัน รองรับไต้หวัน ฮ่องกง จีนแผ่นดินใหญ่ มาเลเซีย สิงคโปร์ ไทย และญี่ปุ่น เมื่อยังไม่ได้เข้าสู่ระบบด้วย Apple จะมีปุ่มด้านล่าง";
 "settings.account.phone.success" = "เข้าสู่ระบบด้วยโทรศัพท์สำเร็จ";
+"settings.section.developer" = "นักพัฒนา";
+"settings.developer.footer" = "เฉพาะบิลด์ DEBUG — Release จะซ่อนทั้งหมด";
 "settings.section.cloud" = "ซิงค์";
 "settings.cloud.status" = "สถานะ";
 "settings.cloud.status.synced" = "ซิงค์แล้ว";

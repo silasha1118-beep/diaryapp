@@ -3,15 +3,8 @@ import SwiftUI
 struct DiaryDetailView: View {
     @EnvironmentObject private var diaryStore: DiaryStore
     @EnvironmentObject private var localization: LocalizationManager
-    @Environment(\.dismiss) private var dismiss
 
     let entryID: UUID
-
-    @State private var isEditing = false
-    @State private var draftTitle = ""
-    @State private var draftBody = ""
-    @State private var draftMood = ""
-    @State private var showDeleteConfirm = false
 
     private var entry: DiaryEntry? { diaryStore.entry(id: entryID) }
 
@@ -27,44 +20,7 @@ struct DiaryDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if entry != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(isEditing ? localization.text("common.save") : localization.text("common.edit")) {
-                        if isEditing {
-                            saveEdits()
-                        } else if let entry {
-                            draftTitle = entry.title
-                            draftBody = entry.body
-                            draftMood = entry.moodTag ?? ""
-                            isEditing = true
-                        }
-                    }
-                    .foregroundStyle(VaultTheme.ink)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(role: .destructive) {
-                        showDeleteConfirm = true
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                    .accessibilityLabel(localization.text("common.delete"))
-                }
-            }
-        }
-        .confirmationDialog(
-            localization.text("diary.delete.title"),
-            isPresented: $showDeleteConfirm,
-            titleVisibility: .visible
-        ) {
-            Button(localization.text("common.delete"), role: .destructive) {
-                diaryStore.delete(id: entryID)
-                dismiss()
-            }
-            Button(localization.text("common.cancel"), role: .cancel) {}
-        } message: {
-            Text(localization.text("diary.delete.message"))
-        }
+        // Edit / Delete live on list swipe only — keep the system back button.
     }
 
     private func entryScroll(_ entry: DiaryEntry) -> some View {
@@ -76,44 +32,12 @@ struct DiaryDetailView: View {
                     .foregroundStyle(VaultTheme.seal)
                     .textCase(nil)
 
-                if isEditing {
-                    editFields
-                } else {
-                    readOnlyFields(entry)
-                }
+                readOnlyFields(entry)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
             .padding(.top, 24)
             .padding(.bottom, 56)
-        }
-    }
-
-    private var editFields: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            TextField(localization.text("diary.field.mood"), text: $draftMood)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .padding(.top, 12)
-
-            TextField(localization.text("diary.field.title"), text: $draftTitle)
-                .font(.system(size: 30, weight: .semibold, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-                .padding(.top, 18)
-
-            Rectangle()
-                .fill(VaultTheme.line.opacity(0.65))
-                .frame(height: 1)
-                .padding(.top, 22)
-                .padding(.bottom, 22)
-
-            TextEditor(text: $draftBody)
-                .font(.system(size: 17, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-                .lineSpacing(8)
-                .frame(minHeight: 240)
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, -4)
         }
     }
 
@@ -156,18 +80,5 @@ struct DiaryDetailView: View {
         f.dateStyle = .long
         f.timeStyle = .short
         return f.string(from: date)
-    }
-
-    private func saveEdits() {
-        // Do NOT `guard var entry` on the computed `entry` property — that triggers a
-        // Swift compiler assertion (Querying VarDecl's type before type-checking parent stmt).
-        guard let existing = diaryStore.entry(id: entryID) else { return }
-        var updated = existing
-        updated.title = draftTitle
-        updated.body = draftBody
-        let moodTrimmed = draftMood.trimmingCharacters(in: .whitespacesAndNewlines)
-        updated.moodTag = moodTrimmed.isEmpty ? nil : moodTrimmed
-        diaryStore.update(updated)
-        isEditing = false
     }
 }

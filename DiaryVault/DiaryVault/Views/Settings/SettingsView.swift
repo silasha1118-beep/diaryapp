@@ -37,6 +37,9 @@ struct SettingsView: View {
                     adviceSection
                     mirrorSection
                     vaultSection
+                    #if DEBUG
+                    developerSection
+                    #endif
                 }
                 .scrollContentBackground(.hidden)
                 // numberPad has no Return — drag or any Form tap must resign first responder.
@@ -194,25 +197,6 @@ struct SettingsView: View {
                     .foregroundStyle(VaultTheme.inkMuted)
                     .multilineTextAlignment(.trailing)
             }
-            #if DEBUG
-            if let projectID = cloudProjectID {
-                LabeledContent(localization.text("settings.cloud.project")) {
-                    Text(projectID)
-                        .font(.system(size: 12, design: .monospaced))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .textSelection(.enabled)
-                }
-            }
-            if let uid = account.firebaseAuthUID, !uid.isEmpty {
-                LabeledContent(localization.text("settings.cloud.uid")) {
-                    Text(uid)
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .lineLimit(2)
-                        .textSelection(.enabled)
-                }
-            }
-            #endif
             if let err = diaryStore.lastCloudSyncError, !err.isEmpty {
                 Text(customerFacingSyncError(err))
                     .font(.system(size: 13))
@@ -238,16 +222,6 @@ struct SettingsView: View {
                 Text(billingPlanLabel)
                     .foregroundStyle(VaultTheme.inkMuted)
             }
-            #if DEBUG
-            if let productID = subscriptions.activeProductID {
-                LabeledContent(localization.text("settings.billing.product")) {
-                    Text(productID)
-                        .font(.system(size: 12, design: .monospaced))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .lineLimit(1)
-                }
-            }
-            #endif
             if let exp = subscriptions.expirationDate {
                 LabeledContent(localization.text("settings.billing.expires")) {
                     Text(exp, style: .date)
@@ -412,16 +386,51 @@ struct SettingsView: View {
             Text(localization.text("settings.legacy.stub"))
                 .font(.system(size: 13))
                 .foregroundStyle(VaultTheme.inkMuted)
-            #if DEBUG
-            Button(localization.text("settings.resetOnboarding")) {
-                appState.resetOnboardingForDemo()
-            }
-            .foregroundStyle(VaultTheme.seal)
-            #endif
         } header: {
             Text(localization.text("settings.section.vault"))
         }
     }
+
+    #if DEBUG
+    /// Builder-only dumps — never compile into Release customer Settings.
+    private var developerSection: some View {
+        Section {
+            if let projectID = cloudProjectID {
+                LabeledContent(localization.text("settings.cloud.project")) {
+                    Text(projectID)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                        .textSelection(.enabled)
+                }
+            }
+            if let uid = account.firebaseAuthUID, !uid.isEmpty {
+                LabeledContent(localization.text("settings.cloud.uid")) {
+                    Text(uid)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                }
+            }
+            if let productID = subscriptions.activeProductID {
+                LabeledContent(localization.text("settings.billing.product")) {
+                    Text(productID)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                        .lineLimit(1)
+                }
+            }
+            Button(localization.text("settings.resetOnboarding")) {
+                appState.resetOnboardingForDemo()
+            }
+            .foregroundStyle(VaultTheme.seal)
+        } header: {
+            Text(localization.text("settings.section.developer"))
+        } footer: {
+            Text(localization.text("settings.developer.footer"))
+        }
+    }
+    #endif
 
     // MARK: - Labels
 

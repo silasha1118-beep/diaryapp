@@ -202,6 +202,8 @@
 "settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」始终显示于下方。退出后会回到账号闸门。";
 "settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾、香港、中国大陆、马来西亚、新加坡、泰国与日本。未以 Apple 登录时，下方会显示「通过 Apple 登录」。";
 "settings.account.phone.success" = "手机登录成功。";
+"settings.section.developer" = "开发者";
+"settings.developer.footer" = "仅 DEBUG 编译可见；Release 完全隐藏。";
 "settings.section.cloud" = "同步";
 "settings.cloud.status" = "状态";
 "settings.cloud.status.synced" = "已同步";

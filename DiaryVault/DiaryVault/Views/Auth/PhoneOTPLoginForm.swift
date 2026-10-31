@@ -60,15 +60,10 @@ struct PhoneOTPLoginForm: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            // Customer Settings: hide Firebase/Stub / 「真實發送」 backend labels.
-            // Keep the banner on the auth gate (and DEBUG) so misconfig stays visible to builders.
-            if chrome == .gate {
-                providerBanner
-            }
+            // Customer UI must never show Firebase/Stub / 「真實發送」.
+            // DEBUG only — builders still need the misconfig banner on gate + Settings.
             #if DEBUG
-            if chrome == .settings {
-                providerBanner
-            }
+            providerBanner
             #endif
 
             phoneStep
