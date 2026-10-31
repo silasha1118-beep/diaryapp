@@ -85,6 +85,7 @@ struct PhoneOTPLoginForm: View {
         }
         .contentShape(Rectangle())
         .resignKeyboardOnBackgroundTap()
+        .resignKeyboardOnAnyTap()
         .animation(.easeInOut(duration: 0.3), value: session != nil)
         // phonePad / numberPad have no Return — Done toolbar lets users clear the pad and reach Mirror.
         .toolbar {
