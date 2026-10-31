@@ -196,10 +196,12 @@ You do **not** need a paid Apple Developer account to try purchase + restore on 
 
 `DiaryUploadUsageGuard` / `UploadQuotaConfig` (independent of Mirror). Local calendar day (`TimeZone.current`).
 
-1. Stay on **Free**. Open **New entry** → save up to 4 without paywall; saves 5–8 show dismissible Plus; after 8, “done for today”.
-2. Buy **Author Plus** → text creates 20/day. At 20, upsell **Author Pro**.
-3. Buy **Author Pro** → text creates 40/day. At 40, “done for today”.
-4. Multimedia upload counts (Free 3→5 / Plus 11 / Pro 22) are stubbed for DA-15 — not wired in UI yet.
+1. Stay on **Free** (Settings plan = Free; clear StoreKit transactions if needed). Open **New entry**.
+2. Saves **1–4** succeed with no reminder. Save **5** shows an **inline** soft reminder in the composer (“Continue save” / “View Author Plus”) — not a nested sheet (nested sheets silently dismissed on device).
+3. After Continue, saves **6–8** re-show the soft reminder each time unless you Continue again; after **8**, hard stop (“done for today”).
+4. Buy **Author Plus** → text creates 20/day. At 20, upsell **Author Pro**. Buy **Author Pro** → 40/day; at 40 done for today.
+5. Multimedia upload counts (Free 3→5 / Plus 11 / Pro 22) are stubbed for DA-15 — not wired in UI yet.
+6. **Account link:** Sign in with Apple → Settings shows section **連結手機** (banner + 「傳送連結驗證碼」), not the primary login chrome. OTP uses `link(with:)` so UID stays put.
 
 #### Beginner Mac steps — Free / Plus / Pro Mirror AI quotas
 

@@ -134,6 +134,8 @@
 "diary.quota.exhausted.free" = "本日のテキスト投稿は使い切りました（%d）。Author Plus にアップグレードするか、明日またお試しください。";
 "diary.quota.exhausted.plus" = "本日のテキスト投稿は使い切りました（%d）。Author Pro（40回／日）へ、または明日またお試しください。";
 "diary.quota.exhausted.pro" = "本日のテキスト投稿は使い切りました（%d）。明日またお試しください。";
+"diary.quota.softReminder" = "本日のテキスト投稿残り %d／%d 回——Author Plus で1日の上限が上がります";
+"diary.quota.soft.continue" = "保存を続ける";
 "diary.quota.upgrade" = "Author Plus を見る";
 "diary.quota.upgrade.pro" = "Author Pro を見る";
 
@@ -159,6 +161,7 @@
 "settings.title" = "設定";
 "settings.section.account" = "アカウント";
 "settings.section.accountPhone" = "アカウント／電話ログイン";
+"settings.section.accountLink" = "連携済みのログイン方法";
 "settings.account.status" = "状態";
 "settings.account.signedIn" = "サインイン済み";
 "settings.account.signedOut" = "まだサインインしていません。";
@@ -173,12 +176,17 @@
 "settings.account.linked.yes" = "はい";
 "settings.account.linked.no" = "いいえ";
 "settings.account.link.phone.title" = "電話を連携";
+"settings.account.link.phone.banner" = "現在 Apple でサインインしています。電話番号を「同じ」アカウントに連携してください（UID は変わりません）——新規ログインではありません。";
 "settings.account.link.phone.note" = "OTP はこの Firebase アカウントに紐づきます（UID は変わりません）。以降は電話でも Apple でも同じボールトを開けます。";
+"settings.account.link.phone.send" = "連携用確認コードを送信";
+"settings.account.link.phone.resend" = "連携用コードを再送信";
+"settings.account.link.phone.resend.cooldown" = "連携用コードを再送信（%d秒）";
 "settings.account.link.phone.action" = "確認して電話を連携";
 "settings.account.link.phone.success" = "電話をこのアカウントに連携しました。";
 "settings.account.link.phone.alreadyInUse" = "この電話番号は別のアカウントに既に紐づいており、上書きできません。";
 "settings.account.link.phone.alreadyLinked" = "このアカウントには既に電話が連携されています。";
 "settings.account.link.apple.title" = "Apple を連携";
+"settings.account.link.apple.banner" = "現在電話でサインインしています。Apple を「同じ」アカウントに連携してください（UID は変わりません）——新しいアカウントは作りません。";
 "settings.account.link.apple.note" = "Apple ID をこの Firebase アカウントに紐づけます（UID は変わりません）。新しいアカウントは作りません。";
 "settings.account.link.apple.success" = "Apple をこのアカウントに連携しました。";
 "settings.account.link.apple.alreadyInUse" = "この Apple ID は別のアカウントに既に紐づいており、上書きできません。";

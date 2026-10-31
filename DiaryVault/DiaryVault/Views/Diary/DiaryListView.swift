@@ -4,6 +4,7 @@ struct DiaryListView: View {
     @EnvironmentObject private var diaryStore: DiaryStore
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var subscriptions: SubscriptionStore
 
     @State private var showComposer = false
 
@@ -62,7 +63,11 @@ struct DiaryListView: View {
                 }
             }
             .sheet(isPresented: $showComposer) {
+                // Re-attach env objects — sheet inheritance is unreliable on some iOS builds.
                 DiaryComposerView()
+                    .environmentObject(diaryStore)
+                    .environmentObject(localization)
+                    .environmentObject(subscriptions)
             }
         }
     }

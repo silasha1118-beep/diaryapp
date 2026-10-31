@@ -43,7 +43,8 @@ struct PhoneOTPLoginForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
-            if mode == .link {
+            // Settings link section already shows title/banner/footer — avoid duplicating login-looking chrome.
+            if mode == .link && chrome != .settings {
                 Text(localization.text("settings.account.link.phone.title"))
                     .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))
                     .foregroundStyle(VaultTheme.ink)
@@ -240,15 +241,27 @@ struct PhoneOTPLoginForm: View {
 
     private var sendOrResendLabel: String {
         if session == nil {
-            return localization.text("auth.phone.send")
+            return localization.text(
+                mode == .link
+                    ? "settings.account.link.phone.send"
+                    : "auth.phone.send"
+            )
         }
         if resendSecondsRemaining > 0 {
             return String(
-                format: localization.text("auth.phone.resend.cooldown"),
+                format: localization.text(
+                    mode == .link
+                        ? "settings.account.link.phone.resend.cooldown"
+                        : "auth.phone.resend.cooldown"
+                ),
                 resendSecondsRemaining
             )
         }
-        return localization.text("auth.phone.resend")
+        return localization.text(
+            mode == .link
+                ? "settings.account.link.phone.resend"
+                : "auth.phone.resend"
+        )
     }
 
     private var canVerify: Bool {

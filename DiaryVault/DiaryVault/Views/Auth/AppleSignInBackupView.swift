@@ -17,14 +17,17 @@ struct AppleSignInBackupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
-            Text(
-                mode == .link
-                    ? localization.text("settings.account.link.apple.title")
-                    : localization.text("auth.apple.backup")
-            )
-            .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))
-            .foregroundStyle(VaultTheme.ink)
-            .accessibilityAddTraits(.isHeader)
+            // Settings link section owns the 「連結 Apple」header — keep in-form title for gate only.
+            if !(mode == .link && chrome == .settings) {
+                Text(
+                    mode == .link
+                        ? localization.text("settings.account.link.apple.title")
+                        : localization.text("auth.apple.backup")
+                )
+                .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))
+                .foregroundStyle(VaultTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+            }
 
             SignInWithAppleButton(mode == .link ? .continue : .signIn) { request in
                 AppleSignInCoordinator.prepareRequest(request)
@@ -43,14 +46,16 @@ struct AppleSignInBackupView: View {
                     : localization.text("auth.apple.backup")
             )
 
-            Text(
-                mode == .link
-                    ? localization.text("settings.account.link.apple.note")
-                    : localization.text("auth.apple.secondaryNote")
-            )
-            .font(.system(size: 12))
-            .foregroundStyle(VaultTheme.inkMuted)
-            .fixedSize(horizontal: false, vertical: true)
+            if !(mode == .link && chrome == .settings) {
+                Text(
+                    mode == .link
+                        ? localization.text("settings.account.link.apple.note")
+                        : localization.text("auth.apple.secondaryNote")
+                )
+                .font(.system(size: 12))
+                .foregroundStyle(VaultTheme.inkMuted)
+                .fixedSize(horizontal: false, vertical: true)
+            }
 
             if let infoMessage {
                 Text(infoMessage)

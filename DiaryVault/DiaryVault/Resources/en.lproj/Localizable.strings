@@ -134,6 +134,8 @@
 "diary.quota.exhausted.free" = "Today’s text uploads are done (%d). Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
 "diary.quota.exhausted.plus" = "Today’s text uploads are done (%d). Upgrade to Author Pro (40/day) for more, or try again tomorrow.";
 "diary.quota.exhausted.pro" = "Today’s text uploads are done (%d). Try again tomorrow.";
+"diary.quota.softReminder" = "%d of %d text uploads left today — Author Plus raises the daily limit";
+"diary.quota.soft.continue" = "Continue save";
 "diary.quota.upgrade" = "View Author Plus";
 "diary.quota.upgrade.pro" = "View Author Pro";
 
@@ -160,6 +162,7 @@
 "settings.title" = "Settings";
 "settings.section.account" = "Account";
 "settings.section.accountPhone" = "Account / Phone login";
+"settings.section.accountLink" = "Linked sign-in methods";
 "settings.account.status" = "Status";
 "settings.account.signedIn" = "Signed in";
 "settings.account.signedOut" = "Not signed in yet.";
@@ -174,12 +177,17 @@
 "settings.account.linked.yes" = "Yes";
 "settings.account.linked.no" = "No";
 "settings.account.link.phone.title" = "Link phone";
+"settings.account.link.phone.banner" = "You signed in with Apple. Link a phone number to this same account (UID stays put) — this is not a new login.";
 "settings.account.link.phone.note" = "The OTP attaches to this Firebase account (UID stays the same). You can then open the same vault with phone or Apple.";
+"settings.account.link.phone.send" = "Send link verification code";
+"settings.account.link.phone.resend" = "Resend link code";
+"settings.account.link.phone.resend.cooldown" = "Resend link code (%ds)";
 "settings.account.link.phone.action" = "Verify and link phone";
 "settings.account.link.phone.success" = "Phone linked to this account.";
 "settings.account.link.phone.alreadyInUse" = "This phone number already belongs to another account and cannot be overwritten.";
 "settings.account.link.phone.alreadyLinked" = "Phone is already linked to this account.";
 "settings.account.link.apple.title" = "Link Apple";
+"settings.account.link.apple.banner" = "You signed in with phone. Link Apple to this same account (UID stays put) — this does not create a new account.";
 "settings.account.link.apple.note" = "Attaches Apple ID to this Firebase account (UID stays the same). Does not create a new account.";
 "settings.account.link.apple.success" = "Apple linked to this account.";
 "settings.account.link.apple.alreadyInUse" = "This Apple ID already belongs to another account and cannot be overwritten.";
