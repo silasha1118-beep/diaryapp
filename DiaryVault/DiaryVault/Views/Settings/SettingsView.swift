@@ -384,6 +384,8 @@ struct SettingsView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
+                .resignKeyboardOnBackgroundTap()
             }
             .navigationTitle(localization.text("settings.title"))
             .sheet(isPresented: $showPaywall) {
