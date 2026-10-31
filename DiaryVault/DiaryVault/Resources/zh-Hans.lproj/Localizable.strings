@@ -122,6 +122,8 @@
 "diary.subtitle" = "你的私密日记";
 "diary.subtitle.named" = "%@ 的金库";
 "diary.new" = "新日记";
+"diary.edit" = "编辑日记";
+"diary.swipe.hint" = "向左滑可编辑或删除";
 "diary.empty.title" = "金库还很安静";
 "diary.empty.body" = "写下第一页——一句话就够。";
 "diary.emptyBody" = "（空白）";
@@ -129,7 +131,7 @@
 "diary.field.mood" = "心情标签（可选）";
 "diary.detail.owned" = "这一页属于你。";
 "diary.delete.title" = "删除这则日记？";
-"diary.delete.message" = "将从此设备移除。若已登录，联网时也会从云端同步删除。";
+"diary.delete.message" = "会从金库列表隐藏。页面会以软删除方式保留在封存中，不会永久抹除。";
 "diary.missing" = "这篇日记已不在金库中。";
 "diary.quota.exhausted.free" = "今日文字上传已用完（%d）。升级 Author Plus 可提高每日额度，或明天再试。";
 "diary.quota.exhausted.plus" = "今日文字上传已用完（%d）。可升级 Author Pro（每日 40 次），或明天再试。";

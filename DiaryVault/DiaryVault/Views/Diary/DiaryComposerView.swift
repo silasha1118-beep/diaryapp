@@ -6,6 +6,9 @@ struct DiaryComposerView: View {
     @EnvironmentObject private var subscriptions: SubscriptionStore
     @Environment(\.dismiss) private var dismiss
 
+    /// When non-nil, composer updates this entry instead of creating a new one (no upload quota).
+    var editingEntry: DiaryEntry? = nil
+
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
@@ -15,6 +18,9 @@ struct DiaryComposerView: View {
     @State private var showPaywall = false
     /// After the user taps Continue on the inline soft reminder, allow one save without re-nudge.
     @State private var suppressPaywallNagOnce = false
+    @State private var didLoadEditDraft = false
+
+    private var isEditing: Bool { editingEntry != nil }
 
     private var billingTier: BillingConfig.Tier { subscriptions.tier }
 
@@ -28,7 +34,9 @@ struct DiaryComposerView: View {
                 VaultTheme.paper.ignoresSafeArea()
                 formContent
             }
-            .navigationTitle(localization.text("diary.new"))
+            .navigationTitle(
+                localization.text(isEditing ? "diary.edit" : "diary.new")
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -43,6 +51,9 @@ struct DiaryComposerView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(canSave ? VaultTheme.seal : VaultTheme.inkMuted)
                 }
+            }
+            .onAppear {
+                loadEditDraftIfNeeded()
             }
             .onChange(of: subscriptions.tier) { _, _ in
                 clearQuotaMessagesIfUnderCap()
@@ -156,6 +167,14 @@ struct DiaryComposerView: View {
         }
     }
 
+    private func loadEditDraftIfNeeded() {
+        guard !didLoadEditDraft, let editingEntry else { return }
+        didLoadEditDraft = true
+        title = editingEntry.title
+        bodyText = editingEntry.body
+        mood = editingEntry.moodTag ?? ""
+    }
+
     private func clearQuotaMessagesIfUnderCap() {
         if !DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
             quotaError = nil
@@ -166,6 +185,12 @@ struct DiaryComposerView: View {
 
     private func attemptSave() {
         guard canSave else { return }
+
+        if isEditing {
+            saveEdit()
+            return
+        }
+
         softReminder = nil
         quotaError = nil
         showQuotaUpgrade = false
@@ -209,6 +234,16 @@ struct DiaryComposerView: View {
             body: bodyText,
             moodTag: mood.isEmpty ? nil : mood
         )
+        dismiss()
+    }
+
+    private func saveEdit() {
+        guard var updated = editingEntry else { return }
+        updated.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        updated.body = bodyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let moodTrimmed = mood.trimmingCharacters(in: .whitespacesAndNewlines)
+        updated.moodTag = moodTrimmed.isEmpty ? nil : moodTrimmed
+        diaryStore.update(updated)
         dismiss()
     }
 }

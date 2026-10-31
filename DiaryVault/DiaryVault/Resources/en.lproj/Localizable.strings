@@ -122,6 +122,8 @@
 "diary.subtitle" = "Private entries in your vault";
 "diary.subtitle.named" = "%@’s vault";
 "diary.new" = "New entry";
+"diary.edit" = "Edit entry";
+"diary.swipe.hint" = "Swipe left for Edit and Delete";
 "diary.empty.title" = "The vault is quiet";
 "diary.empty.body" = "Write a first page — one sentence is enough.";
 "diary.emptyBody" = "(empty)";
@@ -129,7 +131,7 @@
 "diary.field.mood" = "Mood tag (optional)";
 "diary.detail.owned" = "This page belongs to you.";
 "diary.delete.title" = "Delete this entry?";
-"diary.delete.message" = "Removes it from this device. If you are signed in, it is also removed from cloud sync when online.";
+"diary.delete.message" = "Hides it from your vault. The page is kept in your archive (soft-delete) and is not permanently erased.";
 "diary.missing" = "This entry is no longer in the vault.";
 "diary.quota.exhausted.free" = "Today’s text uploads are done (%d). Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
 "diary.quota.exhausted.plus" = "Today’s text uploads are done (%d). Upgrade to Author Pro (40/day) for more, or try again tomorrow.";
