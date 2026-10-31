@@ -38,8 +38,14 @@ struct PhoneOTPLoginForm: View {
     @State private var resendCooldownTask: Task<Void, Never>?
     /// Created on first Send / Verify only — Settings / Apple session UI must not touch Phone Auth.
     @State private var smsProvider: SMSAuthProviderHolder?
+    @FocusState private var focusedField: Field?
 
     private static let resendCooldownSeconds = 60
+
+    private enum Field: Hashable {
+        case phone
+        case otp
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
@@ -77,13 +83,30 @@ struct PhoneOTPLoginForm: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .contentShape(Rectangle())
+        .resignKeyboardOnBackgroundTap()
         .animation(.easeInOut(duration: 0.3), value: session != nil)
+        // phonePad / numberPad have no Return — Done toolbar lets users clear the pad and reach Mirror.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(localization.text("common.done")) {
+                    dismissKeyboard()
+                }
+            }
+        }
         .onAppear {
             surfacePhoneAuthURLSchemeIfNeeded()
         }
         .onDisappear {
             cancelResendCooldown()
+            dismissKeyboard()
         }
+    }
+
+    private func dismissKeyboard() {
+        focusedField = nil
+        KeyboardDismiss.resign()
     }
 
     /// Always show Firebase vs Stub so a misconfigured local plist / scheme is obvious.
@@ -154,6 +177,7 @@ struct PhoneOTPLoginForm: View {
                 TextField(localization.text("auth.phone.placeholder"), text: $nationalNumber)
                     .keyboardType(.phonePad)
                     .textContentType(.telephoneNumber)
+                    .focused($focusedField, equals: .phone)
                     .modifier(AuthFieldChrome(chrome: chrome))
                     .onChange(of: nationalNumber) { _, _ in
                         resetOTPChallenge()
@@ -161,6 +185,7 @@ struct PhoneOTPLoginForm: View {
             }
 
             Button {
+                dismissKeyboard()
                 Task { await sendCode() }
             } label: {
                 HStack {
@@ -192,9 +217,11 @@ struct PhoneOTPLoginForm: View {
             TextField(localization.text("auth.otp.placeholder"), text: $otpCode)
                 .keyboardType(.numberPad)
                 .textContentType(.oneTimeCode)
+                .focused($focusedField, equals: .otp)
                 .modifier(AuthFieldChrome(chrome: chrome))
 
             Button {
+                dismissKeyboard()
                 Task { await verifyCode() }
             } label: {
                 HStack {

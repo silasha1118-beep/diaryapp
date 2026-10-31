@@ -1,4 +1,26 @@
 import SwiftUI
+import UIKit
+
+/// Resign the current first responder (phone / number pads have no Return key).
+enum KeyboardDismiss {
+    static func resign() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
+}
+
+extension View {
+    /// Tap empty chrome / scroll surface to dismiss keyboard without stealing Button hits.
+    func resignKeyboardOnBackgroundTap() -> some View {
+        simultaneousGesture(
+            TapGesture().onEnded { KeyboardDismiss.resign() }
+        )
+    }
+}
 
 /// Visual language: personal vault — warm paper, ink, soft depth. Not generic notes chrome.
 enum VaultTheme {
