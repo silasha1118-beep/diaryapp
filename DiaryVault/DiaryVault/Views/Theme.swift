@@ -14,11 +14,96 @@ enum KeyboardDismiss {
 }
 
 extension View {
-    /// Tap empty chrome / scroll surface to dismiss keyboard without stealing Button hits.
+    /// SwiftUI simultaneous tap — often ignored inside `Form`/`List` (UIKit scroll host wins).
     func resignKeyboardOnBackgroundTap() -> some View {
         simultaneousGesture(
             TapGesture().onEnded { KeyboardDismiss.resign() }
         )
+    }
+
+    /// Installs a UIKit tap on the enclosing scroll/table/window that always calls
+    /// `UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder)…)`
+    /// with `cancelsTouchesInView = false` so Buttons / tab bar still receive the hit.
+    func resignKeyboardOnAnyTap() -> some View {
+        background {
+            KeyboardDismissTapInstaller()
+                .frame(width: 0, height: 0)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+/// Probe view that attaches a non-cancelling tap recognizer to the nearest scroll host or window.
+private struct KeyboardDismissTapInstaller: UIViewRepresentable {
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        view.backgroundColor = .clear
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        DispatchQueue.main.async {
+            context.coordinator.install(from: uiView)
+        }
+    }
+
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.uninstall()
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private weak var installedOn: UIView?
+        private var recognizer: UITapGestureRecognizer?
+
+        func install(from probe: UIView) {
+            let host = Self.scrollHost(from: probe) ?? probe.window
+            guard let host else { return }
+            if installedOn === host, recognizer != nil { return }
+            uninstall()
+
+            let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+            tap.cancelsTouchesInView = false
+            tap.requiresExclusiveTouchType = false
+            tap.delegate = self
+            host.addGestureRecognizer(tap)
+            recognizer = tap
+            installedOn = host
+        }
+
+        func uninstall() {
+            if let recognizer, let installedOn {
+                installedOn.removeGestureRecognizer(recognizer)
+            }
+            recognizer = nil
+            installedOn = nil
+        }
+
+        @objc private func handleTap() {
+            KeyboardDismiss.resign()
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
+        }
+
+        /// Prefer UITableView / UICollectionView / UIScrollView so Form row taps resign.
+        private static func scrollHost(from view: UIView) -> UIView? {
+            var current: UIView? = view.superview
+            while let cur = current {
+                if cur is UITableView || cur is UICollectionView || cur is UIScrollView {
+                    return cur
+                }
+                current = cur.superview
+            }
+            return nil
+        }
     }
 }
 
