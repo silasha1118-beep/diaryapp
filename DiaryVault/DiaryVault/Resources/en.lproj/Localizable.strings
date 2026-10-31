@@ -137,9 +137,21 @@
 "diary.quota.exhausted.plus" = "Today’s text uploads are done (%d). Upgrade to Author Pro (40/day) for more, or try again tomorrow.";
 "diary.quota.exhausted.pro" = "Today’s text uploads are done (%d). Try again tomorrow.";
 "diary.quota.softReminder" = "%d of %d text uploads left today — Author Plus raises the daily limit";
-"diary.quota.soft.continue" = "Continue save";
-"diary.quota.upgrade" = "View Author Plus";
-"diary.quota.upgrade.pro" = "View Author Pro";
+"diary.quota.soft.title" = "Keep writing with more room";
+"diary.quota.soft.benefit" = "Author Plus opens 20 text uploads a day — a quieter vault for the habit you want to keep.";
+"diary.quota.soft.meta" = "%d of %d free uploads left today";
+"diary.quota.soft.continue" = "Continue saving";
+"diary.quota.hard.title.free" = "Today’s free pages are full";
+"diary.quota.hard.title.plus" = "Today’s Plus pages are full";
+"diary.quota.hard.title.pro" = "Today’s writing pages are full";
+"diary.quota.hard.benefit.free" = "Author Plus keeps the vault open — 20 text uploads every day, ready when the words arrive.";
+"diary.quota.hard.benefit.plus" = "Author Pro opens 40 text uploads a day when you need a wider desk.";
+"diary.quota.hard.benefit.pro" = "Rest the pen for now — your vault opens again tomorrow.";
+"diary.quota.hard.meta.free" = "Free daily limit reached (%d)";
+"diary.quota.hard.meta.plus" = "Plus daily limit reached (%d)";
+"diary.quota.hard.meta.pro" = "Pro daily limit reached (%d)";
+"diary.quota.upgrade" = "Upgrade to Author Plus";
+"diary.quota.upgrade.pro" = "Upgrade to Author Pro";
 
 /* Mirror */
 "mirror.title" = "Mirror";
