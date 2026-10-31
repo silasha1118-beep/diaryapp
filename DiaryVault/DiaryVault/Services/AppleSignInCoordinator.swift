@@ -5,10 +5,14 @@ import CryptoKit
 import FirebaseCore
 import FirebaseAuth
 
-/// Errors from the optional Sign in with Apple backup path.
+/// Errors from the optional Sign in with Apple backup / link path.
 enum AppleSignInError: LocalizedError, Equatable {
     case canceled
     case invalidCredential
+    case notSignedInForLink
+    /// This Apple ID is already tied to a different Firebase Auth user — do not overwrite.
+    case credentialAlreadyInUse
+    case providerAlreadyLinked
     case firebase(String)
     case underlying(String)
 
@@ -16,14 +20,26 @@ enum AppleSignInError: LocalizedError, Equatable {
         switch self {
         case .canceled: return nil
         case .invalidCredential: return "Invalid Apple ID credential"
+        case .notSignedInForLink: return "Sign in before linking Apple"
+        case .credentialAlreadyInUse:
+            return "This Apple ID is already linked to another account"
+        case .providerAlreadyLinked:
+            return "Apple is already linked to this account"
         case .firebase(let message): return message
         case .underlying(let message): return message
         }
     }
 }
 
-/// Builds the Sign in with Apple request (nonce) and completes local / Firebase session.
+/// Builds the Sign in with Apple request (nonce) and completes local / Firebase session or link.
 enum AppleSignInCoordinator {
+    enum Mode: Equatable {
+        /// `Auth.auth().signIn(with:)` — creates / opens an account.
+        case signIn
+        /// `currentUser.link(with:)` — keeps the same UID.
+        case link
+    }
+
     /// Random nonce for the current Apple authorization attempt (Firebase requires the raw value).
     @MainActor
     private static var currentNonce: String?
@@ -42,7 +58,8 @@ enum AppleSignInCoordinator {
     static func handle(
         result: Result<ASAuthorization, Error>,
         account: AccountSession,
-        preferredDisplayName: String?
+        preferredDisplayName: String?,
+        mode: Mode = .signIn
     ) async throws {
         switch result {
         case .failure(let error):
@@ -69,12 +86,26 @@ enum AppleSignInCoordinator {
 
             FirebaseBootstrap.configureIfNeeded()
             if FirebaseBootstrap.hasGoogleServiceInfoPlist, FirebaseApp.app() != nil {
-                try await signInWithFirebase(
-                    credential: credential,
-                    account: account,
-                    fullName: resolvedName
-                )
+                switch mode {
+                case .signIn:
+                    try await signInWithFirebase(
+                        credential: credential,
+                        account: account,
+                        fullName: resolvedName
+                    )
+                case .link:
+                    try await linkWithFirebase(
+                        credential: credential,
+                        account: account,
+                        fullName: resolvedName
+                    )
+                }
             } else {
+                guard mode == .signIn else {
+                    throw AppleSignInError.firebase(
+                        "Firebase is required to link Apple to an existing account."
+                    )
+                }
                 account.signInWithApple(
                     userID: credential.user,
                     email: credential.email,
@@ -93,19 +124,7 @@ enum AppleSignInCoordinator {
         account: AccountSession,
         fullName: String?
     ) async throws {
-        guard let nonce = currentNonce else {
-            throw AppleSignInError.firebase("Missing Apple sign-in nonce. Try again.")
-        }
-        guard let tokenData = credential.identityToken,
-              let idToken = String(data: tokenData, encoding: .utf8) else {
-            throw AppleSignInError.firebase("Unable to fetch Apple identity token.")
-        }
-
-        let oauth = OAuthProvider.appleCredential(
-            withIDToken: idToken,
-            rawNonce: nonce,
-            fullName: credential.fullName
-        )
+        let oauth = try makeOAuthCredential(from: credential)
 
         do {
             let result = try await Auth.auth().signIn(with: oauth)
@@ -128,6 +147,73 @@ enum AppleSignInCoordinator {
                 message.isEmpty ? "Firebase Apple sign-in failed." : message
             )
         }
+    }
+
+    /// Links Apple to the **current** Firebase user via `link(with:)` — UID must stay the same.
+    @MainActor
+    private static func linkWithFirebase(
+        credential: ASAuthorizationAppleIDCredential,
+        account: AccountSession,
+        fullName: String?
+    ) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AppleSignInError.notSignedInForLink
+        }
+        let expectedUID = user.uid
+        let oauth = try makeOAuthCredential(from: credential)
+
+        do {
+            let result = try await user.link(with: oauth)
+            guard result.user.uid == expectedUID else {
+                throw AppleSignInError.firebase("Account link changed UID unexpectedly.")
+            }
+            if let fullName, !fullName.isEmpty,
+               result.user.displayName == nil || result.user.displayName?.isEmpty == true {
+                let change = result.user.createProfileChangeRequest()
+                change.displayName = fullName
+                try? await change.commitChanges()
+            }
+            await account.refreshAfterProviderLink(displayName: fullName)
+        } catch let error as AppleSignInError {
+            throw error
+        } catch {
+            throw mapLinkError(error)
+        }
+    }
+
+    @MainActor
+    private static func makeOAuthCredential(
+        from credential: ASAuthorizationAppleIDCredential
+    ) throws -> AuthCredential {
+        guard let nonce = currentNonce else {
+            throw AppleSignInError.firebase("Missing Apple sign-in nonce. Try again.")
+        }
+        guard let tokenData = credential.identityToken,
+              let idToken = String(data: tokenData, encoding: .utf8) else {
+            throw AppleSignInError.firebase("Unable to fetch Apple identity token.")
+        }
+        return OAuthProvider.appleCredential(
+            withIDToken: idToken,
+            rawNonce: nonce,
+            fullName: credential.fullName
+        )
+    }
+
+    private static func mapLinkError(_ error: Error) -> AppleSignInError {
+        let ns = error as NSError
+        if ns.domain == AuthErrorDomain, let code = AuthErrorCode(rawValue: ns.code) {
+            switch code {
+            case .credentialAlreadyInUse:
+                // Do not sign in to the other account — surface a clear conflict.
+                return .credentialAlreadyInUse
+            case .providerAlreadyLinked:
+                return .providerAlreadyLinked
+            default:
+                break
+            }
+        }
+        let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        return .firebase(message.isEmpty ? "Firebase Apple link failed." : message)
     }
 
     // MARK: - Nonce helpers (Firebase Auth docs)

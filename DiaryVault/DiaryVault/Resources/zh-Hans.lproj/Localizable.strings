@@ -65,6 +65,11 @@
 "auth.apple.secondaryNote" = "适合不想收短信、或想用 Apple ID 绑定账号时使用。";
 "auth.apple.error" = "通过 Apple 登录未完成，请再试一次。";
 "auth.apple.paidNote" = "需要付费 Apple Developer 团队（约每年 99 美元）。免费 Personal Team 无法启用此能力。";
+"auth.displayName.title" = "我们该怎么称呼你？";
+"auth.displayName.body" = "新账号会询问一次显示名称，方便金库与镜子认得你。可稍后再改。";
+"auth.displayName.placeholder" = "你的名字";
+"auth.displayName.save" = "保存并继续";
+"auth.displayName.skip" = "暂时跳过";
 "auth.devLocal" = "开发：以本机会话继续";
 
 /* Paywall */
@@ -155,7 +160,28 @@
 "settings.account.provider" = "登录方式";
 "settings.account.provider.phone" = "手机（SMS 验证码）";
 "settings.account.provider.apple" = "通过 Apple 登录";
+"settings.account.provider.both" = "手机 + Apple（同一账号）";
 "settings.account.provider.local" = "本机（开发）";
+"settings.account.linked.phone" = "已连接手机";
+"settings.account.linked.apple" = "已连接 Apple";
+"settings.account.linked.yes" = "是";
+"settings.account.linked.no" = "否";
+"settings.account.link.phone.title" = "连接手机";
+"settings.account.link.phone.note" = "验证码会绑到当前这个 Firebase 账号（UID 不变），之后可用手机或 Apple 打开同一金库。";
+"settings.account.link.phone.action" = "验证并连接手机";
+"settings.account.link.phone.success" = "手机已连接到此账号。";
+"settings.account.link.phone.alreadyInUse" = "这个手机号码已属于另一个账号，无法直接覆盖。";
+"settings.account.link.phone.alreadyLinked" = "此账号已连接手机。";
+"settings.account.link.apple.title" = "连接 Apple";
+"settings.account.link.apple.note" = "会把 Apple ID 绑到当前这个 Firebase 账号（UID 不变），不会另开新账号。";
+"settings.account.link.apple.success" = "Apple 已连接到此账号。";
+"settings.account.link.apple.alreadyInUse" = "这个 Apple ID 已属于另一个账号，无法直接覆盖。";
+"settings.account.link.apple.alreadyLinked" = "此账号已连接 Apple。";
+"settings.account.link.apple.error" = "连接 Apple 未完成，请再试一次。";
+"settings.account.link.needSignedIn" = "请先登录后再连接另一种登录方式。";
+"settings.account.link.mergeGuidance" = "若要合并两端数据，请先确认要用哪一个账号为主，再手动导出／导入日记；App 不会自动覆盖另一个账号。";
+"settings.account.link.bothDone" = "手机与 Apple 已连接到同一账号。";
+"settings.account.link.footer" = "已登录时可以把缺少的登录方式连接到同一 Firebase UID（与 users/{uid}）。若对方已绑在别的账号，会显示清楚错误，不会静默覆盖。";
 "settings.account.signOut" = "退出登录";
 "settings.account.footer" = "会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」始终显示于下方。退出后会回到账号闸门。";
 "settings.account.phone.footer" = "输入手机号码、发送验证码后验证。支持台湾（+886）、香港（+852）、中国大陆（+86）、马来西亚（+60）、新加坡（+65）、泰国（+66）、日本（+81）。未以 Apple 登录时，下方会显示标准「通过 Apple 登录」按钮。横幅会标示 Firebase 或 Stub——与启动闸门相同。";

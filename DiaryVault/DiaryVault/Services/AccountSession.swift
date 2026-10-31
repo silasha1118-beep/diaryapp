@@ -36,8 +36,22 @@ final class AccountSession: ObservableObject {
     @Published private(set) var firebaseAuthUID: String?
     /// Becomes true after the first Auth state callback (or immediately when Firebase is not configured).
     @Published private(set) var firebaseAuthReady: Bool = false
+    /// True when `providerData` (or `phoneNumber`) includes phone — may coexist with Apple.
+    @Published private(set) var hasLinkedPhone: Bool = false
+    /// True when `providerData` includes `apple.com` — may coexist with phone.
+    @Published private(set) var hasLinkedApple: Bool = false
 
     var isSignedIn: Bool { userID != nil }
+
+    /// Needs Settings 「連結手機」 when signed in via Apple (or other) without a phone provider.
+    var needsPhoneLink: Bool {
+        hasLiveFirebaseAuth && isSignedIn && !hasLinkedPhone
+    }
+
+    /// Needs Settings 「連結 Apple」 when signed in via phone without Apple.
+    var needsAppleLink: Bool {
+        hasLiveFirebaseAuth && isSignedIn && !hasLinkedApple
+    }
 
     /// Firestore sync requires a live Firebase Auth user — not merely a UserDefaults / stub session.
     var hasLiveFirebaseAuth: Bool {
@@ -63,6 +77,9 @@ final class AccountSession: ObservableObject {
         if let raw = defaults.string(forKey: Keys.provider) {
             provider = Provider(rawValue: raw)
         }
+        // Provisional until Auth restores; live providerData overwrites these.
+        hasLinkedPhone = provider == .phone || phoneE164 != nil
+        hasLinkedApple = provider == .apple
 
         // Prefer live Firebase session when the SDK is configured and still signed in.
         // Auth may restore asynchronously from the keychain — do not rely on a one-shot
@@ -96,16 +113,66 @@ final class AccountSession: ObservableObject {
 
     private func applyFirebaseUser(_ fbUser: User) {
         firebaseAuthUID = fbUser.uid
-        let usesApple = fbUser.providerData.contains { $0.providerID == "apple.com" }
-        let phone = fbUser.phoneNumber ?? phoneE164
+        let linkedPhone = Self.userHasPhoneProvider(fbUser)
+        let linkedApple = Self.userHasAppleProvider(fbUser)
+        hasLinkedPhone = linkedPhone
+        hasLinkedApple = linkedApple
+
+        let phone = fbUser.phoneNumber ?? (linkedPhone ? phoneE164 : nil)
+        let resolvedProvider: Provider = {
+            if linkedPhone && linkedApple {
+                // Keep last primary when both are linked; default to phone.
+                if provider == .apple { return .apple }
+                return .phone
+            }
+            if linkedApple { return .apple }
+            if linkedPhone { return .phone }
+            return provider ?? .phone
+        }()
         apply(
             userID: fbUser.uid,
             email: fbUser.email ?? email,
-            fullName: fullName,
-            phoneE164: usesApple ? nil : phone,
-            provider: usesApple ? .apple : .phone
+            fullName: fullName ?? fbUser.displayName,
+            phoneE164: phone,
+            provider: resolvedProvider
         )
-        scheduleUserProfileUpsert(uid: fbUser.uid, displayName: fullName)
+        scheduleUserProfileUpsert(uid: fbUser.uid, displayName: fullName ?? fbUser.displayName)
+    }
+
+    /// After `link(with:)` succeeds — reload Auth user, refresh session flags, upsert `users/{uid}`.
+    func refreshAfterProviderLink(displayName: String? = nil) async {
+        guard let user = Auth.auth().currentUser else { return }
+        do {
+            try await user.reload()
+        } catch {
+            #if DEBUG
+            print("Auth reload after link failed: \(error)")
+            #endif
+        }
+        guard let refreshed = Auth.auth().currentUser else { return }
+        let name = displayName ?? fullName ?? refreshed.displayName
+        applyFirebaseUser(refreshed)
+        if let name, !name.isEmpty {
+            fullName = name
+            defaults.set(name, forKey: Keys.fullName)
+        }
+        // Force profile sync so phoneNumber / appleUserId / authProviders land on users/{uid}.
+        do {
+            try await DiaryCloudSync.upsertUserProfile(uid: refreshed.uid, displayName: name)
+        } catch {
+            #if DEBUG
+            print("User profile upsert after link failed: \(error)")
+            #endif
+        }
+    }
+
+    static func userHasPhoneProvider(_ user: User) -> Bool {
+        if user.phoneNumber != nil { return true }
+        return user.providerData.contains { $0.providerID == "phone" }
+    }
+
+    static func userHasAppleProvider(_ user: User) -> Bool {
+        user.providerData.contains { $0.providerID == "apple.com" }
     }
 
     func signInWithPhone(userID: String, phoneE164: String, displayName: String?) {
@@ -117,28 +184,66 @@ final class AccountSession: ObservableObject {
             provider: .phone
         )
         // Mirror live Auth immediately when OTP went through Firebase (stub leaves this nil).
-        if Auth.auth().currentUser?.uid == userID {
+        if let current = Auth.auth().currentUser, current.uid == userID {
             firebaseAuthUID = userID
+            hasLinkedPhone = Self.userHasPhoneProvider(current)
+            hasLinkedApple = Self.userHasAppleProvider(current)
             scheduleUserProfileUpsert(uid: userID, displayName: displayName)
         } else {
             firebaseAuthUID = nil
+            hasLinkedPhone = true
+            // Keep any previously known Apple flag only if same local session — fresh phone sign-in is phone-only.
+            hasLinkedApple = false
         }
     }
 
     /// Optional backup path — AuthenticationServices (and Firebase Auth when plist is present).
     func signInWithApple(userID: String, email: String?, fullName: String?) {
+        let linkedPhoneFromAuth: String? = {
+            guard let current = Auth.auth().currentUser, current.uid == userID else { return nil }
+            return current.phoneNumber
+        }()
         apply(
             userID: userID,
             email: email,
             fullName: fullName,
-            phoneE164: nil,
+            phoneE164: linkedPhoneFromAuth,
             provider: .apple
         )
-        if Auth.auth().currentUser?.uid == userID {
+        if let current = Auth.auth().currentUser, current.uid == userID {
             firebaseAuthUID = userID
+            hasLinkedPhone = Self.userHasPhoneProvider(current)
+            hasLinkedApple = Self.userHasAppleProvider(current)
             scheduleUserProfileUpsert(uid: userID, displayName: fullName)
         } else {
             firebaseAuthUID = nil
+            hasLinkedApple = true
+            hasLinkedPhone = false
+        }
+    }
+
+    /// Persists display name to local session, Firebase Auth profile, and `users/{uid}.displayName`.
+    func updateDisplayName(_ name: String) async {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        fullName = trimmed
+        defaults.set(trimmed, forKey: Keys.fullName)
+        guard let user = Auth.auth().currentUser else { return }
+        let change = user.createProfileChangeRequest()
+        change.displayName = trimmed
+        do {
+            try await change.commitChanges()
+        } catch {
+            #if DEBUG
+            print("Auth displayName update failed: \(error)")
+            #endif
+        }
+        do {
+            try await DiaryCloudSync.upsertUserProfile(uid: user.uid, displayName: trimmed)
+        } catch {
+            #if DEBUG
+            print("User profile displayName upsert failed: \(error)")
+            #endif
         }
     }
 
@@ -220,6 +325,8 @@ final class AccountSession: ObservableObject {
         fullName = nil
         phoneE164 = nil
         provider = nil
+        hasLinkedPhone = false
+        hasLinkedApple = false
         defaults.removeObject(forKey: Keys.userID)
         defaults.removeObject(forKey: Keys.email)
         defaults.removeObject(forKey: Keys.fullName)

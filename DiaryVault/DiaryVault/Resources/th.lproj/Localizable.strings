@@ -65,6 +65,11 @@
 "auth.apple.secondaryNote" = "ใช้เมื่อไม่ต้องการรับ SMS หรือต้องการผูก Apple ID";
 "auth.apple.error" = "เข้าสู่ระบบด้วย Apple ไม่สำเร็จ ลองอีกครั้ง";
 "auth.apple.paidNote" = "ต้องมีทีม Apple Developer แบบชำระเงิน ($99/ปี) Personal Team ฟรีเปิดความสามารถนี้ไม่ได้";
+"auth.displayName.title" = "เราควรเรียกคุณว่าอะไร?";
+"auth.displayName.body" = "บัญชีใหม่จะถามชื่อที่แสดงครั้งเดียว เพื่อให้ห้องเก็บและกระจกเรียกคุณได้ เปลี่ยนทีหลังได้";
+"auth.displayName.placeholder" = "ชื่อของคุณ";
+"auth.displayName.save" = "บันทึกแล้วไปต่อ";
+"auth.displayName.skip" = "ข้ามไว้ก่อน";
 "auth.devLocal" = "พัฒนา: ดำเนินการต่อด้วยเซสชันในเครื่อง";
 
 /* Paywall */
@@ -155,7 +160,28 @@
 "settings.account.provider" = "ผู้ให้บริการ";
 "settings.account.provider.phone" = "โทรศัพท์ (SMS OTP)";
 "settings.account.provider.apple" = "เข้าสู่ระบบด้วย Apple";
+"settings.account.provider.both" = "โทรศัพท์ + Apple (บัญชีเดียวกัน)";
 "settings.account.provider.local" = "ในเครื่อง (พัฒนา)";
+"settings.account.linked.phone" = "เชื่อมโทรศัพท์แล้ว";
+"settings.account.linked.apple" = "เชื่อม Apple แล้ว";
+"settings.account.linked.yes" = "ใช่";
+"settings.account.linked.no" = "ไม่";
+"settings.account.link.phone.title" = "เชื่อมโทรศัพท์";
+"settings.account.link.phone.note" = "รหัส OTP จะผูกกับบัญชี Firebase นี้ (UID ไม่เปลี่ยน) จากนั้นเปิดห้องเก็บเดียวกันด้วยโทรศัพท์หรือ Apple ได้";
+"settings.account.link.phone.action" = "ยืนยันและเชื่อมโทรศัพท์";
+"settings.account.link.phone.success" = "เชื่อมโทรศัพท์กับบัญชีนี้แล้ว";
+"settings.account.link.phone.alreadyInUse" = "เบอร์นี้ผูกกับบัญชีอื่นแล้ว เขียนทับโดยตรงไม่ได้";
+"settings.account.link.phone.alreadyLinked" = "บัญชีนี้เชื่อมโทรศัพท์อยู่แล้ว";
+"settings.account.link.apple.title" = "เชื่อม Apple";
+"settings.account.link.apple.note" = "ผูก Apple ID กับบัญชี Firebase นี้ (UID ไม่เปลี่ยน) ไม่สร้างบัญชีใหม่";
+"settings.account.link.apple.success" = "เชื่อม Apple กับบัญชีนี้แล้ว";
+"settings.account.link.apple.alreadyInUse" = "Apple ID นี้ผูกกับบัญชีอื่นแล้ว เขียนทับโดยตรงไม่ได้";
+"settings.account.link.apple.alreadyLinked" = "บัญชีนี้เชื่อม Apple อยู่แล้ว";
+"settings.account.link.apple.error" = "เชื่อม Apple ไม่สำเร็จ ลองอีกครั้ง";
+"settings.account.link.needSignedIn" = "เข้าสู่ระบบก่อน แล้วค่อยเชื่อมวิธีอื่น";
+"settings.account.link.mergeGuidance" = "ถ้าต้องการรวมข้อมูลทั้งสองฝั่ง ให้เลือกว่าจะเก็บบัญชีไหนเป็นหลัก แล้วส่งออก/นำเข้าไดอารี่เอง แอปจะไม่เขียนทับบัญชีอื่นเงียบๆ";
+"settings.account.link.bothDone" = "โทรศัพท์และ Apple เชื่อมกับบัญชีเดียวกันแล้ว";
+"settings.account.link.footer" = "เมื่อเข้าสู่ระบบแล้ว สามารถเชื่อมวิธีที่ขาดกับ Firebase UID เดียวกัน (และ users/{uid}) หากวิธีนั้นอยู่กับบัญชีอื่น จะแสดงข้อผิดพลาดชัดเจน ไม่เขียนทับเงียบๆ";
 "settings.account.signOut" = "ออกจากระบบ";
 "settings.account.footer" = "เซสชันอยู่บนเครื่องนี้เท่านั้น เข้าสู่ระบบหลักคือ SMS OTP ทุกภูมิภาค Sign in with Apple แสดงด้านล่างเมื่อพร้อม ออกจากระบบแล้วย้อนไปเกตบัญชี";
 "settings.account.phone.footer" = "ใส่เบอร์มือถือ ส่งรหัส แล้วยืนยัน รองรับไต้หวัน (+886) ฮ่องกง (+852) จีนแผ่นดินใหญ่ (+86) มาเลเซีย (+60) สิงคโปร์ (+65) ไทย (+66) และญี่ปุ่น (+81) เมื่อยังไม่ได้เข้าสู่ระบบด้วย Apple จะมีปุ่มมาตรฐานด้านล่าง แบนเนอร์แสดง Firebase หรือ Stub — เหมือนเกตเปิดแอป";
