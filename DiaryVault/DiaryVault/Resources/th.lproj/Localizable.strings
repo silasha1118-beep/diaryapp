@@ -77,13 +77,13 @@
 "paywall.headline" = "กระจกที่รู้จักคำของคุณ";
 "paywall.body" = "เลือกฟรี Author Plus หรือ Author Pro ราคาจาก StoreKit (ตั้งค่าในเครื่องหรือ App Store) — ไม่ฮาร์ดโค้ดที่นี่";
 "paywall.free.title" = "ฟรี";
-"paywall.free.body" = "เขียนในห้องเก็บและลองกระจก กระจกคลาวด์ฟรี: ครั้งแรกๆ ใช้ได้ตามปกติ ครั้งถัดไปจะเตือนอัปเกรด จนครบเพดานวันนี้ (6) แล้วหยุด";
+"paywall.free.body" = "เขียนในห้องเก็บและลองกระจก อัปโหลดข้อความฟรี: 4 ครั้งแรกไม่รบกวน; ครั้งที่ 5–8 เตือน Plus; เกิน 8 หยุด สื่อหลายประเภท (ภายหลัง): 3 ครั้งแรกฟรี เตือนครั้ง 4–5 หยุดหลัง 5 กระจกคลาวด์ (แยก): ซอฟต์ 3 ฮาร์ด 6";
 "paywall.free.current" = "แผนปัจจุบันของคุณ";
-"paywall.plus.blurb" = "ไดอารีไม่จำกัด + กระจก 15 ครั้งต่อวัน เลือกเดือน ไตรมาส หรือปี";
-"paywall.plus.section" = "Author Plus · กระจก 15 ครั้ง/วัน";
+"paywall.plus.blurb" = "สร้างไดอารีข้อความ 20/วัน + มัลติมีเดีย 11/วัน (สื่อภายหลัง) กระจกคลาวด์ 15/วัน เลือกเดือน ไตรมาส หรือปี";
+"paywall.plus.section" = "Author Plus · อัปโหลดข้อความ 20 / สื่อ 11";
 "paywall.pro.title" = "Author Pro";
-"paywall.pro.section" = "Author Pro · กระจก 40 ครั้ง/วัน";
-"paywall.pro.body" = "โควตากระจกรายวันสูงสุด (40/วัน) เลือกเดือน ไตรมาส หรือปี เมื่อ Plus ไม่พอ";
+"paywall.pro.section" = "Author Pro · อัปโหลดข้อความ 40 / สื่อ 22";
+"paywall.pro.body" = "เพดานอัปโหลดรายวันสูงสุด: ข้อความ 40/วัน สื่อ 22/วัน กระจกคลาวด์ 40/วัน เลือกเดือน ไตรมาส หรือปี เมื่อ Plus ไม่พอ";
 "paywall.pro.pending" = "สินค้า Author Pro โหลดจาก StoreKit เมื่อ Scheme ชี้ DiaryVault.storekit หรือ Connect";
 "paywall.pro.monthly" = "Author Pro · รายเดือน";
 "paywall.pro.quarterly" = "Author Pro · รายไตรมาส";
@@ -130,6 +130,11 @@
 "diary.delete.title" = "ลบบันทึกนี้?";
 "diary.delete.message" = "ลบออกจากเครื่องนี้ หากเข้าสู่ระบบแล้ว จะลบออกจากซิงค์คลาวด์เมื่อออนไลน์ด้วย";
 "diary.missing" = "บันทึกนี้ไม่อยู่ในห้องเก็บแล้ว";
+"diary.quota.exhausted.free" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) อัปเกรด Author Plus เพื่อโควตรายวันสูงขึ้น หรือลองใหม่พรุ่งนี้";
+"diary.quota.exhausted.plus" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) อัปเกรด Author Pro (40/วัน) หรือลองใหม่พรุ่งนี้";
+"diary.quota.exhausted.pro" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) ลองใหม่พรุ่งนี้";
+"diary.quota.upgrade" = "ดู Author Plus";
+"diary.quota.upgrade.pro" = "ดู Author Pro";
 
 /* Mirror */
 "mirror.title" = "กระจก";
@@ -208,7 +213,7 @@
 "settings.billing.product" = "สินค้า";
 "settings.billing.expires" = "สิ้นรอบ";
 "settings.billing.manage" = "ดูแผน / กู้คืน";
-"settings.billing.footer" = "StoreKit 2: ฟรี / Author Plus (15/วัน) / Author Pro (40/วัน); เดือน ไตรมาส ปี DiaryVault.storekit ในเครื่องหรือ App Store Sandbox แทนที่รหัสด้วย DIARY_IAP_* ไม่ใส่ความลับในรีโป";
+"settings.billing.footer" = "StoreKit 2: อัปโหลดฟรีข้อความ 4→8 (สื่อ 3→5) / Plus 20·11 / Pro 40·22; กระจกแยก Free 3→6 / Plus 15 / Pro 40; เดือน ไตรมาส ปี DiaryVault.storekit หรือ Sandbox DIARY_IAP_* ได้ ไม่ใส่ความลับในรีโป";
 "settings.section.language" = "ภาษา";
 "settings.language" = "ภาษาแอป";
 "settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — สลับได้ทุกเมื่อ เปิดครั้งแรกตามภาษาของระบบ";
@@ -229,7 +234,7 @@
 "settings.ai.quota.exhausted.plus" = "กระจกวันนี้ใช้ครบแล้ว อัปเกรด Author Pro (40/วัน) หรือรอถึงพรุ่งนี้";
 "settings.ai.quota.exhausted.pro" = "กระจกวันนี้ใช้ครบแล้ว ลองใหม่พรุ่งนี้";
 "settings.ai.residency" = "ที่เก็บข้อมูล";
-"settings.ai.footer" = "กระจกคลาวด์: ฟรีฮาร์ด 6 / ซอฟต์ 3; Plus ใช้ DIARY_AI_DAILY_REQUEST_LIMIT (ค่าเริ่ม 15); Pro ใช้ DIARY_AI_PRO_DAILY_REQUEST_LIMIT (ค่าเริ่ม 40) 0 = ไม่จำกัดชั้นนั้น ตั้ง DIARY_AI_API_KEY ใน Xcode scheme ไม่ใส่ความลับในรีโป";
+"settings.ai.footer" = "กระจกคลาวด์ (แยกจากอัปโหลด): ฟรีฮาร์ด 6 / ซอฟต์ 3; Plus DIARY_AI_DAILY_REQUEST_LIMIT (15); Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT (40) ไดอารีอัปโหลดใช้ DiaryUploadUsageGuard 0 = ไม่จำกัดชั้นกระจก ตั้ง DIARY_AI_API_KEY ใน scheme ไม่ใส่ความลับในรีโป";
 "settings.section.legacy" = "มรดก";
 "settings.legacy.stub" = "อนุสรณ์ / โคลนเสียง / ผู้ดำเนินการ — ไม่มีใน UI เฟส 1";
 "settings.legacy.footer" = "แผนงานเท่านั้น ละไว้ในโครง MVP นี้";

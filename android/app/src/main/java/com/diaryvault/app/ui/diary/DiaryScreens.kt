@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -276,12 +277,72 @@ private fun DiaryComposerScreen(
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var body by remember { mutableStateOf(existing?.body.orEmpty()) }
     var mood by remember { mutableStateOf(existing?.moodTag.orEmpty()) }
+    var quotaMessage by remember { mutableStateOf<String?>(null) }
+    var softPaywallPending by remember { mutableStateOf(false) }
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = VaultColors.seal,
         unfocusedBorderColor = VaultColors.line,
         focusedTextColor = VaultColors.ink,
         cursorColor = VaultColors.seal,
     )
+
+    fun trySave(suppressSoft: Boolean = false) {
+        if (existing != null) {
+            viewModel.updateEntry(
+                existing.copy(title = title.trim(), body = body.trim(), moodTag = mood.trim().ifBlank { null }),
+            )
+            onDone()
+            return
+        }
+        when (
+            val result = viewModel.addEntry(title, body, mood, suppressSoftPaywall = suppressSoft)
+        ) {
+            is VaultViewModel.AddEntryResult.Saved -> onDone()
+            is VaultViewModel.AddEntryResult.SoftPaywall -> {
+                softPaywallPending = true
+                quotaMessage = viewModel.string(
+                    R.string.diary_quota_soft_reminder,
+                    result.used,
+                    result.limit,
+                )
+            }
+            is VaultViewModel.AddEntryResult.Blocked -> {
+                softPaywallPending = false
+                val resId = when {
+                    result.isAuthorPro -> R.string.diary_quota_exhausted_pro
+                    result.isAuthorPlus -> R.string.diary_quota_exhausted_plus
+                    else -> R.string.diary_quota_exhausted_free
+                }
+                quotaMessage = viewModel.string(resId, result.limit)
+            }
+        }
+    }
+
+    if (softPaywallPending && quotaMessage != null) {
+        AlertDialog(
+            onDismissRequest = {
+                softPaywallPending = false
+                trySave(suppressSoft = true)
+            },
+            title = { Text(localizedString(R.string.diary_quota_upgrade)) },
+            text = { Text(quotaMessage.orEmpty()) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        softPaywallPending = false
+                        trySave(suppressSoft = true)
+                    },
+                ) {
+                    Text(localizedString(R.string.common_continue))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { softPaywallPending = false }) {
+                    Text(localizedString(R.string.common_cancel))
+                }
+            },
+        )
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -294,18 +355,7 @@ private fun DiaryComposerScreen(
                     }
                 },
                 actions = {
-                    TextButton(
-                        onClick = {
-                            if (existing == null) {
-                                viewModel.addEntry(title, body, mood)
-                            } else {
-                                viewModel.updateEntry(
-                                    existing.copy(title = title.trim(), body = body.trim(), moodTag = mood.trim().ifBlank { null }),
-                                )
-                            }
-                            onDone()
-                        },
-                    ) {
+                    TextButton(onClick = { trySave() }) {
                         Text(localizedString(R.string.common_save), color = VaultColors.seal)
                     }
                 },
@@ -348,6 +398,11 @@ private fun DiaryComposerScreen(
                 colors = fieldColors,
                 shape = RoundedCornerShape(12.dp),
             )
+            if (!softPaywallPending) {
+                quotaMessage?.let { msg ->
+                    Text(msg, color = VaultColors.seal, style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
     }
 }

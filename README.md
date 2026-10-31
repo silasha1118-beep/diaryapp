@@ -164,11 +164,11 @@ Three Mirror tiers (entitlement rank **Pro > Plus > Free**). Each paid tier has 
 | `DIARY_IAP_PRO_QUARTERLY_PRODUCT_ID` | `com.diaryvault.author.pro.quarterly` |
 | `DIARY_IAP_PRO_YEARLY_PRODUCT_ID` | `com.diaryvault.author.pro.yearly` |
 
-| Tier | Daily Mirror hard cap | Soft paywall |
-|------|----------------------|--------------|
-| Free | 6 | After 3 uses, dismissible Author Plus reminder on uses 4–6 |
-| Author Plus | 15 | At 15 → “done for today” + Author Pro upsell |
-| Author Pro | 40 | At 40 → “done for today” only |
+| Tier | Daily **upload** (text / media) | Daily **Mirror** (unchanged) |
+|------|----------------------------------|------------------------------|
+| Free | Text soft through 4, paywall 5–8, hard after 8; media soft 3, paywall 4–5, hard after 5 (media DA-15) | Soft after 3, hard 6 |
+| Author Plus | Text 20 / media 11 hard; at cap → Author Pro upsell | Hard 15 + Pro upsell |
+| Author Pro | Text 40 / media 22 hard | Hard 40 |
 
 - Settings → **View plans / restore** opens the paywall (Free card + Plus periods + Pro periods, purchase, **Restore purchases**, reload).
 - Shared scheme already points at `DiaryVault/Configuration/DiaryVault.storekit` for local testing (one subscription group, Pro service level above Plus).
@@ -192,9 +192,18 @@ You do **not** need a paid Apple Developer account to try purchase + restore on 
    - Tap **Restore purchases** after a purchase (or after deleting/reinstalling the app) to re-sync entitlement.
 6. Optional debug: in Xcode menu **Debug → StoreKit → Manage Transactions…** to expire / refund / renew the local subscription.
 
+#### Beginner Mac steps — diary **upload** quotas (text create)
+
+`DiaryUploadUsageGuard` / `UploadQuotaConfig` (independent of Mirror). Local calendar day (`TimeZone.current`).
+
+1. Stay on **Free**. Open **New entry** → save up to 4 without paywall; saves 5–8 show dismissible Plus; after 8, “done for today”.
+2. Buy **Author Plus** → text creates 20/day. At 20, upsell **Author Pro**.
+3. Buy **Author Pro** → text creates 40/day. At 40, “done for today”.
+4. Multimedia upload counts (Free 3→5 / Plus 11 / Pro 22) are stubbed for DA-15 — not wired in UI yet.
+
 #### Beginner Mac steps — Free / Plus / Pro Mirror AI quotas
 
-Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 6/day** (soft reminder after **3**), **Plus = 15/day**, **Pro = 40/day**. Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
+Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults unchanged: **Free = 6/day** (soft after **3**), **Plus = 15/day**, **Pro = 40/day**. Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
 
 1. Same as above: StoreKit Configuration = `DiaryVault.storekit`, Simulator Run, cloud AI key in scheme.
 2. Stay on **Free**. Open **Mirror** → after 3 uses, uses 4–6 show a dismissible paywall; at 6, “done for today”.

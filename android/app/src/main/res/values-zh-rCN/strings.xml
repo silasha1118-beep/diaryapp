@@ -31,6 +31,11 @@
     <string name="diary_field_body">在这里书写…</string>
     <string name="diary_detail_owned">这一页属于你。</string>
     <string name="diary_missing">这篇日记已不在金库中。</string>
+    <string name="diary_quota_exhausted_free">今日文字上传已用完（%1$d）。升级 Author Plus 可提高每日额度，或明天再试。</string>
+    <string name="diary_quota_exhausted_plus">今日文字上传已用完（%1$d）。可升级 Author Pro（每日 40 次），或明天再试。</string>
+    <string name="diary_quota_exhausted_pro">今日文字上传已用完（%1$d）。请明天再试。</string>
+    <string name="diary_quota_soft_reminder">今日文字上传已用 %1$d／%2$d 次——升级 Author Plus 可提高每日额度</string>
+    <string name="diary_quota_upgrade">查看 Author Plus</string>
     <string name="mirror_title">镜子</string>
     <string name="mirror_intro">我是一面以你写过的内容为依据的镜子。我会反映与提问——不会告诉你「该做什么」。（此骨架为占位 AI。）</string>
     <string name="mirror_mode_mock">模拟镜子</string>

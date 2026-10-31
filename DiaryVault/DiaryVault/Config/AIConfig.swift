@@ -21,6 +21,9 @@ enum AIProvider: String {
 /// - `DIARY_AI_DAILY_REQUEST_LIMIT` — Author Plus daily hard cap (default 15; `0` = unlimited for that tier)
 /// - `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` — Author Pro daily hard cap (default 40; `0` = unlimited for Pro)
 ///
+/// Mirror quotas stay independent of diary **upload** quotas (``UploadQuotaConfig`` /
+/// ``DiaryUploadUsageGuard`` — Silas 2026-10-31 upload tiers; do not retarget Mirror defaults).
+///
 /// Data residency narrative for this product: Taiwan (TW).
 enum AIConfig {
     static let defaultOpenAIBaseURLString = "https://api.openai.com"
@@ -44,6 +47,7 @@ enum AIConfig {
     /// Soft cap on prior chat turns sent to the model.
     static let maxConversationTurns = 8
     // TODO(DA-15): Soft duration caps for voice (~60–90s) and video (~30–60s) diary media — not enforced yet.
+    // Multimedia **upload count** caps live in UploadQuotaConfig (separate from Mirror).
 
     /// Resolved provider: explicit `DIARY_AI_PROVIDER`, else auto-detect from BASE_URL, else openai.
     static var provider: AIProvider {

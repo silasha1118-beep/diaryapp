@@ -13,6 +13,8 @@
 		A10000000000000000000004 /* MirrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* MirrorMessage.swift */; };
 		A10000000000000000000005 /* DiaryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000005 /* DiaryStore.swift */; };
 		A10000000000000000000006 /* AIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* AIConfig.swift */; };
+		A10000000000000000000032 /* UploadQuotaConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000032 /* UploadQuotaConfig.swift */; };
+		A10000000000000000000033 /* DiaryUploadUsageGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000033 /* DiaryUploadUsageGuard.swift */; };
 		A10000000000000000000007 /* MirrorAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000007 /* MirrorAIService.swift */; };
 		A10000000000000000000008 /* MockMirrorAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* MockMirrorAIClient.swift */; };
 		A10000000000000000000009 /* CloudMirrorAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000009 /* CloudMirrorAIClient.swift */; };
@@ -58,6 +60,8 @@
 		B10000000000000000000004 /* MirrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorMessage.swift; sourceTree = "<group>"; };
 		B10000000000000000000005 /* DiaryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryStore.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* AIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfig.swift; sourceTree = "<group>"; };
+		B10000000000000000000032 /* UploadQuotaConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadQuotaConfig.swift; sourceTree = "<group>"; };
+		B10000000000000000000033 /* DiaryUploadUsageGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryUploadUsageGuard.swift; sourceTree = "<group>"; };
 		B10000000000000000000007 /* MirrorAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorAIService.swift; sourceTree = "<group>"; };
 		B10000000000000000000008 /* MockMirrorAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMirrorAIClient.swift; sourceTree = "<group>"; };
 		B10000000000000000000009 /* CloudMirrorAIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudMirrorAIClient.swift; sourceTree = "<group>"; };
@@ -171,6 +175,7 @@
 				B1000000000000000000001B /* AnthropicMirrorAIClient.swift */,
 				B10000000000000000000019 /* MirrorPromptBuilder.swift */,
 				B1000000000000000000001A /* MirrorUsageGuard.swift */,
+				B10000000000000000000033 /* DiaryUploadUsageGuard.swift */,
 				B1000000000000000000000A /* LocalizationManager.swift */,
 				B1000000000000000000001D /* AccountSession.swift */,
 				B10000000000000000000024 /* SMSAuthProvider.swift */,
@@ -185,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000006 /* AIConfig.swift */,
+				B10000000000000000000032 /* UploadQuotaConfig.swift */,
 				B1000000000000000000001C /* BillingConfig.swift */,
 				B10000000000000000000023 /* AuthConfig.swift */,
 				B1000000000000000000002B /* LegalConfig.swift */,
@@ -395,7 +401,9 @@
 				A10000000000000000000005 /* DiaryStore.swift in Sources */,
 				A1000000000000000000002F /* DiaryCloudSync.swift in Sources */,
 				A10000000000000000000006 /* AIConfig.swift in Sources */,
+				A10000000000000000000032 /* UploadQuotaConfig.swift in Sources */,
 				A1000000000000000000001C /* BillingConfig.swift in Sources */,
+				A10000000000000000000033 /* DiaryUploadUsageGuard.swift in Sources */,
 				A10000000000000000000023 /* AuthConfig.swift in Sources */,
 				A1000000000000000000002B /* LegalConfig.swift in Sources */,
 				A10000000000000000000007 /* MirrorAIService.swift in Sources */,

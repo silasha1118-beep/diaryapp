@@ -77,16 +77,16 @@
 "paywall.headline" = "A mirror that knows your words.";
 "paywall.body" = "Choose Free, Author Plus, or Author Pro. Prices come from StoreKit (local config or App Store) — nothing is hardcoded here.";
 "paywall.free.title" = "Free";
-"paywall.free.body" = "Write in your vault and try the mirror. Free cloud Mirror: first uses are uninterrupted; later uses show this reminder, then today’s limit (6) stops further Mirror.";
+"paywall.free.body" = "Write in your vault and try the mirror. Free text uploads: soft free through 4/day; uses 5–8 show this Plus reminder; hard stop after 8. Multimedia (later): soft through 3, reminder on 4–5, stop after 5. Cloud Mirror (separate): soft after 3, hard stop at 6.";
 "paywall.free.current" = "Your current plan";
-"paywall.plus.section" = "Author Plus · 15 Mirror / day";
-"paywall.plus.blurb" = "Unlimited diary narrative + 15 Mirror requests per day. Monthly, quarterly, or yearly.";
+"paywall.plus.section" = "Author Plus · upload text 20 / media 11";
+"paywall.plus.blurb" = "Text diary creates 20/day + multimedia 11/day (media later). Cloud Mirror: 15/day. Monthly, quarterly, or yearly.";
 "paywall.plus.monthly" = "Author Plus · Monthly";
 "paywall.plus.quarterly" = "Author Plus · Quarterly";
 "paywall.plus.yearly" = "Author Plus · Yearly";
-"paywall.pro.section" = "Author Pro · 40 Mirror / day";
+"paywall.pro.section" = "Author Pro · upload text 40 / media 22";
 "paywall.pro.title" = "Author Pro";
-"paywall.pro.body" = "Highest daily Mirror quota (40/day). Monthly, quarterly, or yearly. Upgrade when Plus is not enough.";
+"paywall.pro.body" = "Highest daily upload caps: text 40/day, multimedia 22/day. Cloud Mirror: 40/day. Monthly, quarterly, or yearly. Upgrade when Plus is not enough.";
 "paywall.pro.pending" = "Author Pro products load from StoreKit when the scheme points at DiaryVault.storekit (or Connect).";
 "paywall.pro.monthly" = "Author Pro · Monthly";
 "paywall.pro.quarterly" = "Author Pro · Quarterly";
@@ -130,6 +130,11 @@
 "diary.delete.title" = "Delete this entry?";
 "diary.delete.message" = "Removes it from this device. If you are signed in, it is also removed from cloud sync when online.";
 "diary.missing" = "This entry is no longer in the vault.";
+"diary.quota.exhausted.free" = "Today’s text uploads are done (%d). Upgrade to Author Plus for a higher daily quota, or try again tomorrow.";
+"diary.quota.exhausted.plus" = "Today’s text uploads are done (%d). Upgrade to Author Pro (40/day) for more, or try again tomorrow.";
+"diary.quota.exhausted.pro" = "Today’s text uploads are done (%d). Try again tomorrow.";
+"diary.quota.upgrade" = "View Author Plus";
+"diary.quota.upgrade.pro" = "View Author Pro";
 
 /* Mirror */
 "mirror.title" = "Mirror";
@@ -209,7 +214,7 @@
 "settings.billing.product" = "Product";
 "settings.billing.expires" = "Period end";
 "settings.billing.manage" = "View plans / restore";
-"settings.billing.footer" = "StoreKit 2: Free / Author Plus (15/day) / Author Pro (40/day); monthly, quarterly, yearly. Local DiaryVault.storekit or App Store Sandbox. Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
+"settings.billing.footer" = "StoreKit 2: Free text 4→8 (media 3→5) / Plus text 20 · media 11 / Pro text 40 · media 22; monthly, quarterly, yearly. Local DiaryVault.storekit or App Store Sandbox. Override product IDs via DIARY_IAP_* env or Info.plist. No secrets in the repo.";
 "settings.section.language" = "Language";
 "settings.language" = "App language";
 "settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — switch anytime. First launch follows your system language (App Store locale).";
@@ -230,7 +235,7 @@
 "settings.ai.quota.exhausted.plus" = "Today’s Mirror use is finished. Upgrade to Author Pro (40/day), or wait until tomorrow.";
 "settings.ai.quota.exhausted.pro" = "Today’s Mirror use is finished. Try again tomorrow.";
 "settings.ai.residency" = "Data residency";
-"settings.ai.footer" = "Cloud Mirror: Free hard 6 / soft 3; Plus DIARY_AI_DAILY_REQUEST_LIMIT (default 15); Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT (default 40). 0 = unlimited for that tier. Set DIARY_AI_API_KEY in the Xcode scheme. No secrets in the repo.";
+"settings.ai.footer" = "Cloud Mirror (separate from uploads): Free hard 6 / soft 3; Plus DIARY_AI_DAILY_REQUEST_LIMIT (default 15); Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT (default 40). Diary creates use DiaryUploadUsageGuard (Free text 4→8 / media 3→5; Plus 20/11; Pro 40/22). 0 = unlimited for that Mirror tier. Set DIARY_AI_API_KEY in the Xcode scheme. No secrets in the repo.";
 "settings.section.legacy" = "Legacy";
 "settings.legacy.stub" = "Memorial / voice clone / executor settings — not in Phase 1 UI.";
 "settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";

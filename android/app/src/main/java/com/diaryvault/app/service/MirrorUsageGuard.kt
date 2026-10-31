@@ -9,7 +9,12 @@ import java.util.TimeZone
 
 /**
  * Local daily Mirror AI request counter (not a server-side quota).
- * Free vs Author Plus limits come from [AIConfig]; pass [isAuthorPlus] from billing entitlement
+ *
+ * Free soft 3 / hard 6; Plus 15; Pro 40 — independent of diary upload quotas
+ * ([com.diaryvault.app.config.UploadQuotaConfig] / [DiaryUploadUsageGuard]).
+ * Day stamp = local calendar day (same style as upload guard).
+ *
+ * Pass [isAuthorPlus] / [isAuthorPro] from billing entitlement
  * (Play Billing stub today — iOS StoreKit is the first wired path).
  */
 object MirrorUsageGuard {
@@ -17,11 +22,11 @@ object MirrorUsageGuard {
     private const val KEY_DAY = "usageDay"
     private const val KEY_COUNT = "usageCount"
 
-    fun effectiveLimit(isAuthorPlus: Boolean): Int {
-        return if (isAuthorPlus) {
-            AIConfig.dailyRequestLimit
-        } else {
-            AIConfig.freeDailyRequestLimit
+    fun effectiveLimit(isAuthorPlus: Boolean, isAuthorPro: Boolean = false): Int {
+        return when {
+            isAuthorPro -> AIConfig.proDailyRequestLimit
+            isAuthorPlus -> AIConfig.dailyRequestLimit
+            else -> AIConfig.freeDailyRequestLimit
         }
     }
 
@@ -32,8 +37,12 @@ object MirrorUsageGuard {
         return prefs.getInt(KEY_COUNT, 0).coerceAtLeast(0)
     }
 
-    fun checkAndIncrement(context: Context, isAuthorPlus: Boolean = false) {
-        val limit = effectiveLimit(isAuthorPlus)
+    fun checkAndIncrement(
+        context: Context,
+        isAuthorPlus: Boolean = false,
+        isAuthorPro: Boolean = false,
+    ) {
+        val limit = effectiveLimit(isAuthorPlus, isAuthorPro)
         if (limit <= 0) return
 
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

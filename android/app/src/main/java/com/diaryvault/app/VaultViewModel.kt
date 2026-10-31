@@ -8,6 +8,7 @@ import com.diaryvault.app.billing.BillingConfig
 import com.diaryvault.app.billing.BillingStub
 import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.config.AIProvider
+import com.diaryvault.app.config.UploadQuotaConfig
 import com.diaryvault.app.data.AppPreferences
 import com.diaryvault.app.data.DiaryStore
 import com.diaryvault.app.model.AppLanguage
@@ -15,6 +16,7 @@ import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.MirrorContext
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
+import com.diaryvault.app.service.DiaryUploadUsageGuard
 import com.diaryvault.app.service.MirrorAIError
 import com.diaryvault.app.service.createMirrorAIService
 import com.diaryvault.app.service.localeForLanguageTag
@@ -124,8 +126,58 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
 
     fun entry(id: String): DiaryEntry? = store.entry(id)
 
-    fun addEntry(title: String, body: String, moodTag: String?) {
-        store.add(title, body, moodTag)
+    /**
+     * Result of attempting a new text diary create under daily upload quotas.
+     * [shouldNudgePaywall] means Free soft band — UI may show a dismissible Plus reminder then retry.
+     */
+    sealed class AddEntryResult {
+        data object Saved : AddEntryResult()
+        data class Blocked(
+            val limit: Int,
+            val isAuthorPlus: Boolean,
+            val isAuthorPro: Boolean,
+        ) : AddEntryResult()
+        data class SoftPaywall(val used: Int, val limit: Int) : AddEntryResult()
+    }
+
+    private val isAuthorPlusEntitled: Boolean
+        get() = billingStub.isSubscribed
+
+    /** Play Billing Pro not wired yet — always false until product IDs land. */
+    private val isAuthorProEntitled: Boolean
+        get() = false
+
+    /**
+     * Creates a new text entry if under quota.
+     * @param suppressSoftPaywall When true (after dismissible reminder), skip soft nudge and save.
+     */
+    fun addEntry(
+        title: String,
+        body: String,
+        moodTag: String?,
+        suppressSoftPaywall: Boolean = false,
+    ): AddEntryResult {
+        val ctx = getApplication<Application>()
+        val plus = isAuthorPlusEntitled
+        val pro = isAuthorProEntitled
+        if (DiaryUploadUsageGuard.isExhausted(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)) {
+            val limit = DiaryUploadUsageGuard.effectiveLimit(UploadQuotaConfig.Kind.TEXT, plus, pro)
+            return AddEntryResult.Blocked(limit, plus, pro)
+        }
+        if (!suppressSoftPaywall &&
+            DiaryUploadUsageGuard.shouldNudgePaywall(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)
+        ) {
+            val used = DiaryUploadUsageGuard.usageCountToday(ctx, UploadQuotaConfig.Kind.TEXT)
+            val limit = DiaryUploadUsageGuard.effectiveLimit(UploadQuotaConfig.Kind.TEXT, plus, pro)
+            return AddEntryResult.SoftPaywall(used, limit)
+        }
+        return try {
+            DiaryUploadUsageGuard.checkAndIncrement(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)
+            store.add(title, body, moodTag)
+            AddEntryResult.Saved
+        } catch (e: DiaryUploadUsageGuard.RateLimited) {
+            AddEntryResult.Blocked(e.limit, e.isAuthorPlus, e.isAuthorPro)
+        }
     }
 
     fun updateEntry(entry: DiaryEntry) {

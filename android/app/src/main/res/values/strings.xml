@@ -31,6 +31,11 @@
     <string name="diary_field_body">Write here…</string>
     <string name="diary_detail_owned">This page belongs to you.</string>
     <string name="diary_missing">This entry is no longer in the vault.</string>
+    <string name="diary_quota_exhausted_free">Today’s text uploads are done (%1$d). Upgrade to Author Plus for a higher daily quota, or try again tomorrow.</string>
+    <string name="diary_quota_exhausted_plus">Today’s text uploads are done (%1$d). Upgrade to Author Pro (40/day) for more, or try again tomorrow.</string>
+    <string name="diary_quota_exhausted_pro">Today’s text uploads are done (%1$d). Try again tomorrow.</string>
+    <string name="diary_quota_soft_reminder">%1$d of %2$d text uploads used today — Author Plus raises the daily limit</string>
+    <string name="diary_quota_upgrade">View Author Plus</string>
     <string name="mirror_title">Mirror</string>
     <string name="mirror_intro">I’m a mirror grounded in what you’ve written. I’ll reflect and ask — I won’t tell you what to do. (Placeholder AI for this scaffold.)</string>
     <string name="mirror_mode_mock">Mock mirror</string>
