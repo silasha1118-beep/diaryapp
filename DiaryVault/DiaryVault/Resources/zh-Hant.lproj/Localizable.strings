@@ -122,6 +122,8 @@
 "diary.subtitle" = "你的私密日記";
 "diary.subtitle.named" = "%@ 的金庫";
 "diary.new" = "新日記";
+"diary.edit" = "編輯日記";
+"diary.swipe.hint" = "向左滑可編輯或刪除";
 "diary.empty.title" = "金庫還很安靜";
 "diary.empty.body" = "寫下第一頁——一句話就夠。";
 "diary.emptyBody" = "（空白）";
@@ -129,7 +131,7 @@
 "diary.field.mood" = "心情標籤（可選）";
 "diary.detail.owned" = "這一頁屬於你。";
 "diary.delete.title" = "刪除這則日記？";
-"diary.delete.message" = "會從此裝置移除。若已登入，連線時也會從雲端同步刪除。";
+"diary.delete.message" = "會從金庫列表隱藏。頁面會以軟刪除方式保留在封存中，不會永久抹除。";
 "diary.missing" = "這篇日記已不在金庫中。";
 "diary.quota.exhausted.free" = "今日文字上傳已用完（%d）。升級 Author Plus 可提高每日額度，或明天再試。";
 "diary.quota.exhausted.plus" = "今日文字上傳已用完（%d）。可升級 Author Pro（每日 40 次），或明天再試。";

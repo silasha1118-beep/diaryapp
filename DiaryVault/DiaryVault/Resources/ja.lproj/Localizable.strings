@@ -122,6 +122,8 @@
 "diary.subtitle" = "ボールト内のプライベートな記録";
 "diary.subtitle.named" = "%@ のボールト";
 "diary.new" = "新しい記録";
+"diary.edit" = "記録を編集";
+"diary.swipe.hint" = "左にスワイプで編集・削除";
 "diary.empty.title" = "ボールトは静かです";
 "diary.empty.body" = "最初のページを書いてみましょう——一文で十分です。";
 "diary.emptyBody" = "（空）";
@@ -129,7 +131,7 @@
 "diary.field.mood" = "気分タグ（任意）";
 "diary.detail.owned" = "このページはあなたのもの。";
 "diary.delete.title" = "この日記を削除しますか？";
-"diary.delete.message" = "この端末から削除します。サインイン中なら、オンライン時にクラウド同期からも削除されます。";
+"diary.delete.message" = "ボールトの一覧から非表示にします。ページはソフト削除として保管され、完全には消去されません。";
 "diary.missing" = "この記録はボールトにありません。";
 "diary.quota.exhausted.free" = "本日のテキスト投稿は使い切りました（%d）。Author Plus にアップグレードするか、明日またお試しください。";
 "diary.quota.exhausted.plus" = "本日のテキスト投稿は使い切りました（%d）。Author Pro（40回／日）へ、または明日またお試しください。";

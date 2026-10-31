@@ -6,7 +6,27 @@ struct DiaryListView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var subscriptions: SubscriptionStore
 
-    @State private var showComposer = false
+    /// Item-based sheet so Edit always receives the tapped entry (not a stale nil capture).
+    @State private var composerSession: ComposerSession?
+    @State private var pendingDeleteID: UUID?
+    @State private var showDeleteConfirm = false
+
+    private enum ComposerSession: Identifiable {
+        case create
+        case edit(DiaryEntry)
+
+        var id: String {
+            switch self {
+            case .create: return "create"
+            case .edit(let entry): return entry.id.uuidString
+            }
+        }
+
+        var editingEntry: DiaryEntry? {
+            if case .edit(let entry) = self { return entry }
+            return nil
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -25,7 +45,7 @@ struct DiaryListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showComposer = true
+                        composerSession = .create
                     } label: {
                         Image(systemName: "square.and.pencil")
                             .foregroundStyle(VaultTheme.ink)
@@ -33,38 +53,77 @@ struct DiaryListView: View {
                     .accessibilityLabel(localization.text("diary.new"))
                 }
             }
-            .sheet(isPresented: $showComposer) {
+            .sheet(item: $composerSession) { session in
                 // Re-attach env objects — sheet inheritance is unreliable on some iOS builds.
-                DiaryComposerView()
+                DiaryComposerView(editingEntry: session.editingEntry)
                     .environmentObject(diaryStore)
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
+            }
+            .confirmationDialog(
+                localization.text("diary.delete.title"),
+                isPresented: $showDeleteConfirm,
+                titleVisibility: .visible
+            ) {
+                Button(localization.text("common.delete"), role: .destructive) {
+                    if let id = pendingDeleteID {
+                        diaryStore.delete(id: id)
+                    }
+                    pendingDeleteID = nil
+                }
+                Button(localization.text("common.cancel"), role: .cancel) {
+                    pendingDeleteID = nil
+                }
+            } message: {
+                Text(localization.text("diary.delete.message"))
             }
         }
     }
 
     private var entryList: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
+        // List (not ScrollView) so `.swipeActions` works on rows.
+        List {
+            Section {
                 header
-                    .padding(.horizontal, 24)
-                    .padding(.top, 8)
-                    .padding(.bottom, 20)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 24, bottom: 20, trailing: 24))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
 
+            Section {
                 ForEach(diaryStore.sortedEntries) { entry in
                     NavigationLink(value: entry) {
                         entryRow(entry)
                     }
                     .buttonStyle(.plain)
+                    .navigationLinkIndicatorVisibility(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparatorTint(VaultTheme.line.opacity(0.6))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            pendingDeleteID = entry.id
+                            showDeleteConfirm = true
+                        } label: {
+                            Label(localization.text("common.delete"), systemImage: "trash")
+                        }
+                        .tint(VaultTheme.seal)
 
-                    Rectangle()
-                        .fill(VaultTheme.line.opacity(0.6))
-                        .frame(height: 1)
-                        .padding(.horizontal, 24)
+                        Button {
+                            composerSession = .edit(entry)
+                        } label: {
+                            Label(localization.text("common.edit"), systemImage: "pencil")
+                        }
+                        .tint(VaultTheme.inkMuted)
+                    }
+                    .accessibilityHint(localization.text("diary.swipe.hint"))
                 }
             }
-            .padding(.bottom, 80)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
+        .padding(.bottom, 40)
     }
 
     private func formattedEntryDate(_ date: Date) -> String {
@@ -134,7 +193,7 @@ struct DiaryListView: View {
                 .foregroundStyle(VaultTheme.inkMuted)
                 .multilineTextAlignment(.center)
             Button {
-                showComposer = true
+                composerSession = .create
             } label: {
                 Text(localization.text("diary.new"))
                     .font(.system(size: 16, weight: .semibold))
