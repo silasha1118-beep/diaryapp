@@ -12,11 +12,13 @@ import FirebaseFirestore
 ///   phoneNumber?, appleUserId?, displayName?, authProviders?
 /// users/{uid}/entries/{entryId}        // entryId = stable DiaryEntry UUID (never phone+datetime)
 ///   id, title, body, moodTag?, createdAt, updatedAt,
+///   deleted, deletedAt?,                 // soft-delete; docs retained forever
 ///   ownerUid, schemaVersion, contentType ("text"),
 ///   label?, bodyPreview?               // Console browsing aids — not path keys
 /// ```
 /// Identity fields live on the user doc only (Console lookup by phoneNumber).
 /// Entry document IDs stay UUIDs (local sync / privacy / phone changes). Use `label` in Console.
+/// User deletes never call Firestore `delete()` — set `deleted` + `deletedAt` instead.
 /// Multimedia (DA-15) can add Storage paths later without changing this text shape.
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
@@ -70,9 +72,17 @@ enum DiaryCloudSync {
         }
     }
 
-    static func delete(entryID: UUID, uid: String) async throws {
+    /// Soft-delete when the local row is gone but a legacy pending delete remains.
+    /// Never calls Firestore `delete()` — retention is forever under `users/{uid}/entries`.
+    /// Merge-only patch; existing title/body/createdAt satisfy rules `hasAll` on update.
+    static func markDeleted(entryID: UUID, uid: String, at date: Date) async throws {
         do {
-            try await DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entryID).delete()
+            let ref = DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entryID)
+            try await ref.setData([
+                "deleted": true,
+                "deletedAt": Timestamp(date: date),
+                "updatedAt": Timestamp(date: date)
+            ], merge: true)
             try await upsertUserProfile(uid: uid, hasTextEntries: true)
         } catch {
             throw mapFirestoreError(error)
@@ -164,24 +174,26 @@ enum DiaryCloudSync {
         return data
     }
 
-    /// Deletes every entry under the user. Batch in chunks of 400.
-    static func deleteAllEntries(uid: String) async throws {
+    /// Soft-deletes every entry under the user (account wipe). Docs stay forever.
+    /// Does not remove the `users/{uid}` profile doc (entries remain addressable for admin).
+    static func softDeleteAllEntries(uid: String) async throws {
         do {
             let snapshot = try await DiaryFirestoreSchema.entriesCollection(uid).getDocuments()
             let docs = snapshot.documents
-            guard !docs.isEmpty else {
-                try await DiaryFirestoreSchema.userDocument(uid).delete()
-                return
-            }
+            let now = Date()
             let db = Firestore.firestore()
             for chunk in docs.chunked(into: 400) {
                 let batch = db.batch()
                 for doc in chunk {
-                    batch.deleteDocument(doc.reference)
+                    batch.setData([
+                        "deleted": true,
+                        "deletedAt": Timestamp(date: now),
+                        "updatedAt": Timestamp(date: now)
+                    ], forDocument: doc.reference, merge: true)
                 }
                 try await batch.commit()
             }
-            try await DiaryFirestoreSchema.userDocument(uid).delete()
+            try await upsertUserProfile(uid: uid, hasTextEntries: false)
         } catch {
             throw mapFirestoreError(error)
         }
@@ -213,10 +225,16 @@ enum DiaryCloudSync {
         return lhs.id.uuidString > rhs.id.uuidString
     }
 
-    /// Document IDs currently acknowledged on the server (ignores local cache).
+    /// Document IDs currently acknowledged on the server (ignores local cache). Includes soft-deleted.
     static func fetchServerEntryIDs(uid: String) async throws -> Set<UUID> {
         let remote = try await fetchAllEntries(uid: uid, source: .server)
         return Set(remote.map(\.id))
+    }
+
+    /// Active (non-deleted) entry IDs on the server — used for Settings count / Vault parity.
+    static func fetchActiveEntryIDs(uid: String) async throws -> Set<UUID> {
+        let remote = try await fetchAllEntries(uid: uid, source: .server)
+        return Set(remote.filter { !$0.deleted }.map(\.id))
     }
 
     /// Blocks until Firestore has acknowledged outstanding writes for this user (or fails).
@@ -250,6 +268,12 @@ enum DiaryCloudSync {
         // Omit nil moodTag (do not write NSNull — merge deletes the field and confuses rules debugging).
         if let mood = entry.moodTag {
             data["moodTag"] = mood
+        }
+        data["deleted"] = entry.deleted
+        if entry.deleted, let deletedAt = entry.deletedAt {
+            data["deletedAt"] = Timestamp(date: deletedAt)
+        } else if entry.deleted {
+            data["deletedAt"] = Timestamp(date: entry.updatedAt)
         }
         return data
     }
@@ -296,13 +320,24 @@ enum DiaryCloudSync {
         // collapse every entry to "now" and scramble Vault chronological order.
         let createdAt = dateValue(data["createdAt"]) ?? Date.distantPast
         let updatedAt = dateValue(data["updatedAt"]) ?? createdAt
+        let deleted: Bool
+        if let flag = data["deleted"] as? Bool {
+            deleted = flag
+        } else if let number = data["deleted"] as? NSNumber {
+            deleted = number.boolValue
+        } else {
+            deleted = false
+        }
+        let deletedAt = dateValue(data["deletedAt"])
         return DiaryEntry(
             id: id,
             title: title,
             body: body,
             moodTag: moodTag,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            deleted: deleted,
+            deletedAt: deletedAt
         )
     }
 

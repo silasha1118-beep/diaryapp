@@ -3,6 +3,8 @@ rules_version = '2';
 // DiaryVault — paste into Firebase Console → Firestore → Rules → Publish.
 // Clients may only read/write their own users/{uid} tree.
 // Admin / console / Admin SDK bypass these rules (phase-2 viewer can use Admin SDK).
+// Entry deletes are soft-only: clients update deleted/deletedAt; hard delete is denied
+// so diary docs remain under users/{uid}/entries forever.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -11,6 +13,13 @@ service cloud.firestore {
 
     function isOwner(userId) {
       return signedIn() && request.auth.uid == userId;
+    }
+
+    function entrySoftDeleteFieldsOk() {
+      return (!('deleted' in request.resource.data)
+          || request.resource.data.deleted is bool)
+        && (!('deletedAt' in request.resource.data)
+          || request.resource.data.deletedAt is timestamp);
     }
 
     // Profile doc path = Firebase Auth UID. ownerUid must match; identity fields
@@ -22,7 +31,8 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       // Text diary entries (phase 1). entryId MUST stay the DiaryEntry UUID
-      // (not phone+datetime). Optional non-key fields: label, bodyPreview, moodTag.
+      // (not phone+datetime). Optional non-key fields: label, bodyPreview, moodTag,
+      // deleted (bool), deletedAt (timestamp). Soft-delete only — no hard delete.
       // Multimedia Storage paths come later (DA-15).
       match /entries/{entryId} {
         allow read: if isOwner(userId);
@@ -35,9 +45,11 @@ service cloud.firestore {
             'ownerUid', 'schemaVersion', 'contentType'
           ])
           && request.resource.data.schemaVersion is int
-          && request.resource.data.contentType is string;
+          && request.resource.data.contentType is string
+          && entrySoftDeleteFieldsOk();
 
-        allow delete: if isOwner(userId);
+        // Forever retention: clients must soft-delete via update (deleted/deletedAt).
+        allow delete: if false;
       }
     }
   }
