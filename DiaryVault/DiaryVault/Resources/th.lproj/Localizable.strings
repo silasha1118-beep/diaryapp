@@ -134,6 +134,8 @@
 "diary.quota.exhausted.free" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) อัปเกรด Author Plus เพื่อโควตรายวันสูงขึ้น หรือลองใหม่พรุ่งนี้";
 "diary.quota.exhausted.plus" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) อัปเกรด Author Pro (40/วัน) หรือลองใหม่พรุ่งนี้";
 "diary.quota.exhausted.pro" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) ลองใหม่พรุ่งนี้";
+"diary.quota.softReminder" = "อัปโหลดข้อความวันนี้เหลือ %d จาก %d ครั้ง — Author Plus เพิ่มเพดานรายวัน";
+"diary.quota.soft.continue" = "บันทึกต่อ";
 "diary.quota.upgrade" = "ดู Author Plus";
 "diary.quota.upgrade.pro" = "ดู Author Pro";
 
@@ -159,6 +161,7 @@
 "settings.title" = "การตั้งค่า";
 "settings.section.account" = "บัญชี";
 "settings.section.accountPhone" = "บัญชี / เข้าสู่ระบบด้วยโทรศัพท์";
+"settings.section.accountLink" = "วิธีเข้าสู่ระบบที่เชื่อมแล้ว";
 "settings.account.status" = "สถานะ";
 "settings.account.signedIn" = "เข้าสู่ระบบแล้ว";
 "settings.account.signedOut" = "ยังไม่ได้เข้าสู่ระบบ";
@@ -173,12 +176,17 @@
 "settings.account.linked.yes" = "ใช่";
 "settings.account.linked.no" = "ไม่";
 "settings.account.link.phone.title" = "เชื่อมโทรศัพท์";
+"settings.account.link.phone.banner" = "คุณเข้าสู่ระบบด้วย Apple อยู่ โปรดเชื่อมเบอร์โทรกับบัญชี「เดิม」（UID ไม่เปลี่ยน）— นี่ไม่ใช่การเข้าสู่ระบบใหม่";
 "settings.account.link.phone.note" = "รหัส OTP จะผูกกับบัญชี Firebase นี้ (UID ไม่เปลี่ยน) จากนั้นเปิดห้องเก็บเดียวกันด้วยโทรศัพท์หรือ Apple ได้";
+"settings.account.link.phone.send" = "ส่งรหัสยืนยันสำหรับเชื่อมบัญชี";
+"settings.account.link.phone.resend" = "ส่งรหัสเชื่อมบัญชีอีกครั้ง";
+"settings.account.link.phone.resend.cooldown" = "ส่งรหัสเชื่อมบัญชีอีกครั้ง (%d วินาที)";
 "settings.account.link.phone.action" = "ยืนยันและเชื่อมโทรศัพท์";
 "settings.account.link.phone.success" = "เชื่อมโทรศัพท์กับบัญชีนี้แล้ว";
 "settings.account.link.phone.alreadyInUse" = "เบอร์นี้ผูกกับบัญชีอื่นแล้ว เขียนทับโดยตรงไม่ได้";
 "settings.account.link.phone.alreadyLinked" = "บัญชีนี้เชื่อมโทรศัพท์อยู่แล้ว";
 "settings.account.link.apple.title" = "เชื่อม Apple";
+"settings.account.link.apple.banner" = "คุณเข้าสู่ระบบด้วยโทรศัพท์อยู่ โปรดเชื่อม Apple กับบัญชี「เดิม」（UID ไม่เปลี่ยน）— จะไม่สร้างบัญชีใหม่";
 "settings.account.link.apple.note" = "ผูก Apple ID กับบัญชี Firebase นี้ (UID ไม่เปลี่ยน) ไม่สร้างบัญชีใหม่";
 "settings.account.link.apple.success" = "เชื่อม Apple กับบัญชีนี้แล้ว";
 "settings.account.link.apple.alreadyInUse" = "Apple ID นี้ผูกกับบัญชีอื่นแล้ว เขียนทับโดยตรงไม่ได้";

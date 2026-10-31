@@ -134,6 +134,8 @@
 "diary.quota.exhausted.free" = "今日文字上傳已用完（%d）。升級 Author Plus 可提高每日額度，或明天再試。";
 "diary.quota.exhausted.plus" = "今日文字上傳已用完（%d）。可升級 Author Pro（每日 40 次），或明天再試。";
 "diary.quota.exhausted.pro" = "今日文字上傳已用完（%d）。請明天再試。";
+"diary.quota.softReminder" = "今日文字上傳還剩 %d／%d 次——升級 Author Plus 可提高每日額度";
+"diary.quota.soft.continue" = "繼續儲存";
 "diary.quota.upgrade" = "查看 Author Plus";
 "diary.quota.upgrade.pro" = "查看 Author Pro";
 
@@ -159,6 +161,7 @@
 "settings.title" = "設定";
 "settings.section.account" = "帳號";
 "settings.section.accountPhone" = "帳號 / 手機登入";
+"settings.section.accountLink" = "已連結的登入方式";
 "settings.account.status" = "狀態";
 "settings.account.signedIn" = "已登入";
 "settings.account.signedOut" = "尚未登入。";
@@ -173,12 +176,17 @@
 "settings.account.linked.yes" = "是";
 "settings.account.linked.no" = "否";
 "settings.account.link.phone.title" = "連結手機";
+"settings.account.link.phone.banner" = "你目前以 Apple 登入。請把手機號碼連結到「同一個」帳號（UID 不變）——這不是重新登入。";
 "settings.account.link.phone.note" = "驗證碼會綁到目前這個 Firebase 帳號（UID 不變），之後可用手機或 Apple 開啟同一金庫。";
+"settings.account.link.phone.send" = "傳送連結驗證碼";
+"settings.account.link.phone.resend" = "重新傳送連結驗證碼";
+"settings.account.link.phone.resend.cooldown" = "重新傳送連結驗證碼（%d 秒）";
 "settings.account.link.phone.action" = "驗證並連結手機";
 "settings.account.link.phone.success" = "手機已連結到此帳號。";
 "settings.account.link.phone.alreadyInUse" = "這個手機號碼已屬於另一個帳號，無法直接覆寫。";
 "settings.account.link.phone.alreadyLinked" = "此帳號已連結手機。";
 "settings.account.link.apple.title" = "連結 Apple";
+"settings.account.link.apple.banner" = "你目前以手機登入。請把 Apple 連結到「同一個」帳號（UID 不變）——不會另開新帳號。";
 "settings.account.link.apple.note" = "會把 Apple ID 綁到目前這個 Firebase 帳號（UID 不變），不會另開新帳號。";
 "settings.account.link.apple.success" = "Apple 已連結到此帳號。";
 "settings.account.link.apple.alreadyInUse" = "這個 Apple ID 已屬於另一個帳號，無法直接覆寫。";

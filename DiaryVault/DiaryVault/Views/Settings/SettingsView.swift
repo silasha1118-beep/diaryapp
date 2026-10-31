@@ -45,7 +45,9 @@ struct SettingsView: View {
                                             ? localization.text("settings.account.linked.yes")
                                             : localization.text("settings.account.linked.no")
                                     )
-                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .foregroundStyle(
+                                        account.hasLinkedPhone ? VaultTheme.inkMuted : VaultTheme.seal
+                                    )
                                 }
                                 LabeledContent(localization.text("settings.account.linked.apple")) {
                                     Text(
@@ -53,7 +55,9 @@ struct SettingsView: View {
                                             ? localization.text("settings.account.linked.yes")
                                             : localization.text("settings.account.linked.no")
                                     )
-                                    .foregroundStyle(VaultTheme.inkMuted)
+                                    .foregroundStyle(
+                                        account.hasLinkedApple ? VaultTheme.inkMuted : VaultTheme.seal
+                                    )
                                 }
                             }
                             Button(role: .destructive) {
@@ -65,36 +69,64 @@ struct SettingsView: View {
                             Text(localization.text("settings.account.signedOut"))
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
+                    } header: {
+                        Text(localization.text("settings.section.account"))
+                    }
 
-                        if !account.isSignedIn {
+                    if !account.isSignedIn {
+                        Section {
                             PhoneOTPLoginForm(chrome: .settings)
                                 .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
 
                             AppleSignInBackupView(chrome: .settings)
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
-                        } else if account.hasLiveFirebaseAuth {
-                            if account.needsPhoneLink {
+                        } header: {
+                            Text(localization.text("settings.section.accountPhone"))
+                        } footer: {
+                            Text(localization.text("settings.account.phone.footer"))
+                        }
+                    } else if account.hasLiveFirebaseAuth {
+                        if account.needsPhoneLink {
+                            Section {
+                                Text(localization.text("settings.account.link.phone.banner"))
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(VaultTheme.seal)
+                                    .fixedSize(horizontal: false, vertical: true)
+
                                 PhoneOTPLoginForm(chrome: .settings, mode: .link)
                                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                            } header: {
+                                Text(localization.text("settings.account.link.phone.title"))
+                            } footer: {
+                                Text(localization.text("settings.account.link.phone.note"))
                             }
-                            if account.needsAppleLink {
+                        }
+                        if account.needsAppleLink {
+                            Section {
+                                Text(localization.text("settings.account.link.apple.banner"))
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(VaultTheme.seal)
+                                    .fixedSize(horizontal: false, vertical: true)
+
                                 AppleSignInBackupView(chrome: .settings, mode: .link)
                                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
+                            } header: {
+                                Text(localization.text("settings.account.link.apple.title"))
+                            } footer: {
+                                Text(localization.text("settings.account.link.apple.note"))
                             }
-                            if account.hasLinkedPhone && account.hasLinkedApple {
+                        }
+                        if account.hasLinkedPhone && account.hasLinkedApple {
+                            Section {
                                 Text(localization.text("settings.account.link.bothDone"))
                                     .font(.system(size: 13))
                                     .foregroundStyle(VaultTheme.inkMuted)
+                            } header: {
+                                Text(localization.text("settings.section.accountLink"))
+                            } footer: {
+                                Text(localization.text("settings.account.link.footer"))
                             }
                         }
-                    } header: {
-                        Text(localization.text("settings.section.accountPhone"))
-                    } footer: {
-                        Text(
-                            account.isSignedIn
-                                ? localization.text("settings.account.link.footer")
-                                : localization.text("settings.account.phone.footer")
-                        )
                     }
 
                     Section {
