@@ -7,6 +7,9 @@ import Foundation
 ///   hard stop at ``AIConfig/freeDailyRequestLimit`` (default 6).
 /// - Author Plus: hard stop at ``AIConfig/dailyRequestLimit`` (default 15), then upsell Author Pro.
 /// - Author Pro: hard stop at ``AIConfig/proDailyRequestLimit`` (default 40) — “done for today”.
+///
+/// Diary **upload** quotas are separate — see ``DiaryUploadUsageGuard`` / ``UploadQuotaConfig``.
+/// Day stamp = local calendar day (`TimeZone.current`), same helper style as the upload guard.
 enum MirrorUsageGuard {
     private static let dayKey = "mirrorAI.usageDay"
     private static let countKey = "mirrorAI.usageCount"

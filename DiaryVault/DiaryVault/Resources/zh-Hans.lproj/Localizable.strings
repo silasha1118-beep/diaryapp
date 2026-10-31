@@ -78,13 +78,13 @@
 "paywall.headline" = "一面认得你文字的镜子。";
 "paywall.body" = "可选免费、Author Plus 或 Author Pro。价格由 StoreKit（本机配置或 App Store）提供——此处不硬编码金额。";
 "paywall.free.title" = "免费";
-"paywall.free.body" = "可写日记、试用镜子。免费云端镜子：前几次不打扰，之后会显示升级提醒，用完当日上限（6 次）后即停止。";
+"paywall.free.body" = "可写日记、试用镜子。免费文字上传：前 4 次不打扰；第 5–8 次显示 Plus 提醒；超过 8 次即停止。多媒体（之后）：前 3 次免费，第 4–5 次提醒，超过 5 次停止。云端镜子（另计）：软提醒 3、硬上限 6。";
 "paywall.free.current" = "当前方案";
-"paywall.plus.blurb" = "无限日记叙事＋每日 15 次镜子。可选月订、季订或年订。";
-"paywall.plus.section" = "Author Plus · 每日镜子 15 次";
+"paywall.plus.blurb" = "文字日记每日 20 次＋多媒体 11 次（媒体稍后）。云端镜子每日 15 次。可选月订、季订或年订。";
+"paywall.plus.section" = "Author Plus · 上传文字 20／媒体 11";
 "paywall.pro.title" = "Author Pro";
-"paywall.pro.section" = "Author Pro · 每日镜子 40 次";
-"paywall.pro.body" = "最高每日镜子额度（40 次）。可选月订、季订或年订。Plus 不够时再升级。";
+"paywall.pro.section" = "Author Pro · 上传文字 40／媒体 22";
+"paywall.pro.body" = "最高每日上传额度：文字 40／日、多媒体 22／日。云端镜子每日 40 次。可选月订、季订或年订。Plus 不够时再升级。";
 "paywall.pro.pending" = "Author Pro 商品会从 StoreKit 加载（Scheme 指向 DiaryVault.storekit 或 Connect）。";
 "paywall.pro.monthly" = "Author Pro · 月订";
 "paywall.pro.quarterly" = "Author Pro · 季订";
@@ -131,6 +131,11 @@
 "diary.delete.title" = "删除这则日记？";
 "diary.delete.message" = "将从此设备移除。若已登录，联网时也会从云端同步删除。";
 "diary.missing" = "这篇日记已不在金库中。";
+"diary.quota.exhausted.free" = "今日文字上传已用完（%d）。升级 Author Plus 可提高每日额度，或明天再试。";
+"diary.quota.exhausted.plus" = "今日文字上传已用完（%d）。可升级 Author Pro（每日 40 次），或明天再试。";
+"diary.quota.exhausted.pro" = "今日文字上传已用完（%d）。请明天再试。";
+"diary.quota.upgrade" = "查看 Author Plus";
+"diary.quota.upgrade.pro" = "查看 Author Pro";
 
 /* Mirror */
 "mirror.title" = "镜子";
@@ -209,7 +214,7 @@
 "settings.billing.product" = "产品";
 "settings.billing.expires" = "周期结束";
 "settings.billing.manage" = "查看方案／恢复购买";
-"settings.billing.footer" = "StoreKit 2：免费／Author Plus（每日 15）／Author Pro（每日 40）；月订、季订、年订。本机 DiaryVault.storekit 或 App Store Sandbox。可用 DIARY_IAP_* 覆盖产品 ID。仓库不含密钥。";
+"settings.billing.footer" = "StoreKit 2：上传免费文字 4→8（媒体 3→5）／Plus 文字 20·媒体 11／Pro 文字 40·媒体 22；镜子另计 Free 3→6／Plus 15／Pro 40。月订、季订、年订。本机 DiaryVault.storekit 或 Sandbox。可用 DIARY_IAP_*。仓库不含密钥。";
 "settings.section.language" = "语言";
 "settings.language" = "App 语言";
 "settings.language.footer" = "繁中／简中／English／日本語／ไทย——可随时切换。首次启动跟随系统语言（App Store 地区）。";
@@ -230,7 +235,7 @@
 "settings.ai.quota.exhausted.plus" = "今日镜子已使用完毕。可升级 Author Pro（每日 40 次），或等到明天。";
 "settings.ai.quota.exhausted.pro" = "今日镜子已使用完毕。请明天再试。";
 "settings.ai.residency" = "数据落地";
-"settings.ai.footer" = "云端镜子：免费硬上限 6／软提醒 3；Plus 用 DIARY_AI_DAILY_REQUEST_LIMIT（默认 15）；Pro 用 DIARY_AI_PRO_DAILY_REQUEST_LIMIT（默认 40）。0＝该层不限。请在 Xcode Scheme 设置 DIARY_AI_API_KEY。仓库不含密钥。";
+"settings.ai.footer" = "云端镜子（与上传分开）：免费硬 6／软 3；Plus DIARY_AI_DAILY_REQUEST_LIMIT（默认 15）；Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT（默认 40）。日记上传用 DiaryUploadUsageGuard。0＝该镜子层不限。请在 Xcode Scheme 设置 DIARY_AI_API_KEY。仓库不含密钥。";
 "settings.section.legacy" = "遗产／纪念";
 "settings.legacy.stub" = "纪念模式／语音克隆／执行人设置——非 Phase 1 UI。";
 "settings.legacy.footer" = "仅路线图。本 MVP 骨架刻意省略。";

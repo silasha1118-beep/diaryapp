@@ -19,8 +19,13 @@ enum class AIProvider {
  * - DIARY_AI_MODEL — optional; defaults to gpt-4o-mini (openai) or claude-sonnet-4-5 (anthropic)
  * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 400)
  * - DIARY_AI_MAX_CONTEXT_ENTRIES — optional; diary excerpts in prompt (default 8)
- * - DIARY_AI_FREE_DAILY_REQUEST_LIMIT — Free-tier daily Mirror cap (default 8)
- * - DIARY_AI_DAILY_REQUEST_LIMIT — Author Plus daily cap (default 40; 0 = unlimited for Plus)
+ * - DIARY_AI_FREE_DAILY_REQUEST_LIMIT — Free-tier daily Mirror hard cap (default 6)
+ * - DIARY_AI_FREE_SOFT_PAYWALL_THRESHOLD — Free soft Plus reminder threshold (default 3)
+ * - DIARY_AI_DAILY_REQUEST_LIMIT — Author Plus daily Mirror cap (default 15; 0 = unlimited for Plus)
+ * - DIARY_AI_PRO_DAILY_REQUEST_LIMIT — Author Pro daily Mirror cap (default 40; 0 = unlimited for Pro)
+ *
+ * Mirror quotas stay independent of diary upload quotas
+ * ([UploadQuotaConfig] / [com.diaryvault.app.service.DiaryUploadUsageGuard]).
  *
  * Data residency narrative: Taiwan (TW).
  */
@@ -33,8 +38,10 @@ object AIConfig {
     const val ANTHROPIC_API_VERSION = "2023-06-01"
     const val DEFAULT_MAX_TOKENS = 400
     const val DEFAULT_MAX_CONTEXT_ENTRIES = 8
-    const val DEFAULT_FREE_DAILY_REQUEST_LIMIT = 8
-    const val DEFAULT_DAILY_REQUEST_LIMIT = 40
+    const val DEFAULT_FREE_DAILY_REQUEST_LIMIT = 6
+    const val DEFAULT_FREE_SOFT_PAYWALL_THRESHOLD = 3
+    const val DEFAULT_DAILY_REQUEST_LIMIT = 15
+    const val DEFAULT_PRO_DAILY_REQUEST_LIMIT = 40
     const val MAX_ENTRY_BODY_CHARS = 600
     const val MAX_CONVERSATION_TURNS = 8
 
@@ -102,12 +109,31 @@ object AIConfig {
             DEFAULT_FREE_DAILY_REQUEST_LIMIT,
         ).coerceAtLeast(1)
 
+    /** Free soft paywall threshold (Mirror only; independent of upload soft band). */
+    val freeSoftPaywallThreshold: Int
+        get() {
+            val raw = intFromBuildOrEnv(
+                "DIARY_AI_FREE_SOFT_PAYWALL_THRESHOLD",
+                "",
+                DEFAULT_FREE_SOFT_PAYWALL_THRESHOLD,
+            )
+            return raw.coerceIn(0, freeDailyRequestLimit)
+        }
+
     /** Author Plus local daily Mirror cap. `0` disables the Plus-tier cap. */
     val dailyRequestLimit: Int
         get() = intFromBuildOrEnv(
             "DIARY_AI_DAILY_REQUEST_LIMIT",
             BuildConfig.DIARY_AI_DAILY_REQUEST_LIMIT,
             DEFAULT_DAILY_REQUEST_LIMIT,
+        )
+
+    /** Author Pro local daily Mirror cap. `0` disables the Pro-tier cap. */
+    val proDailyRequestLimit: Int
+        get() = intFromBuildOrEnv(
+            "DIARY_AI_PRO_DAILY_REQUEST_LIMIT",
+            "",
+            DEFAULT_PRO_DAILY_REQUEST_LIMIT,
         )
 
     val useCloudClient: Boolean

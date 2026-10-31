@@ -78,13 +78,13 @@
 "paywall.headline" = "あなたの言葉を知るミラー。";
 "paywall.body" = "無料、Author Plus、Author Pro から選べます。価格は StoreKit（ローカル設定または App Store）から——ここには金額をハードコードしません。";
 "paywall.free.title" = "無料";
-"paywall.free.body" = "ボールトに書いてミラーを試せます。無料クラウドミラーは最初の数回はそのまま、その後はアップグレード案内を表示し、1日の上限（6回）で停止します。";
+"paywall.free.body" = "ボールトに書いてミラーを試せます。無料テキスト投稿：最初の4回はそのまま、5–8回目はPlus案内、8回超で停止。マルチメディア（後日）：最初3回無料、4–5回目に案内、5回超で停止。クラウドミラー（別枠）：ソフト3・ハード6。";
 "paywall.free.current" = "現在のプラン";
-"paywall.plus.blurb" = "無制限の日記ナラティブ＋1日15回のミラー。月額・四半期・年額から選択。";
-"paywall.plus.section" = "Author Plus · ミラー 15回／日";
+"paywall.plus.blurb" = "テキスト日記 20回／日＋マルチメディア 11回／日（メディアは後日）。クラウドミラー 15回／日。月額・四半期・年額。";
+"paywall.plus.section" = "Author Plus · 投稿テキスト20／メディア11";
 "paywall.pro.title" = "Author Pro";
-"paywall.pro.section" = "Author Pro · ミラー 40回／日";
-"paywall.pro.body" = "最高の1日ミラー枠（40回）。月額・四半期・年額。Plus では足りないときに。";
+"paywall.pro.section" = "Author Pro · 投稿テキスト40／メディア22";
+"paywall.pro.body" = "最高の1日アップロード枠：テキスト40／日、マルチメディア22／日。クラウドミラー 40回／日。月額・四半期・年額。Plus では足りないときに。";
 "paywall.pro.pending" = "Author Pro 商品は StoreKit から読み込みます（Scheme で DiaryVault.storekit または Connect）。";
 "paywall.pro.monthly" = "Author Pro · 月額";
 "paywall.pro.quarterly" = "Author Pro · 四半期";
@@ -131,6 +131,11 @@
 "diary.delete.title" = "この日記を削除しますか？";
 "diary.delete.message" = "この端末から削除します。サインイン中なら、オンライン時にクラウド同期からも削除されます。";
 "diary.missing" = "この記録はボールトにありません。";
+"diary.quota.exhausted.free" = "本日のテキスト投稿は使い切りました（%d）。Author Plus にアップグレードするか、明日またお試しください。";
+"diary.quota.exhausted.plus" = "本日のテキスト投稿は使い切りました（%d）。Author Pro（40回／日）へ、または明日またお試しください。";
+"diary.quota.exhausted.pro" = "本日のテキスト投稿は使い切りました（%d）。明日またお試しください。";
+"diary.quota.upgrade" = "Author Plus を見る";
+"diary.quota.upgrade.pro" = "Author Pro を見る";
 
 /* Mirror */
 "mirror.title" = "ミラー";
@@ -209,7 +214,7 @@
 "settings.billing.product" = "商品";
 "settings.billing.expires" = "期間終了";
 "settings.billing.manage" = "プランを見る／復元";
-"settings.billing.footer" = "StoreKit 2：無料／Author Plus（15／日）／Author Pro（40／日）；月・四半期・年。ローカル DiaryVault.storekit または App Store Sandbox。DIARY_IAP_* で商品 ID を上書き。リポジトリに秘密情報は入れません。";
+"settings.billing.footer" = "StoreKit 2：投稿 無料テキスト4→8（メディア3→5）／Plus 20·11／Pro 40·22；ミラー別枠 Free 3→6／Plus 15／Pro 40。月・四半期・年。ローカル DiaryVault.storekit または Sandbox。DIARY_IAP_* 可。秘密情報なし。";
 "settings.section.language" = "言語";
 "settings.language" = "アプリの言語";
 "settings.language.footer" = "繁中／簡中／English／日本語／ไทย——いつでも切り替え。初回起動はシステムの言語に従います。";
@@ -230,7 +235,7 @@
 "settings.ai.quota.exhausted.plus" = "本日のミラーは使い切りました。Author Pro（40回／日）へ、または明日までお待ちください。";
 "settings.ai.quota.exhausted.pro" = "本日のミラーは使い切りました。明日またお試しください。";
 "settings.ai.residency" = "データ所在";
-"settings.ai.footer" = "クラウドミラー：無料ハード 6／ソフト 3；Plus は DIARY_AI_DAILY_REQUEST_LIMIT（既定 15）；Pro は DIARY_AI_PRO_DAILY_REQUEST_LIMIT（既定 40）。0＝その層は無制限。Xcode Scheme で DIARY_AI_API_KEY を設定。リポジトリに秘密情報は入れません。";
+"settings.ai.footer" = "クラウドミラー（投稿と別）：無料ハード6／ソフト3；Plus DIARY_AI_DAILY_REQUEST_LIMIT（既定15）；Pro DIARY_AI_PRO_DAILY_REQUEST_LIMIT（既定40）。日記投稿は DiaryUploadUsageGuard。0＝そのミラー層は無制限。Xcode Scheme で DIARY_AI_API_KEY。秘密情報なし。";
 "settings.section.legacy" = "レガシー";
 "settings.legacy.stub" = "追悼／音声クローン／執行人設定——Phase 1 UI にはありません。";
 "settings.legacy.footer" = "ロードマップのみ。この MVP 足場では省略。";
