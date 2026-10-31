@@ -384,10 +384,15 @@ struct SettingsView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .scrollDismissesKeyboard(.interactively)
+                // numberPad has no Return — drag or any Form tap must resign first responder.
+                .scrollDismissesKeyboard(.immediately)
                 .resignKeyboardOnBackgroundTap()
+                .resignKeyboardOnAnyTap()
             }
             .navigationTitle(localization.text("settings.title"))
+            .onDisappear {
+                KeyboardDismiss.resign()
+            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
                     .environmentObject(localization)

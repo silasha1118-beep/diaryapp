@@ -70,8 +70,9 @@ struct AuthGateView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
                 .resignKeyboardOnBackgroundTap()
+                .resignKeyboardOnAnyTap()
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.7)) { appeared = true }

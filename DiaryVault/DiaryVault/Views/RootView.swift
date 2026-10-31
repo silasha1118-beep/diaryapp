@@ -96,5 +96,10 @@ struct MainTabView: View {
                 .tag(2)
         }
         .tint(VaultTheme.seal)
+        // Keep tab bar reachable while phone/OTP number pad is up (pad would otherwise cover Mirror).
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .onChange(of: tab) { _, _ in
+            KeyboardDismiss.resign()
+        }
     }
 }
