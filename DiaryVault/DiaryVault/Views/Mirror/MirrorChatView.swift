@@ -26,7 +26,6 @@ struct MirrorChatView: View {
                 VaultBackground()
 
                 VStack(spacing: 0) {
-                    banner
                     if showQuotaBanner {
                         quotaBanner
                     }
@@ -78,41 +77,24 @@ struct MirrorChatView: View {
         }
     }
 
+    /// Show remaining / soft / exhausted only when near the soft band or exhausted — not a permanent debug strip.
     private var showQuotaBanner: Bool {
-        AIConfig.useCloudClient
-    }
-
-    private var banner: some View {
-        HStack(spacing: 8) {
-            Image(systemName: AIConfig.useCloudClient ? "cloud" : "circle.lefthalf.filled")
-                .font(.system(size: 12))
-            Text(
-                AIConfig.useCloudClient
-                    ? localization.text("mirror.mode.cloud")
-                    : localization.text("mirror.mode.mock")
-            )
-            .font(.system(size: 12))
-            Spacer()
-            Text(localization.text("mirror.style.hint"))
-                .font(.system(size: 11))
-                .foregroundStyle(VaultTheme.inkMuted)
-        }
-        .foregroundStyle(VaultTheme.inkMuted)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(VaultTheme.paperDeep.opacity(0.55))
+        guard AIConfig.useCloudClient else { return false }
+        if MirrorUsageGuard.isExhausted(tier: billingTier) { return true }
+        if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier) { return true }
+        return false
     }
 
     private var quotaBanner: some View {
         let _ = quotaTick
         let exhausted = MirrorUsageGuard.isExhausted(tier: billingTier)
         return HStack(alignment: .center, spacing: 10) {
-            Image(systemName: exhausted ? "exclamationmark.circle" : "chart.bar")
+            Image(systemName: exhausted ? "exclamationmark.circle" : "sparkles")
                 .font(.system(size: 13))
                 .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
 
             Text(quotaStatusText(exhausted: exhausted))
-                .font(.system(size: 12))
+                .font(.system(size: 13))
                 .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -123,18 +105,18 @@ struct MirrorChatView: View {
                     showPaywall = true
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(VaultTheme.seal)
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
         .background(
             exhausted
                 ? VaultTheme.seal.opacity(0.08)
-                : VaultTheme.paper.opacity(0.35)
+                : VaultTheme.paperDeep.opacity(0.45)
         )
     }
 
@@ -166,30 +148,30 @@ struct MirrorChatView: View {
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 14) {
+                LazyVStack(alignment: .leading, spacing: 18) {
                     ForEach(messages) { message in
                         bubble(message)
                             .id(message.id)
                     }
                     if isThinking {
                         Text(localization.text("mirror.thinking"))
-                            .font(.system(size: 13, design: .serif))
+                            .font(.system(size: 14, design: .serif))
                             .foregroundStyle(VaultTheme.inkMuted)
                             .italic()
-                            .padding(.horizontal, 4)
+                            .padding(.horizontal, 6)
                             .id("thinking")
                     }
                     if let errorText {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text(errorText)
-                                .font(.system(size: 13))
+                                .font(.system(size: 14))
                                 .foregroundStyle(VaultTheme.seal)
                             if showQuotaUpgrade {
                                 Button {
                                     showPaywall = true
                                 } label: {
                                     Text(localization.text(quotaUpgradeCTAKey))
-                                        .font(.system(size: 13, weight: .semibold))
+                                        .font(.system(size: 14, weight: .semibold))
                                         .foregroundStyle(VaultTheme.seal)
                                 }
                                 .buttonStyle(.plain)
@@ -198,7 +180,8 @@ struct MirrorChatView: View {
                         .id("error")
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 24)
             }
             .onChange(of: messages.count) { _, _ in
                 if let last = messages.last {
@@ -210,25 +193,30 @@ struct MirrorChatView: View {
 
     private func bubble(_ message: MirrorMessage) -> some View {
         HStack {
-            if message.role == .user { Spacer(minLength: 40) }
+            if message.role == .user { Spacer(minLength: 48) }
 
-            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 6) {
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 8) {
                 Text(message.text)
-                    .font(.system(size: 15, design: message.role == .system ? .default : .serif))
-                    .foregroundStyle(VaultTheme.ink)
-                    .lineSpacing(3)
-                    .padding(14)
+                    .font(.system(
+                        size: message.role == .system ? 15 : 16,
+                        design: message.role == .system ? .default : .serif
+                    ))
+                    .foregroundStyle(
+                        message.role == .system ? VaultTheme.inkMuted : VaultTheme.ink
+                    )
+                    .lineSpacing(message.role == .system ? 4 : 5)
+                    .padding(message.role == .system ? 4 : 16)
                     .background(background(for: message.role))
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 if !message.citedEntryIDs.isEmpty {
                     Text(localization.text("mirror.cited"))
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundStyle(VaultTheme.inkMuted)
                 }
             }
 
-            if message.role != .user { Spacer(minLength: 40) }
+            if message.role != .user { Spacer(minLength: 48) }
         }
     }
 
@@ -241,30 +229,33 @@ struct MirrorChatView: View {
     }
 
     private var composer: some View {
-        HStack(alignment: .bottom, spacing: 10) {
+        HStack(alignment: .bottom, spacing: 12) {
             TextField(localization.text("mirror.placeholder"), text: $draft, axis: .vertical)
+                .font(.system(size: 16, design: .serif))
                 .lineLimit(1...5)
                 .textFieldStyle(.plain)
-                .padding(12)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
                 .background(VaultTheme.paper)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(VaultTheme.line, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(VaultTheme.line.opacity(0.85), lineWidth: 1)
                 )
 
             Button {
                 Task { await send() }
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 30))
+                    .font(.system(size: 32))
                     .foregroundStyle(canSend ? VaultTheme.seal : VaultTheme.line)
             }
             .disabled(!canSend || isThinking)
             .accessibilityLabel(localization.text("mirror.send"))
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(VaultTheme.paperDeep.opacity(0.8))
+        .padding(.top, 12)
+        .padding(.bottom, 14)
+        .background(VaultTheme.paperDeep.opacity(0.85))
     }
 
     private var canSend: Bool {
