@@ -201,16 +201,13 @@ enum AppleSignInCoordinator {
 
     private static func mapLinkError(_ error: Error) -> AppleSignInError {
         let ns = error as NSError
-        if ns.domain == AuthErrorDomain, let code = AuthErrorCode(rawValue: ns.code) {
-            switch code {
-            case .credentialAlreadyInUse:
-                // Do not sign in to the other account — surface a clear conflict.
-                return .credentialAlreadyInUse
-            case .providerAlreadyLinked:
-                return .providerAlreadyLinked
-            default:
-                break
-            }
+        // Raw Int compare — same as SMSAuthProvider / AccountSession (no AuthErrorCode(rawValue:)).
+        if FirebaseAuthErrorMap.matches(ns, .credentialAlreadyInUse) {
+            // Do not sign in to the other account — surface a clear conflict.
+            return .credentialAlreadyInUse
+        }
+        if FirebaseAuthErrorMap.matches(ns, .providerAlreadyLinked) {
+            return .providerAlreadyLinked
         }
         let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         return .firebase(message.isEmpty ? "Firebase Apple link failed." : message)

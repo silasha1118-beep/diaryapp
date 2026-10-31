@@ -300,9 +300,7 @@ final class AccountSession: ObservableObject {
                 outcome = .deletedRemote
             } catch {
                 let ns = error as NSError
-                let needsRecentLogin =
-                    ns.domain == AuthErrorDomain
-                    && ns.code == AuthErrorCode.requiresRecentLogin.rawValue
+                let needsRecentLogin = FirebaseAuthErrorMap.matches(ns, .requiresRecentLogin)
                 try? Auth.auth().signOut()
                 outcome = needsRecentLogin ? .requiresReauthentication : .remoteFailed
             }

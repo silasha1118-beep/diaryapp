@@ -18,7 +18,8 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var lastErrorDetail: String?
     @Published private(set) var isLoading: Bool = false
 
-    private var updatesTask: Task<Void, Never>?
+    /// `nonisolated(unsafe)` so `deinit` can cancel without MainActor hop (Xcode 16 / Swift 6).
+    nonisolated(unsafe) private var updatesTask: Task<Void, Never>?
 
     init() {
         updatesTask = Task { await listenForTransactions() }

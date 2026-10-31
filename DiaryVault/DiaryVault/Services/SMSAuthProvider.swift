@@ -270,7 +270,12 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
 
         do {
             let phoneAuth = try makePhoneAuthProvider()
-            let verificationID = try await phoneAuth.verifyPhoneNumber(normalized, uiDelegate: nil)
+            // Explicit async overload (avoid completion-handler ambiguity under newer Firebase Auth).
+            let verificationID = try await phoneAuth.verifyPhoneNumber(
+                normalized,
+                uiDelegate: nil,
+                multiFactorSession: nil
+            )
             UserDefaults.standard.set(verificationID, forKey: Self.verificationIDDefaultsKey)
             return SMSCodeSession(
                 verificationID: verificationID,
@@ -380,7 +385,7 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         let readiness = FirebasePhoneAuthURLScheme.readinessCheck()
         guard readiness.canInstantiatePhoneAuthProvider else {
             #if DEBUG
-            print("DiaryVault Phone Auth: refusing PhoneAuthProvider.provider() — \(readiness.debugSummary)")
+            print("DiaryVault Phone Auth: refusing PhoneAuthProvider.provider() - \(readiness.debugSummary)")
             #endif
             throw SMSAuthError.appVerificationFailed
         }
@@ -407,30 +412,43 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         let ns = error as NSError
         let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowered = message.lowercased()
-        if let authCode = AuthErrorCode(rawValue: ns.code) {
-            switch authCode {
-            case .missingPhoneNumber, .invalidPhoneNumber:
+
+        // Compare raw Int codes (same approach as AccountSession deleteAccount) — avoids
+        // AuthErrorCode(rawValue:) / Error-cast quirks across Firebase Auth 11.x resolves.
+        if FirebaseAuthErrorMap.isFirebaseAuth(ns) {
+            let code = ns.code
+            if code == AuthErrorCode.missingPhoneNumber.rawValue
+                || code == AuthErrorCode.invalidPhoneNumber.rawValue {
                 return .invalidPhone
-            case .missingVerificationCode, .invalidVerificationCode, .sessionExpired:
+            }
+            if code == AuthErrorCode.missingVerificationCode.rawValue
+                || code == AuthErrorCode.invalidVerificationCode.rawValue
+                || code == AuthErrorCode.sessionExpired.rawValue {
                 return .invalidCode
-            case .tooManyRequests, .quotaExceeded:
+            }
+            if code == AuthErrorCode.tooManyRequests.rawValue
+                || code == AuthErrorCode.quotaExceeded.rawValue {
                 return .rateLimited
-            case .credentialAlreadyInUse:
+            }
+            if code == AuthErrorCode.credentialAlreadyInUse.rawValue {
                 return .credentialAlreadyInUse
-            case .providerAlreadyLinked:
+            }
+            if code == AuthErrorCode.providerAlreadyLinked.rawValue {
                 return .providerAlreadyLinked
-            case .operationNotAllowed:
-                // Phone provider disabled, or operation blocked (often SMS region policy).
+            }
+            if code == AuthErrorCode.operationNotAllowed.rawValue {
                 if looksLikeRegionBlock(lowered) { return .regionNotAllowed }
                 return .notConfigured(
                     linking
                         ? "Phone linking is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
                         : "Phone sign-in is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
                 )
-            case .appNotAuthorized, .invalidAppCredential, .captchaCheckFailed, .missingAppCredential:
+            }
+            if code == AuthErrorCode.appNotAuthorized.rawValue
+                || code == AuthErrorCode.invalidAppCredential.rawValue
+                || code == AuthErrorCode.captchaCheckFailed.rawValue
+                || code == AuthErrorCode.missingAppCredential.rawValue {
                 return .appVerificationFailed
-            default:
-                break
             }
         }
 
@@ -491,6 +509,19 @@ final class TwilioReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
         throw SMSAuthError.notConfigured(
             "Twilio Verify client is not linked."
         )
+    }
+}
+
+// MARK: - Firebase Auth NSError helpers
+
+/// Domain/code checks that stay source-compatible across Firebase Auth 11.x SPM resolves.
+enum FirebaseAuthErrorMap {
+    static func isFirebaseAuth(_ ns: NSError) -> Bool {
+        ns.domain == AuthErrorDomain || ns.domain == AuthErrors.domain
+    }
+
+    static func matches(_ ns: NSError, _ code: AuthErrorCode) -> Bool {
+        isFirebaseAuth(ns) && ns.code == code.rawValue
     }
 }
 
