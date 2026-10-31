@@ -377,7 +377,7 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
     /// own `Bundle.main` read shows a non-nil, non-empty URL Types array **and** a real
     /// (non-placeholder) reverse-client or encoded-app scheme.
     private func makePhoneAuthProvider() throws -> PhoneAuthProvider {
-        let readiness = FirebasePhoneAuthURLScheme readinessCheck()
+        let readiness = FirebasePhoneAuthURLScheme.readinessCheck()
         guard readiness.canInstantiatePhoneAuthProvider else {
             #if DEBUG
             print("DiaryVault Phone Auth: refusing PhoneAuthProvider.provider() — \(readiness.debugSummary)")
