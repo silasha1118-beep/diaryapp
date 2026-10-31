@@ -122,19 +122,11 @@ struct DiaryComposerView: View {
                 }
             }
             // fullScreenCover — not nested `.sheet` — so Free soft paywall is visible from the composer sheet.
+            // PaywallView owns its NavigationStack + Cancel (dismiss); do not wrap another stack.
             .fullScreenCover(isPresented: $showPaywall) {
-                NavigationStack {
-                    PaywallView()
-                        .environmentObject(localization)
-                        .environmentObject(subscriptions)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(localization.text("common.cancel")) {
-                                    showPaywall = false
-                                }
-                            }
-                        }
-                }
+                PaywallView()
+                    .environmentObject(localization)
+                    .environmentObject(subscriptions)
             }
         }
     }
