@@ -65,6 +65,11 @@
 "auth.apple.secondaryNote" = "適合不想收簡訊、或想用 Apple ID 綁定帳號時使用。";
 "auth.apple.error" = "透過 Apple 登入未完成，請再試一次。";
 "auth.apple.paidNote" = "需要付費 Apple Developer 團隊（約每年 99 美元）。免費 Personal Team 無法啟用此能力。";
+"auth.displayName.title" = "我們該怎麼稱呼你？";
+"auth.displayName.body" = "新帳號會詢問一次顯示名稱，方便金庫與鏡子認得你。可稍後再改。";
+"auth.displayName.placeholder" = "你的名字";
+"auth.displayName.save" = "儲存並繼續";
+"auth.displayName.skip" = "暫時略過";
 "auth.devLocal" = "開發：以本機會話繼續";
 
 /* Paywall */
@@ -155,7 +160,28 @@
 "settings.account.provider" = "登入方式";
 "settings.account.provider.phone" = "手機（SMS 驗證碼）";
 "settings.account.provider.apple" = "透過 Apple 登入";
+"settings.account.provider.both" = "手機 + Apple（同一帳號）";
 "settings.account.provider.local" = "本機（開發）";
+"settings.account.linked.phone" = "已連結手機";
+"settings.account.linked.apple" = "已連結 Apple";
+"settings.account.linked.yes" = "是";
+"settings.account.linked.no" = "否";
+"settings.account.link.phone.title" = "連結手機";
+"settings.account.link.phone.note" = "驗證碼會綁到目前這個 Firebase 帳號（UID 不變），之後可用手機或 Apple 開啟同一金庫。";
+"settings.account.link.phone.action" = "驗證並連結手機";
+"settings.account.link.phone.success" = "手機已連結到此帳號。";
+"settings.account.link.phone.alreadyInUse" = "這個手機號碼已屬於另一個帳號，無法直接覆寫。";
+"settings.account.link.phone.alreadyLinked" = "此帳號已連結手機。";
+"settings.account.link.apple.title" = "連結 Apple";
+"settings.account.link.apple.note" = "會把 Apple ID 綁到目前這個 Firebase 帳號（UID 不變），不會另開新帳號。";
+"settings.account.link.apple.success" = "Apple 已連結到此帳號。";
+"settings.account.link.apple.alreadyInUse" = "這個 Apple ID 已屬於另一個帳號，無法直接覆寫。";
+"settings.account.link.apple.alreadyLinked" = "此帳號已連結 Apple。";
+"settings.account.link.apple.error" = "連結 Apple 未完成，請再試一次。";
+"settings.account.link.needSignedIn" = "請先登入後再連結另一種登入方式。";
+"settings.account.link.mergeGuidance" = "若要合併兩端資料，請先確認要用哪一個帳號為主，再手動匯出／匯入日記；App 不會自動覆寫另一個帳號。";
+"settings.account.link.bothDone" = "手機與 Apple 已連結到同一帳號。";
+"settings.account.link.footer" = "已登入時可把缺少的登入方式連結到同一 Firebase UID（與 users/{uid}）。若對方已綁在別的帳號，會顯示清楚錯誤，不會靜默覆寫。";
 "settings.account.signOut" = "登出";
 "settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」始終顯示於下方。登出後會回到帳號閘門。";
 "settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣（+886）、香港（+852）、中國大陸（+86）、馬來西亞（+60）、新加坡（+65）、泰國（+66）、日本（+81）。未以 Apple 登入時，下方會顯示標準「透過 Apple 登入」按鈕。橫幅會標示 Firebase 或 Stub——與啟動閘門相同。";

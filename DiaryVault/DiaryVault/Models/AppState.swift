@@ -9,6 +9,8 @@ final class AppState: ObservableObject {
         static let didCompleteOnboarding = "didCompleteOnboarding"
         static let gentleRemindersEnabled = "gentleRemindersEnabled"
         static let displayName = "displayName"
+        /// UIDs that skipped the post-login display-name step (optional name).
+        static let skippedDisplayNameUIDs = "account.skippedDisplayNameUIDs"
     }
 
     @Published var didCompleteOnboarding: Bool {
@@ -23,6 +25,11 @@ final class AppState: ObservableObject {
         didSet { defaults.set(displayName, forKey: Keys.displayName) }
     }
 
+    /// UIDs that skipped post-login name onboarding (optional). Published so RootView re-gates.
+    @Published private(set) var skippedDisplayNameUIDs: [String] {
+        didSet { defaults.set(skippedDisplayNameUIDs, forKey: Keys.skippedDisplayNameUIDs) }
+    }
+
     init() {
         didCompleteOnboarding = defaults.bool(forKey: Keys.didCompleteOnboarding)
         if defaults.object(forKey: Keys.gentleRemindersEnabled) == nil {
@@ -31,6 +38,7 @@ final class AppState: ObservableObject {
             gentleRemindersEnabled = defaults.bool(forKey: Keys.gentleRemindersEnabled)
         }
         displayName = defaults.string(forKey: Keys.displayName) ?? ""
+        skippedDisplayNameUIDs = defaults.stringArray(forKey: Keys.skippedDisplayNameUIDs) ?? []
     }
 
     func completeOnboarding(name: String) {
@@ -43,7 +51,25 @@ final class AppState: ObservableObject {
     }
 
     /// Clears display name after account deletion (onboarding flag stays so gate is reachable).
+    /// Also clears skip marks so a brand-new phone / Apple account sees the name step again.
     func clearIdentityAfterAccountDeletion() {
         displayName = ""
+        skippedDisplayNameUIDs = []
+    }
+
+    func didSkipDisplayNamePrompt(for uid: String) -> Bool {
+        guard !uid.isEmpty else { return false }
+        return skippedDisplayNameUIDs.contains(uid)
+    }
+
+    func markDisplayNamePromptSkipped(for uid: String) {
+        guard !uid.isEmpty else { return }
+        guard !skippedDisplayNameUIDs.contains(uid) else { return }
+        skippedDisplayNameUIDs.append(uid)
+    }
+
+    func clearDisplayNamePromptSkip(for uid: String) {
+        guard !uid.isEmpty else { return }
+        skippedDisplayNameUIDs.removeAll { $0 == uid }
     }
 }

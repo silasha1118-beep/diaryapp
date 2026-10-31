@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Shared phone + SMS OTP fields wired to `SMSAuthProviderFactory` (Firebase when plist present).
-/// Used by the post-onboarding gate and Settings so beginners can always find phone login.
+/// Used by the post-onboarding gate and Settings so beginners can always find phone login / link.
 struct PhoneOTPLoginForm: View {
     enum Chrome {
         /// Full-bleed fields on the auth gate scroll surface.
@@ -10,12 +10,19 @@ struct PhoneOTPLoginForm: View {
         case settings
     }
 
+    /// Sign-in creates a session; link attaches phone to the current Firebase UID.
+    enum Mode {
+        case signIn
+        case link
+    }
+
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var account: AccountSession
     @EnvironmentObject private var appState: AppState
 
     var chrome: Chrome = .gate
-    /// Called after a successful phone verify (Settings can clear local UI state).
+    var mode: Mode = .signIn
+    /// Called after a successful phone verify / link (Settings can clear local UI state).
     var onSignedIn: (() -> Void)? = nil
 
     @State private var dial: PhoneNumberNormalizer.RegionDial = .tw
@@ -31,6 +38,16 @@ struct PhoneOTPLoginForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
+            if mode == .link {
+                Text(localization.text("settings.account.link.phone.title"))
+                    .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))
+                    .foregroundStyle(VaultTheme.ink)
+                Text(localization.text("settings.account.link.phone.note"))
+                    .font(.system(size: 12))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             providerBanner
 
             phoneStep
@@ -44,12 +61,14 @@ struct PhoneOTPLoginForm: View {
                 Text(infoMessage)
                     .font(.system(size: 13))
                     .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             if let errorMessage {
                 Text(errorMessage)
                     .font(.system(size: 14))
                     .foregroundStyle(VaultTheme.seal)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .animation(.easeInOut(duration: 0.3), value: session != nil)
@@ -183,7 +202,11 @@ struct PhoneOTPLoginForm: View {
                         ProgressView()
                             .tint(.white)
                     }
-                    Text(localization.text("auth.otp.verify"))
+                    Text(
+                        mode == .link
+                            ? localization.text("settings.account.link.phone.action")
+                            : localization.text("auth.otp.verify")
+                    )
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundStyle(Color.white)
@@ -249,16 +272,25 @@ struct PhoneOTPLoginForm: View {
         defer { isVerifying = false }
 
         do {
-            let user = try await sms().verify(code: otpCode, session: session)
-            account.signInWithPhone(
-                userID: user.userID,
-                phoneE164: user.phoneE164,
-                displayName: appState.displayName.isEmpty ? nil : appState.displayName
-            )
+            switch mode {
+            case .signIn:
+                let user = try await sms().verify(code: otpCode, session: session)
+                account.signInWithPhone(
+                    userID: user.userID,
+                    phoneE164: user.phoneE164,
+                    displayName: appState.displayName.isEmpty ? nil : appState.displayName
+                )
+                infoMessage = localization.text("settings.account.phone.success")
+            case .link:
+                _ = try await sms().linkPhone(code: otpCode, session: session)
+                await account.refreshAfterProviderLink(
+                    displayName: appState.displayName.isEmpty ? nil : appState.displayName
+                )
+                infoMessage = localization.text("settings.account.link.phone.success")
+            }
             nationalNumber = ""
             otpCode = ""
             self.session = nil
-            infoMessage = localization.text("settings.account.phone.success")
             onSignedIn?()
         } catch let error as SMSAuthError {
             errorMessage = mapSMSError(error)
@@ -281,6 +313,14 @@ struct PhoneOTPLoginForm: View {
             return localization.text("auth.sms.regionBlocked")
         case .appVerificationFailed:
             return localization.text("auth.sms.appVerification")
+        case .notSignedInForLink:
+            return localization.text("settings.account.link.needSignedIn")
+        case .credentialAlreadyInUse:
+            return localization.text("settings.account.link.phone.alreadyInUse")
+                + "\n"
+                + localization.text("settings.account.link.mergeGuidance")
+        case .providerAlreadyLinked:
+            return localization.text("settings.account.link.phone.alreadyLinked")
         case .underlying(let detail):
             #if DEBUG
             return detail.isEmpty ? localization.text("auth.error") : detail

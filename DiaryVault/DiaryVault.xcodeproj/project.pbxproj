@@ -48,6 +48,7 @@
 		A10000000000000000000027 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000003 /* FirebaseCore */; };
 		A1000000000000000000002E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000004 /* FirebaseFirestore */; };
 		A1000000000000000000002F /* DiaryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002E /* DiaryCloudSync.swift */; };
+		A10000000000000000000030 /* DisplayNamePromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002F /* DisplayNamePromptSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,6 +97,7 @@
 		B1000000000000000000002C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B1000000000000000000002D /* DiaryVault-PersonalTeam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "DiaryVault-PersonalTeam.entitlements"; sourceTree = "<group>"; };
 		B1000000000000000000002E /* DiaryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryCloudSync.swift; sourceTree = "<group>"; };
+		B1000000000000000000002F /* DisplayNamePromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayNamePromptSheet.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -235,6 +237,7 @@
 				B1000000000000000000001F /* AuthGateView.swift */,
 				B10000000000000000000028 /* PhoneOTPLoginForm.swift */,
 				B1000000000000000000002A /* AppleSignInBackupView.swift */,
+				B1000000000000000000002F /* DisplayNamePromptSheet.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -413,6 +416,7 @@
 				A1000000000000000000001F /* AuthGateView.swift in Sources */,
 				A10000000000000000000028 /* PhoneOTPLoginForm.swift in Sources */,
 				A1000000000000000000002A /* AppleSignInBackupView.swift in Sources */,
+				A10000000000000000000030 /* DisplayNamePromptSheet.swift in Sources */,
 				A1000000000000000000000E /* DiaryListView.swift in Sources */,
 				A1000000000000000000000F /* DiaryComposerView.swift in Sources */,
 				A10000000000000000000010 /* DiaryDetailView.swift in Sources */,

@@ -65,6 +65,11 @@
 "auth.apple.secondaryNote" = "Use this if you prefer not to receive SMS, or want to link an Apple ID.";
 "auth.apple.error" = "Sign in with Apple could not finish. Try again.";
 "auth.apple.paidNote" = "Requires a paid Apple Developer team ($99/yr). Free Personal Team cannot enable this capability.";
+"auth.displayName.title" = "What should we call you?";
+"auth.displayName.body" = "New accounts get this one-time name step so your vault and Mirror can address you. You can change it later.";
+"auth.displayName.placeholder" = "Your name";
+"auth.displayName.save" = "Save and continue";
+"auth.displayName.skip" = "Skip for now";
 "auth.devLocal" = "Dev: continue with local session";
 
 /* Paywall */
@@ -156,7 +161,28 @@
 "settings.account.provider" = "Provider";
 "settings.account.provider.phone" = "Phone (SMS OTP)";
 "settings.account.provider.apple" = "Sign in with Apple";
+"settings.account.provider.both" = "Phone + Apple (same account)";
 "settings.account.provider.local" = "Local (dev)";
+"settings.account.linked.phone" = "Phone linked";
+"settings.account.linked.apple" = "Apple linked";
+"settings.account.linked.yes" = "Yes";
+"settings.account.linked.no" = "No";
+"settings.account.link.phone.title" = "Link phone";
+"settings.account.link.phone.note" = "The OTP attaches to this Firebase account (UID stays the same). You can then open the same vault with phone or Apple.";
+"settings.account.link.phone.action" = "Verify and link phone";
+"settings.account.link.phone.success" = "Phone linked to this account.";
+"settings.account.link.phone.alreadyInUse" = "This phone number already belongs to another account and cannot be overwritten.";
+"settings.account.link.phone.alreadyLinked" = "Phone is already linked to this account.";
+"settings.account.link.apple.title" = "Link Apple";
+"settings.account.link.apple.note" = "Attaches Apple ID to this Firebase account (UID stays the same). Does not create a new account.";
+"settings.account.link.apple.success" = "Apple linked to this account.";
+"settings.account.link.apple.alreadyInUse" = "This Apple ID already belongs to another account and cannot be overwritten.";
+"settings.account.link.apple.alreadyLinked" = "Apple is already linked to this account.";
+"settings.account.link.apple.error" = "Linking Apple could not finish. Try again.";
+"settings.account.link.needSignedIn" = "Sign in first, then link the other method.";
+"settings.account.link.mergeGuidance" = "To combine data from both sides, choose which account to keep and export/import diaries manually. The app will not silently overwrite the other account.";
+"settings.account.link.bothDone" = "Phone and Apple are linked to the same account.";
+"settings.account.link.footer" = "While signed in, link any missing method to the same Firebase UID (and users/{uid}). If that method already belongs elsewhere, you get a clear error — nothing is overwritten silently.";
 "settings.account.signOut" = "Sign out";
 "settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions; Sign in with Apple stays visible below when available. Sign out returns you to the account gate.";
 "settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Works for Taiwan (+886), Hong Kong (+852), Mainland China (+86), Malaysia (+60), Singapore (+65), Thailand (+66), and Japan (+81). When you are not signed in with Apple, the standard Sign in with Apple button is shown below. The banner shows Firebase vs Stub — same as the launch gate.";

@@ -26,6 +26,11 @@ enum SMSAuthError: LocalizedError, Equatable {
     case regionNotAllowed
     /// reCAPTCHA / APNs app verification failed — usually missing URL scheme (`REVERSED_CLIENT_ID`).
     case appVerificationFailed
+    /// Must already be signed in before `linkPhone`.
+    case notSignedInForLink
+    /// This phone number is already tied to a different Firebase Auth user — do not overwrite.
+    case credentialAlreadyInUse
+    case providerAlreadyLinked
     case underlying(String)
 
     var errorDescription: String? {
@@ -38,6 +43,11 @@ enum SMSAuthError: LocalizedError, Equatable {
             return "SMS is not allowed for this phone region in Firebase Console"
         case .appVerificationFailed:
             return "App verification failed. Add REVERSED_CLIENT_ID as a URL Type in Xcode"
+        case .notSignedInForLink: return "Sign in before linking a phone number"
+        case .credentialAlreadyInUse:
+            return "This phone number is already linked to another account"
+        case .providerAlreadyLinked:
+            return "Phone is already linked to this account"
         case .underlying(let message): return message
         }
     }
@@ -47,6 +57,8 @@ enum SMSAuthError: LocalizedError, Equatable {
 protocol SMSAuthProviding: Sendable {
     func sendCode(toPhoneE164 phone: String) async throws -> SMSCodeSession
     func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser
+    /// Links the verified phone credential to `Auth.auth().currentUser` (same UID). Not `signIn`.
+    func linkPhone(code: String, session: SMSCodeSession) async throws -> SMSAuthUser
 }
 
 enum SMSAuthProviderFactory {
@@ -120,6 +132,13 @@ final class StubSMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
         return SMSAuthUser(
             userID: "phone-" + session.phoneE164.filter(\.isNumber),
             phoneE164: session.phoneE164
+        )
+    }
+
+    func linkPhone(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
+        // Stub cannot attach a real Firebase phone provider — require Firebase for account linking.
+        throw SMSAuthError.notConfigured(
+            "Phone linking requires Firebase Auth. Add GoogleService-Info.plist and leave DIARY_SMS_PROVIDER empty (or firebase)."
         )
     }
 
@@ -301,6 +320,52 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         }
     }
 
+    /// Links phone to the signed-in user via `link(with:)` — never `signIn`, so UID stays put.
+    func linkPhone(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 4, trimmed.allSatisfy(\.isNumber) else {
+            throw SMSAuthError.invalidCode
+        }
+
+        FirebaseBootstrap.configureIfNeeded()
+        guard FirebaseApp.app() != nil else {
+            throw SMSAuthError.notConfigured(
+                "Firebase is not configured. Add GoogleService-Info.plist to the DiaryVault target."
+            )
+        }
+        guard let user = Auth.auth().currentUser else {
+            throw SMSAuthError.notSignedInForLink
+        }
+        let expectedUID = user.uid
+
+        let verificationID = session.verificationID.isEmpty
+            ? (UserDefaults.standard.string(forKey: Self.verificationIDDefaultsKey) ?? "")
+            : session.verificationID
+        guard !verificationID.isEmpty else {
+            throw SMSAuthError.underlying("Missing verification session. Request a new code.")
+        }
+
+        let phoneAuth = try makePhoneAuthProvider()
+        let credential = phoneAuth.credential(
+            withVerificationID: verificationID,
+            verificationCode: trimmed
+        )
+
+        do {
+            let result = try await user.link(with: credential)
+            guard result.user.uid == expectedUID else {
+                throw SMSAuthError.underlying("Account link changed UID unexpectedly.")
+            }
+            UserDefaults.standard.removeObject(forKey: Self.verificationIDDefaultsKey)
+            let phone = result.user.phoneNumber ?? session.phoneE164
+            return SMSAuthUser(userID: result.user.uid, phoneE164: phone)
+        } catch let error as SMSAuthError {
+            throw error
+        } catch {
+            throw mapFirebaseError(error, linking: true)
+        }
+    }
+
     private static let verificationIDDefaultsKey = "diary.firebase.authVerificationID"
 
     /// Lazy Firebase Phone Auth factory.
@@ -338,7 +403,7 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
         }
     }
 
-    private func mapFirebaseError(_ error: Error) -> SMSAuthError {
+    private func mapFirebaseError(_ error: Error, linking: Bool = false) -> SMSAuthError {
         let ns = error as NSError
         let message = ns.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowered = message.lowercased()
@@ -350,11 +415,17 @@ final class FirebasePhoneSMSAuthProvider: SMSAuthProviding, @unchecked Sendable 
                 return .invalidCode
             case .tooManyRequests, .quotaExceeded:
                 return .rateLimited
+            case .credentialAlreadyInUse:
+                return .credentialAlreadyInUse
+            case .providerAlreadyLinked:
+                return .providerAlreadyLinked
             case .operationNotAllowed:
                 // Phone provider disabled, or operation blocked (often SMS region policy).
                 if looksLikeRegionBlock(lowered) { return .regionNotAllowed }
                 return .notConfigured(
-                    "Phone sign-in is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
+                    linking
+                        ? "Phone linking is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
+                        : "Phone sign-in is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone."
                 )
             case .appNotAuthorized, .invalidAppCredential, .captchaCheckFailed, .missingAppCredential:
                 return .appVerificationFailed
@@ -411,6 +482,12 @@ final class TwilioReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
     }
 
     func verify(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
+        throw SMSAuthError.notConfigured(
+            "Twilio Verify client is not linked."
+        )
+    }
+
+    func linkPhone(code: String, session: SMSCodeSession) async throws -> SMSAuthUser {
         throw SMSAuthError.notConfigured(
             "Twilio Verify client is not linked."
         )

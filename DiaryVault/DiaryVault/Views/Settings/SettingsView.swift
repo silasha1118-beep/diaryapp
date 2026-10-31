@@ -38,6 +38,24 @@ struct SettingsView: View {
                                 Text(providerLabel)
                                     .foregroundStyle(VaultTheme.inkMuted)
                             }
+                            if account.hasLiveFirebaseAuth {
+                                LabeledContent(localization.text("settings.account.linked.phone")) {
+                                    Text(
+                                        account.hasLinkedPhone
+                                            ? localization.text("settings.account.linked.yes")
+                                            : localization.text("settings.account.linked.no")
+                                    )
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                }
+                                LabeledContent(localization.text("settings.account.linked.apple")) {
+                                    Text(
+                                        account.hasLinkedApple
+                                            ? localization.text("settings.account.linked.yes")
+                                            : localization.text("settings.account.linked.no")
+                                    )
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                                }
+                            }
                             Button(role: .destructive) {
                                 account.signOut()
                             } label: {
@@ -48,17 +66,35 @@ struct SettingsView: View {
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
 
-                        PhoneOTPLoginForm(chrome: .settings)
-                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                        if !account.isSignedIn {
+                            PhoneOTPLoginForm(chrome: .settings)
+                                .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
 
-                        if !account.isSignedIn || account.provider != .apple {
                             AppleSignInBackupView(chrome: .settings)
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
+                        } else if account.hasLiveFirebaseAuth {
+                            if account.needsPhoneLink {
+                                PhoneOTPLoginForm(chrome: .settings, mode: .link)
+                                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                            }
+                            if account.needsAppleLink {
+                                AppleSignInBackupView(chrome: .settings, mode: .link)
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
+                            }
+                            if account.hasLinkedPhone && account.hasLinkedApple {
+                                Text(localization.text("settings.account.link.bothDone"))
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(VaultTheme.inkMuted)
+                            }
                         }
                     } header: {
                         Text(localization.text("settings.section.accountPhone"))
                     } footer: {
-                        Text(localization.text("settings.account.phone.footer"))
+                        Text(
+                            account.isSignedIn
+                                ? localization.text("settings.account.link.footer")
+                                : localization.text("settings.account.phone.footer")
+                        )
                     }
 
                     Section {
@@ -343,6 +379,9 @@ struct SettingsView: View {
     }
 
     private var providerLabel: String {
+        if account.hasLinkedPhone && account.hasLinkedApple {
+            return localization.text("settings.account.provider.both")
+        }
         switch account.provider {
         case .phone:
             return localization.text("settings.account.provider.phone")

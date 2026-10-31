@@ -65,6 +65,11 @@
 "auth.apple.secondaryNote" = "SMS を受け取りたくない場合や、Apple ID を紐づけたいときに。";
 "auth.apple.error" = "Apple でサインインを完了できませんでした。もう一度お試しください。";
 "auth.apple.paidNote" = "有料の Apple Developer チーム（年額 $99）が必要です。無料の Personal Team ではこの機能を有効にできません。";
+"auth.displayName.title" = "お名前は？";
+"auth.displayName.body" = "新しいアカウントでは表示名を一度だけ伺います。ボールトとミラーがあなたを呼べるようになります。後から変更できます。";
+"auth.displayName.placeholder" = "お名前";
+"auth.displayName.save" = "保存して続ける";
+"auth.displayName.skip" = "今はスキップ";
 "auth.devLocal" = "開発：ローカルセッションで続行";
 
 /* Paywall */
@@ -155,7 +160,28 @@
 "settings.account.provider" = "プロバイダ";
 "settings.account.provider.phone" = "電話（SMS OTP）";
 "settings.account.provider.apple" = "Apple でサインイン";
+"settings.account.provider.both" = "電話 + Apple（同一アカウント）";
 "settings.account.provider.local" = "ローカル（開発）";
+"settings.account.linked.phone" = "電話を連携済み";
+"settings.account.linked.apple" = "Apple を連携済み";
+"settings.account.linked.yes" = "はい";
+"settings.account.linked.no" = "いいえ";
+"settings.account.link.phone.title" = "電話を連携";
+"settings.account.link.phone.note" = "OTP はこの Firebase アカウントに紐づきます（UID は変わりません）。以降は電話でも Apple でも同じボールトを開けます。";
+"settings.account.link.phone.action" = "確認して電話を連携";
+"settings.account.link.phone.success" = "電話をこのアカウントに連携しました。";
+"settings.account.link.phone.alreadyInUse" = "この電話番号は別のアカウントに既に紐づいており、上書きできません。";
+"settings.account.link.phone.alreadyLinked" = "このアカウントには既に電話が連携されています。";
+"settings.account.link.apple.title" = "Apple を連携";
+"settings.account.link.apple.note" = "Apple ID をこの Firebase アカウントに紐づけます（UID は変わりません）。新しいアカウントは作りません。";
+"settings.account.link.apple.success" = "Apple をこのアカウントに連携しました。";
+"settings.account.link.apple.alreadyInUse" = "この Apple ID は別のアカウントに既に紐づいており、上書きできません。";
+"settings.account.link.apple.alreadyLinked" = "このアカウントには既に Apple が連携されています。";
+"settings.account.link.apple.error" = "Apple の連携を完了できませんでした。もう一度お試しください。";
+"settings.account.link.needSignedIn" = "先にサインインしてから、もう一方の方法を連携してください。";
+"settings.account.link.mergeGuidance" = "両方のデータをまとめたい場合は、残すアカウントを決め、日記を手動でエクスポート／インポートしてください。他方のアカウントを自動で上書きしません。";
+"settings.account.link.bothDone" = "電話と Apple は同一アカウントに連携済みです。";
+"settings.account.link.footer" = "サインイン中は、足りない方法を同じ Firebase UID（users/{uid}）に連携できます。既に別アカウントへ紐づいている場合は明確なエラーを出し、静かに上書きしません。";
 "settings.account.signOut" = "サインアウト";
 "settings.account.footer" = "セッションはこの端末のみ。全地域のメインは電話 SMS OTP；Sign in with Apple は下に表示されます。サインアウトするとアカウントゲートに戻ります。";
 "settings.account.phone.footer" = "携帯番号を入力し、コードを送信して確認します。台湾（+886）、香港（+852）、中国本土（+86）、マレーシア（+60）、シンガポール（+65）、タイ（+66）、日本（+81）に対応。Apple でサインインしていないとき、下に標準の「Apple でサインイン」が表示されます。バナーは Firebase か Stub——起動ゲートと同じ。";
