@@ -517,7 +517,8 @@ final class TwilioReadySMSAuthProvider: SMSAuthProviding, @unchecked Sendable {
 /// Domain/code checks that stay source-compatible across Firebase Auth 11.x SPM resolves.
 enum FirebaseAuthErrorMap {
     static func isFirebaseAuth(_ ns: NSError) -> Bool {
-        ns.domain == AuthErrorDomain || ns.domain == AuthErrors.domain
+        // Prefer the ObjC `AuthErrorDomain` constant — always imported with FirebaseAuth.
+        ns.domain == AuthErrorDomain
     }
 
     static func matches(_ ns: NSError, _ code: AuthErrorCode) -> Bool {

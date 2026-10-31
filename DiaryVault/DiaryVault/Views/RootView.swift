@@ -17,9 +17,8 @@ struct RootView: View {
                 MainTabView()
             }
         }
-        .animation(.easeInOut(duration: 0.35), value: appState.didCompleteOnboarding)
-        .animation(.easeInOut(duration: 0.35), value: account.isSignedIn)
-        .animation(.easeInOut(duration: 0.35), value: needsPostLoginDisplayName)
+        // No animation on computed `needsPostLoginDisplayName` — keeps type-checker simple
+        // next to the post-login name Form (compiler crash work around).
         .onAppear { seedDisplayNameFromExistingIdentity() }
         .onChange(of: account.userID) { _, _ in
             seedDisplayNameFromExistingIdentity()
