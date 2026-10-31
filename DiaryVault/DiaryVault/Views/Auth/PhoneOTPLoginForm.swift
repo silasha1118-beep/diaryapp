@@ -33,8 +33,13 @@ struct PhoneOTPLoginForm: View {
     @State private var isVerifying = false
     @State private var errorMessage: String?
     @State private var infoMessage: String?
+    /// Seconds left before Resend is enabled again after a successful SMS send.
+    @State private var resendSecondsRemaining = 0
+    @State private var resendCooldownTask: Task<Void, Never>?
     /// Created on first Send / Verify only — Settings / Apple session UI must not touch Phone Auth.
     @State private var smsProvider: SMSAuthProviderHolder?
+
+    private static let resendCooldownSeconds = 60
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
@@ -74,6 +79,9 @@ struct PhoneOTPLoginForm: View {
         .animation(.easeInOut(duration: 0.3), value: session != nil)
         .onAppear {
             surfacePhoneAuthURLSchemeIfNeeded()
+        }
+        .onDisappear {
+            cancelResendCooldown()
         }
     }
 
@@ -139,10 +147,7 @@ struct PhoneOTPLoginForm: View {
                 .pickerStyle(.menu)
                 .tint(VaultTheme.ink)
                 .onChange(of: dial) { _, _ in
-                    session = nil
-                    otpCode = ""
-                    errorMessage = nil
-                    infoMessage = nil
+                    resetOTPChallenge()
                 }
 
                 TextField(localization.text("auth.phone.placeholder"), text: $nationalNumber)
@@ -150,10 +155,7 @@ struct PhoneOTPLoginForm: View {
                     .textContentType(.telephoneNumber)
                     .modifier(AuthFieldChrome(chrome: chrome))
                     .onChange(of: nationalNumber) { _, _ in
-                        session = nil
-                        otpCode = ""
-                        errorMessage = nil
-                        infoMessage = nil
+                        resetOTPChallenge()
                     }
             }
 
@@ -165,21 +167,18 @@ struct PhoneOTPLoginForm: View {
                         ProgressView()
                             .tint(.white)
                     }
-                    Text(
-                        session == nil
-                            ? localization.text("auth.phone.send")
-                            : localization.text("auth.phone.resend")
-                    )
-                    .font(.system(size: 16, weight: .semibold))
+                    Text(sendOrResendLabel)
+                        .font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: chrome == .gate ? 48 : 44)
-                .background(VaultTheme.seal.opacity(canSend ? 1 : 0.4))
+                .background(VaultTheme.seal.opacity(sendButtonEnabled ? 1 : 0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             }
-            .disabled(!canSend || isSending)
+            .disabled(!sendButtonEnabled || isSending)
             .buttonStyle(.plain)
+            .accessibilityLabel(sendOrResendLabel)
         }
     }
 
@@ -231,6 +230,27 @@ struct PhoneOTPLoginForm: View {
         return true
     }
 
+    private var isResendCoolingDown: Bool {
+        session != nil && resendSecondsRemaining > 0
+    }
+
+    private var sendButtonEnabled: Bool {
+        canSend && !isResendCoolingDown
+    }
+
+    private var sendOrResendLabel: String {
+        if session == nil {
+            return localization.text("auth.phone.send")
+        }
+        if resendSecondsRemaining > 0 {
+            return String(
+                format: localization.text("auth.phone.resend.cooldown"),
+                resendSecondsRemaining
+            )
+        }
+        return localization.text("auth.phone.resend")
+    }
+
     private var canVerify: Bool {
         session != nil && otpCode.filter(\.isNumber).count == 6
     }
@@ -238,6 +258,7 @@ struct PhoneOTPLoginForm: View {
     // MARK: - Actions
 
     private func sendCode() async {
+        guard !isResendCoolingDown else { return }
         errorMessage = nil
         infoMessage = nil
         isSending = true
@@ -253,6 +274,7 @@ struct PhoneOTPLoginForm: View {
             withAnimation(.easeInOut(duration: 0.3)) {
                 session = newSession
             }
+            startResendCooldown()
             if let hint = newSession.stubDebugHint {
                 infoMessage = String(format: localization.text("auth.stub.hint"), hint)
             } else {
@@ -291,12 +313,39 @@ struct PhoneOTPLoginForm: View {
             nationalNumber = ""
             otpCode = ""
             self.session = nil
+            cancelResendCooldown()
             onSignedIn?()
         } catch let error as SMSAuthError {
             errorMessage = mapSMSError(error)
         } catch {
             errorMessage = localization.text("auth.otp.error")
         }
+    }
+
+    private func resetOTPChallenge() {
+        session = nil
+        otpCode = ""
+        errorMessage = nil
+        infoMessage = nil
+        cancelResendCooldown()
+    }
+
+    private func startResendCooldown() {
+        cancelResendCooldown()
+        resendSecondsRemaining = Self.resendCooldownSeconds
+        resendCooldownTask = Task { @MainActor in
+            while resendSecondsRemaining > 0 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled else { return }
+                resendSecondsRemaining -= 1
+            }
+        }
+    }
+
+    private func cancelResendCooldown() {
+        resendCooldownTask?.cancel()
+        resendCooldownTask = nil
+        resendSecondsRemaining = 0
     }
 
     private func mapSMSError(_ error: SMSAuthError) -> String {

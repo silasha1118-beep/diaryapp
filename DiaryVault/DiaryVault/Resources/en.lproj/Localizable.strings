@@ -37,6 +37,7 @@
 "auth.phone.placeholder" = "Mobile number (no country code)";
 "auth.phone.send" = "Send verification code";
 "auth.phone.resend" = "Resend code";
+"auth.phone.resend.cooldown" = "Resend code (%ds)";
 "auth.phone.sent" = "Code sent. Check your messages.";
 "auth.phone.invalid" = "Enter a valid mobile number for the selected region (TW 9, HK/SG 8, CN 11, MY 9–10, TH 9, JP 10 — leading 0 OK).";
 "auth.otp.label" = "Verification code";
