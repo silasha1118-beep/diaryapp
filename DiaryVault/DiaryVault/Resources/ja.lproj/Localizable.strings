@@ -202,6 +202,8 @@
 "settings.account.footer" = "セッションはこの端末のみ。全地域のメインは電話 SMS OTP；Sign in with Apple は下に表示されます。サインアウトするとアカウントゲートに戻ります。";
 "settings.account.phone.footer" = "携帯番号を入力し、コードを送信して確認します。台湾・香港・中国本土・マレーシア・シンガポール・タイ・日本に対応。Apple でサインインしていないとき、下に「Apple でサインイン」が表示されます。";
 "settings.account.phone.success" = "電話サインインに成功しました。";
+"settings.section.developer" = "開発者";
+"settings.developer.footer" = "DEBUG ビルドのみ。Release では完全に非表示。";
 "settings.section.cloud" = "同期";
 "settings.cloud.status" = "状態";
 "settings.cloud.status.synced" = "同期済み";
