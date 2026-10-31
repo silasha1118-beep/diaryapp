@@ -38,10 +38,14 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   moodTag: string | null
   createdAt: timestamp
   updatedAt: timestamp
+  deleted: bool                 // soft-delete; Vault hides when true (default false)
+  deletedAt: timestamp | null   // set when the user deletes; docs are never hard-removed
   ownerUid: string              // enables Admin SDK collection-group queries later
   schemaVersion: number         // 1
   contentType: string           // "text" (media later)
 ```
+
+**Soft-delete / retention:** User delete sets `deleted: true` + `deletedAt` (local JSON + Firestore upsert). Clients never call Firestore `delete()` on entries; rules deny hard delete. Docs remain under `users/{uid}/entries` for admin/future. Vault list, Mirror context, and export omit soft-deleted rows. After changing rules, **Publish** again in Console.
 
 **Console tip:** Data → `users` → open a doc, or filter by `phoneNumber`. Document ID remains the Auth UID. Identity fields are written on sign-in and each cloud sync (user doc only — not mirrored onto entries).
 
@@ -52,7 +56,7 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
 | Auth state | Behavior |
 |------------|----------|
 | Signed out / DEBUG local session / stub OTP | Local vault only — no Firestore writes |
-| Firebase Auth phone or Apple | Local save first; upsert/delete sync when online; pull+merge (LWW by `updatedAt`) on launch / after Auth restore / after sign-in |
+| Firebase Auth phone or Apple | Local save first; upsert (incl. soft-delete flags) when online; pull+merge (LWW by `updatedAt`) on launch / after Auth restore / after sign-in; Vault UI excludes `deleted == true` |
 
 **Important:** Sync gates on live `Auth.auth().currentUser` (not UserDefaults alone). Settings → **Cloud sync** shows whether Firebase Auth is live and surfaces sync errors (e.g. rules not Published). If status is “Local session only”, sign out and complete real Firebase SMS (banner must say Firebase).
 

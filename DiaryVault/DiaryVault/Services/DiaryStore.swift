@@ -43,8 +43,15 @@ final class DiaryStore: ObservableObject {
         }
     }
 
-    /// Vault list order: newest `createdAt` first (never document-ID / insertion order).
+    /// Vault / Mirror / export: active entries only (soft-deleted hidden), newest `createdAt` first.
     var sortedEntries: [DiaryEntry] {
+        entries
+            .filter { !$0.deleted }
+            .sorted(by: DiaryCloudSync.chronologicalDescending)
+    }
+
+    /// All local rows including soft-deleted (persistence + cloud flush).
+    private var allEntriesChronological: [DiaryEntry] {
         entries.sorted(by: DiaryCloudSync.chronologicalDescending)
     }
 
@@ -65,7 +72,12 @@ final class DiaryStore: ObservableObject {
         }
     }
 
+    /// Active (non-deleted) entry for Vault UI. Soft-deleted IDs return nil.
     func entry(id: UUID) -> DiaryEntry? {
+        entries.first { $0.id == id && !$0.deleted }
+    }
+
+    private func storedEntry(id: UUID) -> DiaryEntry? {
         entries.first { $0.id == id }
     }
 
@@ -86,8 +98,12 @@ final class DiaryStore: ObservableObject {
     }
 
     func update(_ entry: DiaryEntry) {
-        guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        guard let index = entries.firstIndex(where: { $0.id == entry.id }),
+              !entries[index].deleted
+        else { return }
         var updated = entry
+        updated.deleted = false
+        updated.deletedAt = nil
         updated.updatedAt = Date()
         entries[index] = updated
         resortEntries()
@@ -96,17 +112,32 @@ final class DiaryStore: ObservableObject {
         scheduleSynchronize()
     }
 
+    /// Soft-delete: mark `deleted` + `deletedAt` locally and sync the same to Firestore.
+    /// Never removes the row from local JSON or calls Firestore `delete()`.
     func delete(id: UUID) {
-        entries.removeAll { $0.id == id }
+        guard let index = entries.firstIndex(where: { $0.id == id }), !entries[index].deleted else { return }
+        let now = Date()
+        entries[index].deleted = true
+        entries[index].deletedAt = now
+        entries[index].updatedAt = now
         save()
-        enqueue(.delete(id))
+        // Upsert carries deleted / deletedAt; do not enqueue a hard Firestore delete.
+        enqueue(.upsert(id))
         scheduleSynchronize()
     }
 
-    /// Wipe every local entry. Optionally purge the signed-in user's Firestore entries first
-    /// (account-deletion path — must run while Auth session is still live).
+    /// Wipe every local entry. Optionally soft-delete all Firestore entries for the signed-in
+    /// user (account-deletion path — must run while Auth session is still live). Cloud docs
+    /// stay under `users/{uid}/entries` forever.
     func deleteAllEntries(purgeCloud: Bool = true) async {
         let uid = DiaryCloudSync.activeFirebaseUID
+        let now = Date()
+        for index in entries.indices where !entries[index].deleted {
+            entries[index].deleted = true
+            entries[index].deletedAt = now
+            entries[index].updatedAt = now
+        }
+        // Clear local vault UI state; retention lives in Firestore.
         entries = []
         save()
         pendingOps = []
@@ -114,13 +145,13 @@ final class DiaryStore: ObservableObject {
 
         if purgeCloud, let uid {
             do {
-                try await DiaryCloudSync.deleteAllEntries(uid: uid)
+                try await DiaryCloudSync.softDeleteAllEntries(uid: uid)
                 lastCloudSyncAt = Date()
                 lastCloudSyncError = nil
             } catch {
                 lastCloudSyncError = error.localizedDescription
                 #if DEBUG
-                print("DiaryCloudSync deleteAll failed: \(error)")
+                print("DiaryCloudSync softDeleteAll failed: \(error)")
                 #endif
             }
         }
@@ -173,11 +204,13 @@ final class DiaryStore: ObservableObject {
             }
         }
 
+        let hasActiveEntries = entries.contains { !$0.deleted }
+
         // Upsert identity on every sync so Console can show phone / Apple even with zero entries.
         do {
             try await DiaryCloudSync.upsertUserProfile(
                 uid: uid,
-                hasTextEntries: !entries.isEmpty
+                hasTextEntries: hasActiveEntries
             )
         } catch {
             #if DEBUG
@@ -189,6 +222,7 @@ final class DiaryStore: ObservableObject {
 
         do {
             // Force server so we never skip uploads based on a stale local cache.
+            // Pull includes soft-deleted docs for LWW merge; Vault UI filters them out.
             remote = try await DiaryCloudSync.fetchAllEntries(uid: uid, source: .server)
             mergeRemote(remote)
         } catch is CancellationError {
@@ -208,13 +242,16 @@ final class DiaryStore: ObservableObject {
             try await DiaryCloudSync.waitForPendingWrites()
 
             let serverIDs = try await verifyLocalsOnServer(uid: uid)
-            lastCloudSyncServerCount = serverIDs.count
+            // Settings “Entries on server” = active (non-deleted) docs visible to the user.
+            let serverActive = try await DiaryCloudSync.fetchActiveEntryIDs(uid: uid)
+            lastCloudSyncServerCount = serverActive.count
             lastCloudSyncAt = Date()
             // Server verification is authoritative — never claim “synced” without it.
             lastCloudSyncError = nil
             #if DEBUG
             let project = DiaryCloudSync.firebaseProjectID ?? "?"
-            print("DiaryCloudSync OK project=\(project) uid=\(uid) local=\(entries.count) server=\(serverIDs.count)")
+            let activeLocal = entries.filter { !$0.deleted }.count
+            print("DiaryCloudSync OK project=\(project) uid=\(uid) localActive=\(activeLocal) serverActive=\(serverActive.count) serverAll=\(serverIDs.count)")
             #endif
         } catch is CancellationError {
             return
@@ -227,6 +264,7 @@ final class DiaryStore: ObservableObject {
     }
 
     /// Re-push any locals missing on the server, then confirm. Throws if Console would still look empty.
+    /// Soft-deleted locals must still exist on the server (forever retention).
     @discardableResult
     private func verifyLocalsOnServer(uid: String) async throws -> Set<UUID> {
         let localIDs = Set(entries.map(\.id))
@@ -263,9 +301,21 @@ final class DiaryStore: ObservableObject {
                     changed = true
                 }
             } else if !pendingOps.contains(where: {
-                if case .delete(let id) = $0 { return id == remoteEntry.id }
-                return false
+                // Legacy pending hard-delete op, or upsert that already soft-deleted locally.
+                switch $0 {
+                case .delete(let id):
+                    return id == remoteEntry.id
+                case .upsert(let id):
+                    if id == remoteEntry.id,
+                       let local = storedEntry(id: id),
+                       local.deleted,
+                       local.updatedAt >= remoteEntry.updatedAt {
+                        return true
+                    }
+                    return false
+                }
             }) {
+                // Keep soft-deleted remotes locally for retention sync; Vault filters them out.
                 entries.append(remoteEntry)
                 changed = true
             }
@@ -294,12 +344,17 @@ final class DiaryStore: ObservableObject {
             do {
                 switch op {
                 case .upsert(let id):
-                    if let entry = entry(id: id) {
+                    // Includes soft-deleted rows so Firestore gets deleted / deletedAt.
+                    if let entry = storedEntry(id: id) {
                         try await DiaryCloudSync.upsert(entry: entry, uid: uid)
                     }
-                    // If already deleted locally, skip upsert.
                 case .delete(let id):
-                    try await DiaryCloudSync.delete(entryID: id, uid: uid)
+                    // Legacy pending hard-delete → soft-delete on Firestore (forever retention).
+                    if let entry = storedEntry(id: id) {
+                        try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                    } else {
+                        try await DiaryCloudSync.markDeleted(entryID: id, uid: uid, at: Date())
+                    }
                 }
             } catch {
                 remaining.append(op)
@@ -377,8 +432,8 @@ final class DiaryStore: ObservableObject {
 
     private func save() {
         do {
-            // Persist in Vault display order (createdAt newest-first), not Firestore doc-ID order.
-            let data = try encoder.encode(sortedEntries)
+            // Persist all rows (including soft-deleted) in chronological order.
+            let data = try encoder.encode(allEntriesChronological)
             try data.write(to: fileURL, options: [.atomic])
         } catch {
             // MVP: silent fail; production would surface error UI.

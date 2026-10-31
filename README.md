@@ -280,7 +280,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Onboarding (brand, privacy, optional name, language strip) | Works (local) |
 | **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; **Sign in with Apple** optional backup (paid team); DEBUG local session; Settings has the same |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
-| Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in |
+| Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in; delete is soft-delete (`deleted` + `deletedAt`), Vault hides deleted rows |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, **Free vs Author Plus** local daily Mirror quotas |
