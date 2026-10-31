@@ -136,9 +136,9 @@ struct DiaryListView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(localization.text("brand.name"))
-                .font(.system(size: 32, weight: .semibold, design: .serif))
+                .font(.system(size: 34, weight: .semibold, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
 
             Text(
@@ -149,62 +149,72 @@ struct DiaryListView: View {
             .font(.system(size: 15))
             .foregroundStyle(VaultTheme.inkMuted)
         }
+        .padding(.top, 4)
+        .padding(.bottom, 4)
     }
 
     private func entryRow(_ entry: DiaryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
                 Text(formattedEntryDate(entry.createdAt))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(VaultTheme.seal)
                 if let mood = entry.moodTag, !mood.isEmpty {
-                    Text("· \(mood)")
+                    Text("·")
+                        .font(.system(size: 12))
+                        .foregroundStyle(VaultTheme.inkMuted.opacity(0.7))
+                    Text(mood)
                         .font(.system(size: 12))
                         .foregroundStyle(VaultTheme.inkMuted)
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
 
             if !entry.title.isEmpty {
                 Text(entry.title)
-                    .font(.system(size: 18, weight: .semibold, design: .serif))
+                    .font(.system(size: 19, weight: .semibold, design: .serif))
                     .foregroundStyle(VaultTheme.ink)
                     .lineLimit(1)
             }
 
-            Text(entry.preview.isEmpty ? localization.text("diary.emptyBody") : entry.preview)
-                .font(.system(size: 15))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
+            if !entry.preview.isEmpty {
+                Text(entry.preview)
+                    .font(.system(size: 15))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .lineLimit(3)
+                    .lineSpacing(3)
+                    .multilineTextAlignment(.leading)
+            }
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 18)
+        .padding(.vertical, 20)
         .contentShape(Rectangle())
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 18) {
             Text(localization.text("diary.empty.title"))
-                .font(.system(size: 22, weight: .semibold, design: .serif))
+                .font(.system(size: 24, weight: .semibold, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
             Text(localization.text("diary.empty.body"))
                 .font(.system(size: 15))
                 .foregroundStyle(VaultTheme.inkMuted)
                 .multilineTextAlignment(.center)
+                .lineSpacing(3)
             Button {
                 composerSession = .create
             } label: {
                 Text(localization.text("diary.new"))
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(VaultTheme.paper)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 12)
                     .background(VaultTheme.ink)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             }
             .buttonStyle(.plain)
+            .padding(.top, 4)
         }
-        .padding(32)
+        .padding(36)
     }
 }

@@ -81,16 +81,11 @@ struct DiaryDetailView: View {
                 } else {
                     readOnlyFields(entry)
                 }
-
-                Text(localization.text("diary.detail.owned"))
-                    .font(.system(size: 12))
-                    .foregroundStyle(VaultTheme.inkMuted)
-                    .padding(.top, 40)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 48)
+            .padding(.top, 24)
+            .padding(.bottom, 56)
         }
     }
 
@@ -99,23 +94,24 @@ struct DiaryDetailView: View {
             TextField(localization.text("diary.field.mood"), text: $draftMood)
                 .font(.system(size: 14, weight: .regular))
                 .foregroundStyle(VaultTheme.inkMuted)
-                .padding(.top, 10)
+                .padding(.top, 12)
 
             TextField(localization.text("diary.field.title"), text: $draftTitle)
-                .font(.system(size: 28, weight: .semibold, design: .serif))
+                .font(.system(size: 30, weight: .semibold, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
-                .padding(.top, 20)
+                .padding(.top, 18)
 
             Rectangle()
-                .fill(VaultTheme.line.opacity(0.7))
+                .fill(VaultTheme.line.opacity(0.65))
                 .frame(height: 1)
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+                .padding(.top, 22)
+                .padding(.bottom, 22)
 
             TextEditor(text: $draftBody)
                 .font(.system(size: 17, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
-                .frame(minHeight: 220)
+                .lineSpacing(8)
+                .frame(minHeight: 240)
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, -4)
         }
@@ -127,27 +123,27 @@ struct DiaryDetailView: View {
                 Text(mood)
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(VaultTheme.inkMuted)
-                    .padding(.top, 10)
+                    .padding(.top, 12)
             }
 
             if !entry.title.isEmpty {
                 Text(entry.title)
-                    .font(.system(size: 28, weight: .semibold, design: .serif))
+                    .font(.system(size: 30, weight: .semibold, design: .serif))
                     .foregroundStyle(VaultTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, entry.moodTag?.isEmpty == false ? 16 : 20)
+                    .padding(.top, entry.moodTag?.isEmpty == false ? 14 : 18)
             }
 
             // Hairline separates title/meta from body so identical short strings don't stack as peers.
             Rectangle()
-                .fill(VaultTheme.line.opacity(0.7))
+                .fill(VaultTheme.line.opacity(0.65))
                 .frame(height: 1)
-                .padding(.top, entry.title.isEmpty && (entry.moodTag == nil || entry.moodTag?.isEmpty == true) ? 16 : 20)
-                .padding(.bottom, 20)
+                .padding(.top, entry.title.isEmpty && (entry.moodTag == nil || entry.moodTag?.isEmpty == true) ? 18 : 22)
+                .padding(.bottom, 22)
 
             Text(entry.body.isEmpty ? localization.text("diary.emptyBody") : entry.body)
                 .font(.system(size: 17, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
+                .foregroundStyle(entry.body.isEmpty ? VaultTheme.inkMuted : VaultTheme.ink)
                 .lineSpacing(8)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)

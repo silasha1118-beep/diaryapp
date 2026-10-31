@@ -122,7 +122,8 @@ enum AIConfig {
         !(apiKey?.isEmpty ?? true)
     }
 
-    static var dataResidencyLabel: String { "Taiwan (TW)" }
+    /// Prompt / internal residency cue — keep ISO-ish for model context; Settings uses localized copy.
+    static var dataResidencyLabel: String { "Taiwan" }
 
     private static func value(for key: String) -> String? {
         if let env = ProcessInfo.processInfo.environment[key], !env.isEmpty {
