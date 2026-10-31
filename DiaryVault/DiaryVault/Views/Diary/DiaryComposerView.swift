@@ -26,77 +26,7 @@ struct DiaryComposerView: View {
         NavigationStack {
             ZStack {
                 VaultTheme.paper.ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: 16) {
-                    TextField(localization.text("diary.field.title"), text: $title)
-                        .font(.system(size: 22, weight: .semibold, design: .serif))
-                        .foregroundStyle(VaultTheme.ink)
-
-                    TextField(localization.text("diary.field.mood"), text: $mood)
-                        .font(.system(size: 14))
-                        .foregroundStyle(VaultTheme.inkMuted)
-
-                    Rectangle()
-                        .fill(VaultTheme.line)
-                        .frame(height: 1)
-
-                    TextEditor(text: $bodyText)
-                        .font(.system(size: 17, design: .serif))
-                        .foregroundStyle(VaultTheme.ink)
-                        .scrollContentBackground(.hidden)
-                        .background(Color.clear)
-
-                    if let softReminder {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(softReminder)
-                                .font(.system(size: 13))
-                                .foregroundStyle(VaultTheme.seal)
-                                .fixedSize(horizontal: false, vertical: true)
-                            HStack(spacing: 16) {
-                                Button {
-                                    showPaywall = true
-                                } label: {
-                                    Text(localization.text(quotaUpgradeCTAKey))
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(VaultTheme.seal)
-                                }
-                                .buttonStyle(.plain)
-
-                                Button {
-                                    suppressPaywallNagOnce = true
-                                    softReminder = nil
-                                    attemptSave()
-                                } label: {
-                                    Text(localization.text("diary.quota.soft.continue"))
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(VaultTheme.ink)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-
-                    if let quotaError {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(quotaError)
-                                .font(.system(size: 13))
-                                .foregroundStyle(VaultTheme.seal)
-                            if showQuotaUpgrade {
-                                Button {
-                                    showPaywall = true
-                                } label: {
-                                    Text(localization.text(quotaUpgradeCTAKey))
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(VaultTheme.seal)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-
-                    Spacer(minLength: 0)
-                }
-                .padding(20)
+                formContent
             }
             .navigationTitle(localization.text("diary.new"))
             .navigationBarTitleDisplayMode(.inline)
@@ -115,18 +45,96 @@ struct DiaryComposerView: View {
                 }
             }
             .onChange(of: subscriptions.tier) { _, _ in
-                if !DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
-                    quotaError = nil
-                    showQuotaUpgrade = false
-                    softReminder = nil
-                }
+                clearQuotaMessagesIfUnderCap()
             }
             // fullScreenCover — not nested `.sheet` — so Free soft paywall is visible from the composer sheet.
-            // PaywallView owns its NavigationStack + Cancel (dismiss); do not wrap another stack.
             .fullScreenCover(isPresented: $showPaywall) {
                 PaywallView()
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
+            }
+        }
+    }
+
+    // MARK: - Split views (keeps the type checker happy)
+
+    private var formContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            TextField(localization.text("diary.field.title"), text: $title)
+                .font(.system(size: 22, weight: .semibold, design: .serif))
+                .foregroundStyle(VaultTheme.ink)
+
+            TextField(localization.text("diary.field.mood"), text: $mood)
+                .font(.system(size: 14))
+                .foregroundStyle(VaultTheme.inkMuted)
+
+            Rectangle()
+                .fill(VaultTheme.line)
+                .frame(height: 1)
+
+            TextEditor(text: $bodyText)
+                .font(.system(size: 17, design: .serif))
+                .foregroundStyle(VaultTheme.ink)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+
+            if let softReminder {
+                softReminderBanner(softReminder)
+            }
+
+            if let quotaError {
+                hardQuotaBanner(quotaError)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+    }
+
+    private func softReminderBanner(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(message)
+                .font(.system(size: 13))
+                .foregroundStyle(VaultTheme.seal)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 16) {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Text(localization.text(quotaUpgradeCTAKey))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(VaultTheme.seal)
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    suppressPaywallNagOnce = true
+                    softReminder = nil
+                    attemptSave()
+                } label: {
+                    Text(localization.text("diary.quota.soft.continue"))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(VaultTheme.ink)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func hardQuotaBanner(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(message)
+                .font(.system(size: 13))
+                .foregroundStyle(VaultTheme.seal)
+            if showQuotaUpgrade {
+                Button {
+                    showPaywall = true
+                } label: {
+                    Text(localization.text(quotaUpgradeCTAKey))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(VaultTheme.seal)
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -148,6 +156,14 @@ struct DiaryComposerView: View {
         }
     }
 
+    private func clearQuotaMessagesIfUnderCap() {
+        if !DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
+            quotaError = nil
+            showQuotaUpgrade = false
+            softReminder = nil
+        }
+    }
+
     private func attemptSave() {
         guard canSave else { return }
         softReminder = nil
@@ -161,8 +177,8 @@ struct DiaryComposerView: View {
             return
         }
 
-        // Inline soft reminder (Free uses 5–8). Do not present a nested sheet from this sheet —
-        // that auto-dismissed and silently saved on device.
+        // Inline soft reminder (Free uses 5-8). Nested paywall sheets from this sheet
+        // auto-dismissed on device and silently saved.
         if DiaryUploadUsageGuard.shouldNudgePaywall(kind: .text, tier: billingTier),
            !suppressPaywallNagOnce {
             let remaining = DiaryUploadUsageGuard.remaining(kind: .text, tier: billingTier)
@@ -178,11 +194,12 @@ struct DiaryComposerView: View {
 
         do {
             try DiaryUploadUsageGuard.checkAndIncrement(kind: .text, tier: billingTier)
-        } catch let DiaryUploadUsageGuard.UploadError.rateLimited(_, limit, tier) {
-            quotaError = String(format: localization.text(exhaustedKey(for: tier)), limit)
-            showQuotaUpgrade = tier != .authorPro
-            return
         } catch {
+            if case let DiaryUploadUsageGuard.UploadError.rateLimited(_, limit, tier) = error {
+                quotaError = String(format: localization.text(exhaustedKey(for: tier)), limit)
+                showQuotaUpgrade = tier != .authorPro
+                return
+            }
             quotaError = error.localizedDescription
             return
         }

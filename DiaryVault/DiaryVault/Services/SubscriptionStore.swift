@@ -18,16 +18,13 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var lastErrorDetail: String?
     @Published private(set) var isLoading: Bool = false
 
-    /// `nonisolated(unsafe)` so `deinit` can cancel without MainActor hop (Xcode 16 / Swift 6).
-    nonisolated(unsafe) private var updatesTask: Task<Void, Never>?
+    /// Retained for app lifetime (StoreKit `Transaction.updates` is endless). No `deinit` cancel —
+    /// `@MainActor` + `nonisolated(unsafe)` deinit broke some Xcode / Swift version combos.
+    private var updatesTask: Task<Void, Never>?
 
     init() {
         updatesTask = Task { await listenForTransactions() }
         Task { await refresh() }
-    }
-
-    deinit {
-        updatesTask?.cancel()
     }
 
     var plusProducts: [Product] {

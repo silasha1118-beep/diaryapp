@@ -8,15 +8,6 @@ struct DiaryListView: View {
 
     @State private var showComposer = false
 
-    private var dateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.locale = localization.locale
-        f.dateStyle = .medium
-        // Show time so same-day entries read as chronological, not unordered.
-        f.timeStyle = .short
-        return f
-    }
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -25,27 +16,7 @@ struct DiaryListView: View {
                 if diaryStore.sortedEntries.isEmpty {
                     emptyState
                 } else {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            header
-                                .padding(.horizontal, 24)
-                                .padding(.top, 8)
-                                .padding(.bottom, 20)
-
-                            ForEach(diaryStore.sortedEntries) { entry in
-                                NavigationLink(value: entry) {
-                                    entryRow(entry)
-                                }
-                                .buttonStyle(.plain)
-
-                                Rectangle()
-                                    .fill(VaultTheme.line.opacity(0.6))
-                                    .frame(height: 1)
-                                    .padding(.horizontal, 24)
-                            }
-                        }
-                        .padding(.bottom, 80)
-                    }
+                    entryList
                 }
             }
             .navigationDestination(for: DiaryEntry.self) { entry in
@@ -72,6 +43,39 @@ struct DiaryListView: View {
         }
     }
 
+    private var entryList: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                header
+                    .padding(.horizontal, 24)
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
+
+                ForEach(diaryStore.sortedEntries) { entry in
+                    NavigationLink(value: entry) {
+                        entryRow(entry)
+                    }
+                    .buttonStyle(.plain)
+
+                    Rectangle()
+                        .fill(VaultTheme.line.opacity(0.6))
+                        .frame(height: 1)
+                        .padding(.horizontal, 24)
+                }
+            }
+            .padding(.bottom, 80)
+        }
+    }
+
+    private func formattedEntryDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = localization.locale
+        f.dateStyle = .medium
+        // Show time so same-day entries read as chronological, not unordered.
+        f.timeStyle = .short
+        return f.string(from: date)
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(localization.text("brand.name"))
@@ -91,7 +95,7 @@ struct DiaryListView: View {
     private func entryRow(_ entry: DiaryEntry) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(dateFormatter.string(from: entry.createdAt))
+                Text(formattedEntryDate(entry.createdAt))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(VaultTheme.seal)
                 if let mood = entry.moodTag, !mood.isEmpty {
