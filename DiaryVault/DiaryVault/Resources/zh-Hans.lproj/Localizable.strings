@@ -9,6 +9,7 @@
 "common.edit" = "编辑";
 "common.done" = "完成";
 "common.delete" = "删除";
+"common.ok" = "好";
 
 /* Tabs */
 "tab.vault" = "金库";
@@ -177,6 +178,32 @@
 "diary.quota.upgrade" = "升级 Author Plus";
 "diary.quota.upgrade.pro" = "升级 Author Pro";
 "diary.quota.viewPlans" = "查看全部方案";
+
+
+/* Diary media */
+"diary.media.voice" = "语音";
+"diary.media.photo" = "照片";
+"diary.media.video" = "视频";
+"diary.media.hint" = "语音约 90 秒、视频约 60 秒。文字与多媒体共用一次金库上传。";
+"diary.media.recording" = "录音中…";
+"diary.media.stopSave" = "保存语音";
+"diary.media.remove" = "移除附件";
+"diary.media.photo.source" = "添加照片";
+"diary.media.video.source" = "添加视频";
+"diary.media.takePhoto" = "拍照";
+"diary.media.choosePhoto" = "从相册选择";
+"diary.media.recordVideo" = "录像";
+"diary.media.chooseVideo" = "从相册选择";
+"diary.media.permission.mic" = "尚未允许麦克风。请到设置开启，才能录制语音日记。";
+"diary.media.cameraUnavailable" = "此设备无法使用相机。";
+"diary.media.permission.camera" = "尚未允许相机。请到设置开启，才能拍照或录像。";
+"diary.media.recordFailed" = "无法开始录音。";
+"diary.media.saveFailed" = "无法保存此媒体。";
+"diary.media.videoTooLong" = "请将视频控制在约 60 秒以内。";
+"diary.media.alertTitle" = "媒体";
+"diary.media.unavailable" = "此设备尚无法播放媒体";
+"diary.media.previewOnly" = "含媒体附件";
+
 
 /* Mirror */
 "mirror.title" = "镜子";

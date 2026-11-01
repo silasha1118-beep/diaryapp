@@ -81,7 +81,7 @@ enum DiaryUploadUsageGuard {
 
     /// Multimedia create entry — same vault bucket as text for **all** tiers (Free lifetime
     /// includes media; Plus/Pro daily vault includes media). Call before persisting a new
-    /// media diary. Full media UI/Storage polish remains separate (DA-15).
+    /// media diary.
     static func checkAndIncrementMultimedia(
         tier: BillingConfig.Tier = BillingConfig.currentTier
     ) throws {

@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Diary Vault が日記の音声メモを録音するにはマイクへのアクセスが必要です。";
+"NSCameraUsageDescription" = "Diary Vault が日記用の写真・動画を撮るにはカメラへのアクセスが必要です。";
+"NSPhotoLibraryUsageDescription" = "Diary Vault が日記に写真・動画を添付するにはフォトライブラリへのアクセスが必要です。";

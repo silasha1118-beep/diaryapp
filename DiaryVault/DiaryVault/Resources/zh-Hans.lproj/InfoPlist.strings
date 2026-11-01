@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "日记金库需要麦克风权限，才能录制语音日记。";
+"NSCameraUsageDescription" = "日记金库需要相机权限，才能拍摄照片与视频写入日记。";
+"NSPhotoLibraryUsageDescription" = "日记金库需要相册权限，才能从相册附加照片与视频。";

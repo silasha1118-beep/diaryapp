@@ -2,8 +2,9 @@ import Foundation
 import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
+// FirebaseStorage is used via DiaryMediaCloudSync during upsert.
 
-/// Firestore paths and field mapping for text diary sync (phase 1).
+/// Firestore paths and field mapping for diary sync (text + multimedia metadata).
 ///
 /// Schema (admin-readable later via Admin SDK; client rules restrict to own uid):
 /// ```
@@ -15,16 +16,18 @@ import FirebaseFirestore
 /// users/{uid}/entries/{entryId}        // entryId = stable DiaryEntry UUID (never phone+datetime)
 ///   id, title, body, moodTag?, createdAt, updatedAt,
 ///   deleted, deletedAt?,                 // soft-delete; docs retained forever
-///   ownerUid, schemaVersion, contentType ("text"),
+///   ownerUid, schemaVersion, contentType ("text" | "multimedia"),
+///   attachments?: [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }],
 ///   label?, bodyPreview?               // Console browsing aids — not path keys
 /// ```
+/// Media bytes live in Firebase Storage at `users/{uid}/entries/{entryId}/{fileName}`.
 /// Identity fields live on the user doc only (Console lookup by phoneNumber).
 /// Entry document IDs stay UUIDs (local sync / privacy / phone changes). Use `label` in Console.
 /// User deletes never call Firestore `delete()` — set `deleted` + `deletedAt` instead.
-/// Multimedia Storage paths can arrive later without changing Free vault-count semantics.
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
     static let contentTypeText = "text"
+    static let contentTypeMultimedia = "multimedia"
     /// Always the Firebase `(default)` database — never a named DB.
     static let databaseID = "(default)"
 
@@ -64,11 +67,21 @@ enum DiaryCloudSync {
 
     static var firestoreDatabaseID: String { DiaryFirestoreSchema.databaseID }
 
-    static func upsert(entry: DiaryEntry, uid: String) async throws {
+    /// Upserts Firestore metadata and uploads any pending local media to Storage.
+    /// Returns the entry with `remotePath` filled so the caller can persist it locally.
+    @discardableResult
+    static func upsert(entry: DiaryEntry, uid: String) async throws -> DiaryEntry {
         do {
-            let ref = DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entry.id)
-            try await ref.setData(Self.encode(entry: entry, ownerUid: uid), merge: true)
+            var entryToWrite = entry
+            if entry.hasMedia {
+                // Upload local bytes first, then persist Storage paths on the entry doc.
+                let uploaded = try await DiaryMediaCloudSync.uploadPending(entry: entry, uid: uid)
+                entryToWrite.attachments = uploaded
+            }
+            let ref = DiaryFirestoreSchema.entryDocument(uid: uid, entryID: entryToWrite.id)
+            try await ref.setData(Self.encode(entry: entryToWrite, ownerUid: uid), merge: true)
             try await upsertUserProfile(uid: uid, hasTextEntries: true)
+            return entryToWrite
         } catch {
             throw mapFirestoreError(error)
         }
@@ -302,6 +315,9 @@ enum DiaryCloudSync {
     static func encode(entry: DiaryEntry, ownerUid: String) -> [String: Any] {
         // Always write Firebase Timestamp (not ISO strings / numbers) so Console can sort by createdAt.
         // Document ID remains the entry UUID — do not use phone+datetime as the path key.
+        let contentType = entry.hasMedia
+            ? DiaryFirestoreSchema.contentTypeMultimedia
+            : DiaryFirestoreSchema.contentTypeText
         var data: [String: Any] = [
             "id": entry.id.uuidString,
             "title": entry.title,
@@ -311,7 +327,7 @@ enum DiaryCloudSync {
             "ownerUid": ownerUid,
             // Explicit Int so rules `schemaVersion is int` never sees a Double bridge.
             "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion),
-            "contentType": DiaryFirestoreSchema.contentTypeText,
+            "contentType": contentType,
             // Non-key Console aids (UUID doc IDs are opaque in the list view).
             "label": consoleLabel(for: entry),
             "bodyPreview": bodyPreview(for: entry)
@@ -325,6 +341,32 @@ enum DiaryCloudSync {
             data["deletedAt"] = Timestamp(date: deletedAt)
         } else if entry.deleted {
             data["deletedAt"] = Timestamp(date: entry.updatedAt)
+        }
+        if entry.hasMedia {
+            data["attachments"] = entry.attachments.map { encodeAttachment($0) }
+        } else {
+            // Clear stale attachments when the user removed all media on edit.
+            data["attachments"] = []
+        }
+        return data
+    }
+
+    static func encodeAttachment(_ attachment: DiaryMediaAttachment) -> [String: Any] {
+        var data: [String: Any] = [
+            "id": attachment.id.uuidString,
+            "kind": attachment.kind.rawValue,
+            "localFileName": attachment.localFileName,
+            "mimeType": attachment.mimeType,
+            "createdAt": Timestamp(date: attachment.createdAt)
+        ]
+        if let remotePath = attachment.remotePath {
+            data["remotePath"] = remotePath
+        }
+        if let duration = attachment.durationSeconds {
+            data["durationSeconds"] = duration
+        }
+        if let size = attachment.byteSize {
+            data["byteSize"] = size
         }
         return data
     }
@@ -380,6 +422,7 @@ enum DiaryCloudSync {
             deleted = false
         }
         let deletedAt = dateValue(data["deletedAt"])
+        let attachments = decodeAttachments(data["attachments"])
         return DiaryEntry(
             id: id,
             title: title,
@@ -388,7 +431,59 @@ enum DiaryCloudSync {
             createdAt: createdAt,
             updatedAt: updatedAt,
             deleted: deleted,
-            deletedAt: deletedAt
+            deletedAt: deletedAt,
+            attachments: attachments
+        )
+    }
+
+    static func decodeAttachments(_ raw: Any?) -> [DiaryMediaAttachment] {
+        guard let list = raw as? [[String: Any]] else { return [] }
+        return list.compactMap { decodeAttachment($0) }
+    }
+
+    static func decodeAttachment(_ data: [String: Any]) -> DiaryMediaAttachment? {
+        let idString = data["id"] as? String
+        guard let idString, let id = UUID(uuidString: idString) else { return nil }
+        let kindRaw = data["kind"] as? String ?? ""
+        guard let kind = DiaryMediaKind(rawValue: kindRaw) else { return nil }
+        let localFileName = (data["localFileName"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedName: String
+        if let localFileName, !localFileName.isEmpty, !localFileName.contains("/") {
+            resolvedName = localFileName
+        } else if let remote = data["remotePath"] as? String, let last = remote.split(separator: "/").last {
+            resolvedName = String(last)
+        } else {
+            resolvedName = "\(id.uuidString).\(kind.defaultFileExtension)"
+        }
+        let mime = (data["mimeType"] as? String) ?? kind.defaultMIMEType
+        let remotePath = data["remotePath"] as? String
+        let duration: Double?
+        if let n = data["durationSeconds"] as? Double {
+            duration = n
+        } else if let n = data["durationSeconds"] as? NSNumber {
+            duration = n.doubleValue
+        } else {
+            duration = nil
+        }
+        let byteSize: Int?
+        if let n = data["byteSize"] as? Int {
+            byteSize = n
+        } else if let n = data["byteSize"] as? NSNumber {
+            byteSize = n.intValue
+        } else {
+            byteSize = nil
+        }
+        let createdAt = dateValue(data["createdAt"]) ?? Date()
+        return DiaryMediaAttachment(
+            id: id,
+            kind: kind,
+            localFileName: resolvedName,
+            remotePath: remotePath,
+            mimeType: mime,
+            durationSeconds: duration,
+            byteSize: byteSize,
+            createdAt: createdAt
         )
     }
 

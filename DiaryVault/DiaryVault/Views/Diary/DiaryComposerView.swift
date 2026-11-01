@@ -12,10 +12,15 @@ struct DiaryComposerView: View {
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
+    @State private var attachments: [DiaryMediaAttachment] = []
+    /// Stable ID so draft media files land under the eventual entry folder.
+    @State private var draftEntryID = UUID()
     @State private var hardGate: HardQuotaGate?
     /// Compact Plus/Pro + period checkout (owned by this sheet — nested parent cover is a no-op).
     @State private var showUpgradeCheckout = false
     @State private var didLoadEditDraft = false
+    @State private var mediaAlertMessage: String?
+    @State private var didSave = false
     @FocusState private var focusedField: ComposerField?
 
     private enum ComposerField: Hashable {
@@ -29,7 +34,8 @@ struct DiaryComposerView: View {
     private var billingTier: BillingConfig.Tier { subscriptions.tier }
 
     private var canSave: Bool {
-        !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasText = !bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return hasText || !attachments.isEmpty
     }
 
     var body: some View {
@@ -44,8 +50,10 @@ struct DiaryComposerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(localization.text("common.cancel")) { dismiss() }
-                        .foregroundStyle(VaultTheme.inkMuted)
+                    Button(localization.text("common.cancel")) {
+                        cancelComposer()
+                    }
+                    .foregroundStyle(VaultTheme.inkMuted)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(localization.text("common.save")) {
@@ -66,8 +74,24 @@ struct DiaryComposerView: View {
             .onAppear {
                 loadEditDraftIfNeeded()
             }
+            .onDisappear {
+                cleanupDraftMediaIfNeeded()
+            }
             .onChange(of: subscriptions.tier) { _, _ in
                 clearQuotaMessagesIfUnderCap()
+            }
+            .alert(
+                localization.text("diary.media.alertTitle"),
+                isPresented: Binding(
+                    get: { mediaAlertMessage != nil },
+                    set: { if !$0 { mediaAlertMessage = nil } }
+                )
+            ) {
+                Button(localization.text("common.ok"), role: .cancel) {
+                    mediaAlertMessage = nil
+                }
+            } message: {
+                Text(mediaAlertMessage ?? "")
             }
         }
         // Owned by the composer sheet (parent cover while this sheet is up is a silent no-op).
@@ -83,36 +107,51 @@ struct DiaryComposerView: View {
     // MARK: - Split views (keeps the type checker happy)
 
     private var formContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            TextField(localization.text("diary.field.title"), text: $title)
-                .font(.system(size: 22, weight: .semibold, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-                .focused($focusedField, equals: .title)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                TextField(localization.text("diary.field.title"), text: $title)
+                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .foregroundStyle(VaultTheme.ink)
+                    .focused($focusedField, equals: .title)
 
-            TextField(localization.text("diary.field.mood"), text: $mood)
-                .font(.system(size: 14))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .focused($focusedField, equals: .mood)
+                TextField(localization.text("diary.field.mood"), text: $mood)
+                    .font(.system(size: 14))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .focused($focusedField, equals: .mood)
 
-            Rectangle()
-                .fill(VaultTheme.line)
-                .frame(height: 1)
-
-            TextEditor(text: $bodyText)
-                .font(.system(size: 17, design: .serif))
-                .foregroundStyle(VaultTheme.ink)
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
-                .focused($focusedField, equals: .body)
-                // TextEditor often extends its hit-testing under bottom insets and steals
-                // the upgrade CTA tap (keyboard stays up, Button never fires).
+                DiaryComposerMediaBar(
+                    attachments: $attachments,
+                    entryID: draftEntryID,
+                    localization: localization,
+                    onPermissionDenied: { mediaAlertMessage = $0 },
+                    onError: { mediaAlertMessage = $0 }
+                )
                 .allowsHitTesting(hardGate == nil)
 
-            Spacer(minLength: 0)
-                .allowsHitTesting(false)
+                Rectangle()
+                    .fill(VaultTheme.line)
+                    .frame(height: 1)
+
+                TextEditor(text: $bodyText)
+                    .font(.system(size: 17, design: .serif))
+                    .foregroundStyle(VaultTheme.ink)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
+                    .frame(minHeight: 220)
+                    .focused($focusedField, equals: .body)
+                    // TextEditor often extends its hit-testing under bottom insets and steals
+                    // the upgrade CTA tap (keyboard stays up, Button never fires).
+                    .allowsHitTesting(hardGate == nil)
+
+                Text(localization.text("diary.media.hint"))
+                    .font(.system(size: 12))
+                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(20)
         }
-        .padding(20)
-        .allowsHitTesting(hardGate == nil)
+        // When hard-gated, disable the form (banner owns taps via safeAreaInset).
+        .disabled(hardGate != nil)
     }
 
     // MARK: - Hard gate (premium stop, still purchase-oriented)
@@ -241,11 +280,27 @@ struct DiaryComposerView: View {
     }
 
     private func loadEditDraftIfNeeded() {
-        guard !didLoadEditDraft, let editingEntry else { return }
+        guard !didLoadEditDraft else { return }
         didLoadEditDraft = true
-        title = editingEntry.title
-        bodyText = editingEntry.body
-        mood = editingEntry.moodTag ?? ""
+        if let editingEntry {
+            draftEntryID = editingEntry.id
+            title = editingEntry.title
+            bodyText = editingEntry.body
+            mood = editingEntry.moodTag ?? ""
+            attachments = editingEntry.attachments
+        } else {
+            draftEntryID = UUID()
+        }
+    }
+
+    private func cancelComposer() {
+        dismiss()
+    }
+
+    private func cleanupDraftMediaIfNeeded() {
+        guard !didSave, !isEditing else { return }
+        // New entry abandoned — drop draft media folder.
+        DiaryMediaFileStore.deleteAll(for: draftEntryID)
     }
 
     private func clearQuotaMessagesIfUnderCap() {
@@ -286,17 +341,20 @@ struct DiaryComposerView: View {
 
         hardGate = nil
 
+        // One vault upload per create (text and/or media share the same bucket).
+        let quotaKind: UploadQuotaConfig.Kind = attachments.isEmpty ? .text : .multimedia
+
         // Hard stop only — Free soft ladders removed (lifetime vault uploads incl. media).
-        if DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
+        if DiaryUploadUsageGuard.isExhausted(kind: quotaKind, tier: billingTier) {
             applyHardGate(
                 tier: billingTier,
-                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
+                limit: DiaryUploadUsageGuard.effectiveLimit(kind: quotaKind, tier: billingTier)
             )
             return
         }
 
         do {
-            try DiaryUploadUsageGuard.checkAndIncrement(kind: .text, tier: billingTier)
+            try DiaryUploadUsageGuard.checkAndIncrement(kind: quotaKind, tier: billingTier)
         } catch {
             if case let DiaryUploadUsageGuard.UploadError.rateLimited(_, limit, tier) = error {
                 applyHardGate(tier: tier, limit: limit)
@@ -304,15 +362,18 @@ struct DiaryComposerView: View {
             }
             applyHardGate(
                 tier: billingTier,
-                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
+                limit: DiaryUploadUsageGuard.effectiveLimit(kind: quotaKind, tier: billingTier)
             )
             return
         }
 
+        didSave = true
         diaryStore.add(
+            id: draftEntryID,
             title: title,
             body: bodyText,
-            moodTag: mood.isEmpty ? nil : mood
+            moodTag: mood.isEmpty ? nil : mood,
+            attachments: attachments
         )
         dismiss()
     }
@@ -323,6 +384,8 @@ struct DiaryComposerView: View {
         updated.body = bodyText.trimmingCharacters(in: .whitespacesAndNewlines)
         let moodTrimmed = mood.trimmingCharacters(in: .whitespacesAndNewlines)
         updated.moodTag = moodTrimmed.isEmpty ? nil : moodTrimmed
+        updated.attachments = attachments
+        didSave = true
         diaryStore.update(updated)
         dismiss()
     }

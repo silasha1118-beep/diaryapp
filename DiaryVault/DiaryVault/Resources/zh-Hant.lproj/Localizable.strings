@@ -9,6 +9,7 @@
 "common.edit" = "編輯";
 "common.done" = "完成";
 "common.delete" = "刪除";
+"common.ok" = "好";
 
 /* Tabs */
 "tab.vault" = "金庫";
@@ -177,6 +178,32 @@
 "diary.quota.upgrade" = "升級 Author Plus";
 "diary.quota.upgrade.pro" = "升級 Author Pro";
 "diary.quota.viewPlans" = "查看全部方案";
+
+
+/* Diary media */
+"diary.media.voice" = "語音";
+"diary.media.photo" = "照片";
+"diary.media.video" = "影片";
+"diary.media.hint" = "語音約 90 秒、影片約 60 秒。文字與多媒體共用一次金庫上傳。";
+"diary.media.recording" = "錄音中…";
+"diary.media.stopSave" = "儲存語音";
+"diary.media.remove" = "移除附件";
+"diary.media.photo.source" = "加入照片";
+"diary.media.video.source" = "加入影片";
+"diary.media.takePhoto" = "拍照";
+"diary.media.choosePhoto" = "從相簿選擇";
+"diary.media.recordVideo" = "錄影";
+"diary.media.chooseVideo" = "從相簿選擇";
+"diary.media.permission.mic" = "尚未允許麥克風。請到設定開啟，才能錄製語音日記。";
+"diary.media.cameraUnavailable" = "此裝置無法使用相機。";
+"diary.media.permission.camera" = "尚未允許相機。請到設定開啟，才能拍照或錄影。";
+"diary.media.recordFailed" = "無法開始錄音。";
+"diary.media.saveFailed" = "無法儲存此媒體。";
+"diary.media.videoTooLong" = "請將影片控制在約 60 秒以內。";
+"diary.media.alertTitle" = "媒體";
+"diary.media.unavailable" = "此裝置尚無法播放媒體";
+"diary.media.previewOnly" = "含媒體附件";
+
 
 /* Mirror */
 "mirror.title" = "鏡子";

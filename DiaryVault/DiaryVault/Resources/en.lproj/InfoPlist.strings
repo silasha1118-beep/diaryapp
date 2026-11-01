@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Diary Vault needs the microphone to record voice notes for your diary.";
+"NSCameraUsageDescription" = "Diary Vault needs the camera to take photos and videos for your diary.";
+"NSPhotoLibraryUsageDescription" = "Diary Vault needs photo library access to attach photos and videos to your diary.";

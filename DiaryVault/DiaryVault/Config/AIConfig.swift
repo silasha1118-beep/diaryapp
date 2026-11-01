@@ -43,7 +43,7 @@ enum AIConfig {
     static let maxEntryBodyCharacters = 600
     /// Soft cap on prior chat turns sent to the model.
     static let maxConversationTurns = 8
-    // TODO(DA-15): Soft duration caps for voice (~60–90s) and video (~30–60s) diary media — not enforced yet.
+    // Diary media duration soft caps: see ``DiaryMediaConfig`` (voice 90s / video 60s).
     // Multimedia **upload count** caps live in UploadQuotaConfig (same vault bucket as text).
 
     /// Resolved provider: explicit `DIARY_AI_PROVIDER`, else auto-detect from BASE_URL, else openai.

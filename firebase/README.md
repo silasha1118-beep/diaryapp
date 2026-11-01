@@ -1,7 +1,7 @@
 # Firebase / Firestore (DiaryVault)
 
-Phase 1: **text diary sync** for signed-in users (Firebase Auth phone / Apple).  
-On-device JSON remains the offline source of truth. Multimedia Storage UI is still DA-15; Free/Plus/Pro vault **upload counts** already include media in one bucket.
+**Text + multimedia diary sync** for signed-in users (Firebase Auth phone / Apple).  
+On-device JSON remains the offline source of truth. Media bytes go to **Firebase Storage**; entry docs keep an `attachments` array. Free/Plus/Pro vault **upload counts** include text + media in one bucket.
 
 ## Enable Firestore (Silas — Console)
 
@@ -13,8 +13,9 @@ On-device JSON remains the offline source of truth. Multimedia Storage UI is sti
 4. **Location (data residency narrative: Taiwan):** choose the closest available region — prefer **`asia-east1` (Taiwan)** if offered, otherwise **`asia-east2` (Hong Kong)** or **`asia-northeast1` (Tokyo)**. Location is permanent for the database.
 5. Open **Rules** → replace with the contents of [`firestore.rules`](firestore.rules) in this folder → **Publish**. Deny-all / unpublished rules make writes fail; the app now surfaces permission-denied instead of “synced”.
 6. No composite indexes are required for phase 1 (simple collection reads under `users/{uid}/entries`).
-7. Rebuild the iOS app with `GoogleService-Info.plist` present (same as Phone Auth). SPM product **FirebaseFirestore** is already linked in the Xcode project.
-8. After **Sync now**, open Data → `users` → `{Auth UID from Settings}` → `entries`. Settings also shows **Entries on server**; if that is `0` while you have local diaries, sync did not land (check project ID + rules).
+7. Rebuild the iOS app with `GoogleService-Info.plist` present (same as Phone Auth). SPM products **FirebaseFirestore** + **FirebaseStorage** are linked in the Xcode project.
+8. **Build → Storage** → get started if needed. Prefer the same region narrative as Firestore (`asia-east1` when available). Paste [`storage.rules`](storage.rules) → **Publish**.
+9. After **Sync now**, open Data → `users` → `{Auth UID from Settings}` → `entries`. Media files appear under Storage → `users/{uid}/entries/{entryId}/`. Settings also shows **Entries on server**; if that is `0` while you have local diaries, sync did not land (check project ID + rules).
 
 ## Schema
 
@@ -44,8 +45,11 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   deletedAt: timestamp | null   // set when the user deletes; docs are never hard-removed
   ownerUid: string              // enables Admin SDK collection-group queries later
   schemaVersion: number         // 1
-  contentType: string           // "text" (media Storage later; counts use vault lifetime/daily bucket)
+  contentType: string           // "text" | "multimedia"
+  attachments?: array           // [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }]
 ```
+
+**Storage path:** `users/{uid}/entries/{entryId}/{localFileName}` (voice m4a / image jpg / video mp4). Soft-delete keeps Storage objects with the archived entry.
 
 **Soft-delete / retention:** User delete sets `deleted: true` + `deletedAt` (local JSON + Firestore upsert). Clients never call Firestore `delete()` on entries; rules deny hard delete. Docs remain under `users/{uid}/entries` for admin/future. Vault list, Mirror context, and export omit soft-deleted rows. After changing rules, **Publish** again in Console.
 
