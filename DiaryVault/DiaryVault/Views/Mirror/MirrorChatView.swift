@@ -12,9 +12,6 @@ struct MirrorChatView: View {
     @State private var errorText: String?
     @State private var showQuotaUpgrade = false
     @State private var showPaywall = false
-    /// Soft paywall: hold the outbound text while Author Plus reminder is shown; resume on dismiss.
-    @State private var pendingSendText: String?
-    @State private var suppressPaywallNagOnce = false
     @State private var client: (any MirrorAIService) = MockMirrorAIClient()
     @State private var quotaTick = 0
 
@@ -61,14 +58,6 @@ struct MirrorChatView: View {
                     }
                 }
             }
-            .onChange(of: showPaywall) { wasShowing, isShowing in
-                // After dismissible soft reminder, continue the Mirror request (still counted toward hard cap).
-                guard wasShowing, !isShowing, let pending = pendingSendText else { return }
-                pendingSendText = nil
-                suppressPaywallNagOnce = true
-                draft = pending
-                Task { await send() }
-            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
                     .environmentObject(localization)
@@ -77,12 +66,10 @@ struct MirrorChatView: View {
         }
     }
 
-    /// Show remaining / soft / exhausted only when near the soft band or exhausted — not a permanent debug strip.
+    /// Show exhausted banner only (soft Free ladders removed — hard stop → paywall).
     private var showQuotaBanner: Bool {
         guard AIConfig.useCloudClient else { return false }
-        if MirrorUsageGuard.isExhausted(tier: billingTier) { return true }
-        if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier) { return true }
-        return false
+        return MirrorUsageGuard.isExhausted(tier: billingTier)
     }
 
     private var quotaBanner: some View {
@@ -129,15 +116,10 @@ struct MirrorChatView: View {
                     limit
                 )
             }
-            if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier) {
-                return String(
-                    format: localization.text("mirror.quota.softReminder"),
-                    remaining,
-                    limit
-                )
-            }
             return String(
-                format: localization.text("mirror.quota.remaining"),
+                format: localization.text(
+                    billingTier == .free ? "mirror.quota.remaining.lifetime" : "mirror.quota.remaining"
+                ),
                 remaining,
                 limit
             )
@@ -267,7 +249,7 @@ struct MirrorChatView: View {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
-        // Hard-capped: “done for today” — Plus also offers Author Pro CTA.
+        // Hard-capped (Free lifetime / paid daily) — Plus also offers Author Pro CTA.
         if MirrorUsageGuard.isExhausted(tier: billingTier) {
             let limit = MirrorUsageGuard.effectiveLimit(tier: billingTier)
             errorText = String(
@@ -277,14 +259,6 @@ struct MirrorChatView: View {
             showQuotaUpgrade = billingTier != .authorPro
             return
         }
-
-        // Soft reminder: Free uses after soft threshold (default 3) until hard cap (default 6).
-        if MirrorUsageGuard.shouldNudgePaywall(tier: billingTier), !suppressPaywallNagOnce {
-            pendingSendText = text
-            showPaywall = true
-            return
-        }
-        suppressPaywallNagOnce = false
 
         draft = ""
         errorText = nil
@@ -342,10 +316,8 @@ struct MirrorChatView: View {
         switch billingTier {
         case .authorPro:
             return false
-        case .authorPlus:
+        case .authorPlus, .free:
             return exhausted
-        case .free:
-            return exhausted || MirrorUsageGuard.shouldNudgePaywall(tier: .free)
         }
     }
 }

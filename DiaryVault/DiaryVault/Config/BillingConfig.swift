@@ -14,7 +14,8 @@ import Foundation
 /// - `DIARY_IAP_PRO_YEARLY_PRODUCT_ID`
 ///
 /// Entitlement rank: Author Pro > Author Plus > Free.
-/// Voice / video diary duration caps are deferred (DA-15).
+/// Vault upload quotas (text + multimedia one bucket) live in ``UploadQuotaConfig``.
+/// Voice / video duration polish remains deferred (DA-15); Free is not media-blocked by tier.
 enum BillingConfig {
     enum Tier: String, CaseIterable, Comparable {
         case free

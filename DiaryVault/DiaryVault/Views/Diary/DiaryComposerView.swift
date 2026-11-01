@@ -12,11 +12,8 @@ struct DiaryComposerView: View {
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
-    @State private var softNudge: SoftQuotaNudge?
     @State private var hardGate: HardQuotaGate?
     @State private var showPaywall = false
-    /// After the user taps Continue on the inline soft reminder, allow one save without re-nudge.
-    @State private var suppressPaywallNagOnce = false
     @State private var didLoadEditDraft = false
 
     private var isEditing: Bool { editingEntry != nil }
@@ -52,9 +49,7 @@ struct DiaryComposerView: View {
                 }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if let softNudge {
-                    softNudgeBanner(softNudge)
-                } else if let hardGate {
+                if let hardGate {
                     hardQuotaBanner(hardGate)
                 }
             }
@@ -64,7 +59,6 @@ struct DiaryComposerView: View {
             .onChange(of: subscriptions.tier) { _, _ in
                 clearQuotaMessagesIfUnderCap()
             }
-            // fullScreenCover — not nested `.sheet` — so Free soft paywall is visible from the composer sheet.
             .fullScreenCover(isPresented: $showPaywall) {
                 PaywallView()
                     .environmentObject(localization)
@@ -98,85 +92,6 @@ struct DiaryComposerView: View {
             Spacer(minLength: 0)
         }
         .padding(20)
-    }
-
-    // MARK: - Soft nudge (purchase-first, benefit copy)
-
-    private func softNudgeBanner(_ nudge: SoftQuotaNudge) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                quotaAccentIcon(systemName: "book.closed.fill")
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(localization.text("diary.quota.soft.title"))
-                        .font(.system(size: 17, weight: .semibold, design: .serif))
-                        .foregroundStyle(VaultTheme.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(localization.text("diary.quota.soft.benefit"))
-                        .font(.system(size: 13))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .lineSpacing(3)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(
-                        String(
-                            format: localization.text("diary.quota.soft.meta"),
-                            nudge.remaining,
-                            nudge.limit
-                        )
-                    )
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.9))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            VStack(spacing: 8) {
-                Button {
-                    showPaywall = true
-                } label: {
-                    Text(localization.text(quotaUpgradeCTAKey))
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(VaultTheme.paper)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 13)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(VaultTheme.seal)
-                        )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
-
-                Button {
-                    suppressPaywallNagOnce = true
-                    softNudge = nil
-                    attemptSave()
-                } label: {
-                    Text(localization.text("diary.quota.soft.continue"))
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 11)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(VaultTheme.paper.opacity(0.55))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(VaultTheme.line.opacity(0.9), lineWidth: 1)
-                        )
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localization.text("diary.quota.soft.continue"))
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 18)
-        .padding(.bottom, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background { quotaBannerChrome }
     }
 
     // MARK: - Hard gate (premium stop, still purchase-oriented)
@@ -312,7 +227,6 @@ struct DiaryComposerView: View {
 
     private func clearQuotaMessagesIfUnderCap() {
         if !DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
-            softNudge = nil
             hardGate = nil
         }
     }
@@ -325,9 +239,9 @@ struct DiaryComposerView: View {
             return
         }
 
-        softNudge = nil
         hardGate = nil
 
+        // Hard stop only — Free soft ladders removed (lifetime vault uploads incl. media).
         if DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
             let limit = DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
             hardGate = HardQuotaGate(
@@ -337,17 +251,6 @@ struct DiaryComposerView: View {
             )
             return
         }
-
-        // Inline soft reminder (Free uses 5-8). Nested paywall sheets from this sheet
-        // auto-dismissed on device and silently saved.
-        if DiaryUploadUsageGuard.shouldNudgePaywall(kind: .text, tier: billingTier),
-           !suppressPaywallNagOnce {
-            let remaining = DiaryUploadUsageGuard.remaining(kind: .text, tier: billingTier)
-            let limit = DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
-            softNudge = SoftQuotaNudge(remaining: remaining, limit: limit)
-            return
-        }
-        suppressPaywallNagOnce = false
 
         do {
             try DiaryUploadUsageGuard.checkAndIncrement(kind: .text, tier: billingTier)
@@ -388,11 +291,6 @@ struct DiaryComposerView: View {
 }
 
 // MARK: - Quota banner models
-
-private struct SoftQuotaNudge: Equatable {
-    let remaining: Int
-    let limit: Int
-}
 
 private struct HardQuotaGate: Equatable {
     let tier: BillingConfig.Tier

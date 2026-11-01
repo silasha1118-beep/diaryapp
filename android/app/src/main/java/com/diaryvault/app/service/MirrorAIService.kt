@@ -31,7 +31,7 @@ sealed class MirrorAIError(message: String) : Exception(message) {
         if (isAuthorPlus) {
             "Daily Author Plus Mirror limit reached ($limit). Try again tomorrow."
         } else {
-            "Daily free Mirror limit reached ($limit). Upgrade to Author Plus for a higher quota, or try again tomorrow."
+            "Free Mirror lifetime limit reached ($limit). Upgrade to Author Plus to continue."
         },
     )
 }

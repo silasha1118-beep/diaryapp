@@ -9,7 +9,9 @@ import FirebaseFirestore
 /// ```
 /// users/{uid}                          // path key = Firebase Auth UID (never phone/Apple id)
 ///   ownerUid, updatedAt, schemaVersion, hasTextEntries,
-///   phoneNumber?, appleUserId?, displayName?, authProviders?
+///   phoneNumber?, appleUserId?, displayName?, authProviders?,
+///   vaultUploadLifetimeCount?,         // Free vault uploads (text+media) lifetime
+///   mirrorLifetimeCount?               // Free Mirror chats lifetime
 /// users/{uid}/entries/{entryId}        // entryId = stable DiaryEntry UUID (never phone+datetime)
 ///   id, title, body, moodTag?, createdAt, updatedAt,
 ///   deleted, deletedAt?,                 // soft-delete; docs retained forever
@@ -19,7 +21,7 @@ import FirebaseFirestore
 /// Identity fields live on the user doc only (Console lookup by phoneNumber).
 /// Entry document IDs stay UUIDs (local sync / privacy / phone changes). Use `label` in Console.
 /// User deletes never call Firestore `delete()` — set `deleted` + `deletedAt` instead.
-/// Multimedia (DA-15) can add Storage paths later without changing this text shape.
+/// Multimedia Storage paths can arrive later without changing Free vault-count semantics.
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
     static let contentTypeText = "text"
@@ -110,6 +112,55 @@ enum DiaryCloudSync {
         } catch {
             throw mapFirestoreError(error)
         }
+    }
+
+    /// Pull Free lifetime vault + Mirror counters and merge into local uid-keyed storage.
+    static func hydrateLifetimeQuotas(uid: String) async throws {
+        do {
+            let snap = try await DiaryFirestoreSchema.userDocument(uid).getDocument(source: .server)
+            let data = snap.data() ?? [:]
+            let vault = intField(data[DiaryUploadUsageGuard.firestoreLifetimeField])
+            let mirror = intField(data[MirrorUsageGuard.firestoreLifetimeField])
+            DiaryUploadUsageGuard.hydrateFromCloud(uid: uid, remoteCount: vault)
+            MirrorUsageGuard.hydrateFromCloud(uid: uid, remoteCount: mirror)
+        } catch {
+            throw mapFirestoreError(error)
+        }
+    }
+
+    /// Atomically bump a Free lifetime counter on `users/{uid}` (survives reinstall when signed in).
+    static func incrementLifetimeQuota(uid: String, field: String) async throws {
+        do {
+            try await DiaryFirestoreSchema.userDocument(uid).setData([
+                "ownerUid": uid,
+                field: FieldValue.increment(Int64(1)),
+                "updatedAt": Timestamp(date: Date()),
+                "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion)
+            ], merge: true)
+        } catch {
+            throw mapFirestoreError(error)
+        }
+    }
+
+    /// Push a reconciled lifetime count when local is ahead of remote after hydrate.
+    static func setLifetimeQuota(uid: String, field: String, count: Int) async throws {
+        do {
+            try await DiaryFirestoreSchema.userDocument(uid).setData([
+                "ownerUid": uid,
+                field: max(0, count),
+                "updatedAt": Timestamp(date: Date()),
+                "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion)
+            ], merge: true)
+        } catch {
+            throw mapFirestoreError(error)
+        }
+    }
+
+    private static func intField(_ raw: Any?) -> Int {
+        if let n = raw as? Int { return max(0, n) }
+        if let n = raw as? Int64 { return max(0, Int(n)) }
+        if let n = raw as? NSNumber { return max(0, n.intValue) }
+        return 0
     }
 
     /// Builds the `users/{uid}` payload. Omits identity keys that are unavailable (merge keeps prior values).

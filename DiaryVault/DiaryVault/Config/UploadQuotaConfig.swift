@@ -1,53 +1,44 @@
 import Foundation
 
-/// Daily diary **upload** quotas (Silas 2026-10-31): text create + multimedia (DA-15 stub).
-/// Day boundary matches ``DiaryUploadUsageGuard`` / ``MirrorUsageGuard`` (device local calendar day).
+/// Diary **vault upload** quotas (Silas 2026-11-01): one shared counter for text + multimedia.
 ///
-/// Independent of Mirror AI quotas in ``AIConfig`` / ``MirrorUsageGuard`` (Free 3→6, Plus 15, Pro 40).
+/// - Free: **lifetime** hard cap (not daily) — hard stop → paywall. **Multimedia is included** in
+///   the same lifetime 40 (Free is not media-blocked before that cap).
+/// - Author Plus / Pro: **daily** hard caps (local calendar day; same stamp as ``MirrorUsageGuard``).
+///   Text + media share that daily vault bucket too.
+///
+/// Independent of Mirror AI quotas in ``AIConfig`` / ``MirrorUsageGuard``.
 enum UploadQuotaConfig {
     enum Kind: String {
         case text
-        /// Voice / video diary create — API ready; UI deferred (DA-15).
+        /// Voice / video diary create. Counts toward the same vault bucket for **all** tiers
+        /// including Free (lifetime 40). Duration polish / Storage UI remain DA-15.
         case multimedia
     }
 
-    // MARK: - Text text (create entry)
+    // MARK: - Free (lifetime, unified vault — text + media)
 
-    /// Soft free through this many text creates; further Free creates until hard cap show dismissible Plus.
-    static let freeTextSoftThreshold = 4
-    /// Hard stop after this many Free text creates (“done for today”).
-    static let freeTextHardLimit = 8
+    /// Account lifetime vault uploads (text + multimedia one bucket). Hard stop → paywall.
+    static let freeLifetimeVaultLimit = 40
 
-    // MARK: - Free multimedia (DA-15)
+    // MARK: - Author Plus / Pro (daily, unified vault)
 
-    static let freeMediaSoftThreshold = 3
-    static let freeMediaHardLimit = 5
+    static let plusDailyVaultLimit = 8
+    static let proDailyVaultLimit = 16
 
-    // MARK: - Author Plus
-
-    static let plusTextHardLimit = 20
-    static let plusMediaHardLimit = 11
-
-    // MARK: - Author Pro
-
-    static let proTextHardLimit = 40
-    static let proMediaHardLimit = 22
-
+    /// Soft ladders removed (2026-11-01). Always `0` so call sites that still ask never nudge.
     static func softThreshold(kind: Kind) -> Int {
-        switch kind {
-        case .text: return freeTextSoftThreshold
-        case .multimedia: return freeMediaSoftThreshold
-        }
+        _ = kind
+        return 0
     }
 
+    /// Effective hard cap for the vault upload bucket (kind is ignored — unified counter).
     static func hardLimit(kind: Kind, tier: BillingConfig.Tier) -> Int {
-        switch (kind, tier) {
-        case (.text, .free): return freeTextHardLimit
-        case (.text, .authorPlus): return plusTextHardLimit
-        case (.text, .authorPro): return proTextHardLimit
-        case (.multimedia, .free): return freeMediaHardLimit
-        case (.multimedia, .authorPlus): return plusMediaHardLimit
-        case (.multimedia, .authorPro): return proMediaHardLimit
+        _ = kind
+        switch tier {
+        case .free: return freeLifetimeVaultLimit
+        case .authorPlus: return plusDailyVaultLimit
+        case .authorPro: return proDailyVaultLimit
         }
     }
 }

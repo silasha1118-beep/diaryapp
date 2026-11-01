@@ -1,7 +1,7 @@
 # Firebase / Firestore (DiaryVault)
 
 Phase 1: **text diary sync** for signed-in users (Firebase Auth phone / Apple).  
-On-device JSON remains the offline source of truth. Multimedia upload is **not** in this phase (DA-15).
+On-device JSON remains the offline source of truth. Multimedia Storage UI is still DA-15; Free/Plus/Pro vault **upload counts** already include media in one bucket.
 
 ## Enable Firestore (Silas — Console)
 
@@ -28,6 +28,8 @@ users/{uid}                     // uid = Firebase Auth UID (path key — do not 
   appleUserId?: string          // Apple provider UID from providerData
   displayName?: string
   authProviders?: string[]      // e.g. ["phone"], ["apple"], or both
+  vaultUploadLifetimeCount?: number  // Free vault uploads lifetime (text + media one bucket)
+  mirrorLifetimeCount?: number       // Free Mirror chats lifetime
 
 users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — never phone+datetime)
   id: string                    // same UUID as document ID
@@ -42,7 +44,7 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   deletedAt: timestamp | null   // set when the user deletes; docs are never hard-removed
   ownerUid: string              // enables Admin SDK collection-group queries later
   schemaVersion: number         // 1
-  contentType: string           // "text" (media later)
+  contentType: string           // "text" (media Storage later; counts use vault lifetime/daily bucket)
 ```
 
 **Soft-delete / retention:** User delete sets `deleted: true` + `deletedAt` (local JSON + Firestore upsert). Clients never call Firestore `delete()` on entries; rules deny hard delete. Docs remain under `users/{uid}/entries` for admin/future. Vault list, Mirror context, and export omit soft-deleted rows. After changing rules, **Publish** again in Console.

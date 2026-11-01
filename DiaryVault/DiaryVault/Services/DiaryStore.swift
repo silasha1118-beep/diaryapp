@@ -218,6 +218,15 @@ final class DiaryStore: ObservableObject {
             #endif
         }
 
+        // Free lifetime vault + Mirror quotas (uid-keyed; survive reinstall when signed in).
+        do {
+            try await DiaryCloudSync.hydrateLifetimeQuotas(uid: uid)
+        } catch {
+            #if DEBUG
+            print("DiaryCloudSync lifetime quota hydrate failed: \(error)")
+            #endif
+        }
+
         var remote: [DiaryEntry] = []
 
         do {

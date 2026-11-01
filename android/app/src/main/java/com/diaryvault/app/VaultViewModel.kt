@@ -127,8 +127,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     fun entry(id: String): DiaryEntry? = store.entry(id)
 
     /**
-     * Result of attempting a new text diary create under daily upload quotas.
-     * [shouldNudgePaywall] means Free soft band — UI may show a dismissible Plus reminder then retry.
+     * Result of attempting a new vault diary create under upload quotas
+     * (Free lifetime / Plus–Pro daily; text + media one bucket).
      */
     sealed class AddEntryResult {
         data object Saved : AddEntryResult()
@@ -137,7 +137,6 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             val isAuthorPlus: Boolean,
             val isAuthorPro: Boolean,
         ) : AddEntryResult()
-        data class SoftPaywall(val used: Int, val limit: Int) : AddEntryResult()
     }
 
     private val isAuthorPlusEntitled: Boolean
@@ -148,14 +147,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         get() = false
 
     /**
-     * Creates a new text entry if under quota.
-     * @param suppressSoftPaywall When true (after dismissible reminder), skip soft nudge and save.
+     * Creates a new text entry if under quota (counts toward the unified vault upload bucket).
      */
     fun addEntry(
         title: String,
         body: String,
         moodTag: String?,
-        suppressSoftPaywall: Boolean = false,
     ): AddEntryResult {
         val ctx = getApplication<Application>()
         val plus = isAuthorPlusEntitled
@@ -163,13 +160,6 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         if (DiaryUploadUsageGuard.isExhausted(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)) {
             val limit = DiaryUploadUsageGuard.effectiveLimit(UploadQuotaConfig.Kind.TEXT, plus, pro)
             return AddEntryResult.Blocked(limit, plus, pro)
-        }
-        if (!suppressSoftPaywall &&
-            DiaryUploadUsageGuard.shouldNudgePaywall(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)
-        ) {
-            val used = DiaryUploadUsageGuard.usageCountToday(ctx, UploadQuotaConfig.Kind.TEXT)
-            val limit = DiaryUploadUsageGuard.effectiveLimit(UploadQuotaConfig.Kind.TEXT, plus, pro)
-            return AddEntryResult.SoftPaywall(used, limit)
         }
         return try {
             DiaryUploadUsageGuard.checkAndIncrement(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)

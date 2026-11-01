@@ -164,15 +164,15 @@ Three Mirror tiers (entitlement rank **Pro > Plus > Free**). Each paid tier has 
 | `DIARY_IAP_PRO_QUARTERLY_PRODUCT_ID` | `com.diaryvault.author.pro.quarterly` |
 | `DIARY_IAP_PRO_YEARLY_PRODUCT_ID` | `com.diaryvault.author.pro.yearly` |
 
-| Tier | Daily **upload** (text / media) | Daily **Mirror** (unchanged) |
-|------|----------------------------------|------------------------------|
-| Free | Text soft through 4, paywall 5–8, hard after 8; media soft 3, paywall 4–5, hard after 5 (media DA-15) | Soft after 3, hard 6 |
-| Author Plus | Text 20 / media 11 hard; at cap → Author Pro upsell | Hard 15 + Pro upsell |
-| Author Pro | Text 40 / media 22 hard | Hard 40 |
+| Tier | Vault **uploads** (text + media, one bucket) | **Mirror** |
+|------|-----------------------------------------------|------------|
+| Free | **Lifetime 40** hard stop → paywall (media included) | **Lifetime 40** hard stop → paywall |
+| Author Plus | **8 / day**; at cap → Author Pro upsell | **8 / day** + Pro upsell |
+| Author Pro | **16 / day** | **16 / day** |
 
 - Settings → **View plans / restore** opens the paywall (Free card + Plus periods + Pro periods, purchase, **Restore purchases**, reload).
 - Shared scheme already points at `DiaryVault/Configuration/DiaryVault.storekit` for local testing (one subscription group, Pro service level above Plus).
-- Estate / legacy custody and **voice / video diary** are **not** in this paywall (deferred; DA-15 duration TODOs in `AIConfig`).
+- Estate / legacy custody remain out of this paywall. Vault upload quotas include multimedia counts for Free/Plus/Pro; duration/Storage UI polish is still DA-15.
 
 #### Beginner Mac steps — buy / restore with local StoreKit (Personal Team OK)
 
@@ -206,27 +206,24 @@ You do **not** need a paid Apple Developer account to try purchase + restore on 
 
 IDs in `BillingConfig` must match both `DiaryVault.storekit` and Connect exactly (`com.diaryvault.author.plus.*` / `com.diaryvault.author.pro.*`).
 
-#### Beginner Mac steps — diary **upload** quotas (text create)
+#### Beginner Mac steps — diary **upload** quotas (vault create)
 
-`DiaryUploadUsageGuard` / `UploadQuotaConfig` (independent of Mirror). Local calendar day (`TimeZone.current`).
+`DiaryUploadUsageGuard` / `UploadQuotaConfig` (independent of Mirror). Text + media share one vault bucket. Free is **lifetime** (uid-keyed UserDefaults + Firestore); Plus/Pro are local calendar day.
 
-1. Stay on **Free** (Settings plan = Free; clear StoreKit transactions if needed). Open **New entry**.
-2. Saves **1–4** succeed with no reminder. Save **5** shows an **inline** soft reminder in the composer (“Continue save” / “View Author Plus”) — not a nested sheet (nested sheets silently dismissed on device).
-3. After Continue, saves **6–8** re-show the soft reminder each time unless you Continue again; after **8**, hard stop (“done for today”).
-4. Buy **Author Plus** → text creates 20/day. At 20, upsell **Author Pro**. Buy **Author Pro** → 40/day; at 40 done for today.
-5. Multimedia upload counts (Free 3→5 / Plus 11 / Pro 22) are stubbed for DA-15 — not wired in UI yet.
-6. **Account link:** Sign in with Apple → Settings shows section **連結手機** (banner + 「傳送連結驗證碼」), not the primary login chrome. OTP uses `link(with:)` so UID stays put.
+1. Stay on **Free**. Open Vault → **New** → save entries. Each create counts toward lifetime **40** (text + media).
+2. Soft ladders are gone — at **40**, hard stop → paywall (no “continue anyway”).
+3. Buy **Author Plus** → **8 vault uploads/day**. At 8, upsell **Author Pro**. Buy **Author Pro** → **16/day**; at 16 done for today.
+4. Multimedia creates call the same guard (`checkAndIncrementMultimedia`) and count toward the same vault bucket for Free/Plus/Pro. Duration/Storage UI polish remains DA-15.
 
 #### Beginner Mac steps — Free / Plus / Pro Mirror AI quotas
 
-Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults unchanged: **Free = 6/day** (soft after **3**), **Plus = 15/day**, **Pro = 40/day**. Optional: set `DIARY_AI_FREE_DAILY_REQUEST_LIMIT=2` for a faster Free exhaust test.
+Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 40 lifetime**, **Plus = 8/day**, **Pro = 16/day**. Soft Free ladders removed. Optional: set `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT=2` for a faster Free exhaust test.
 
-1. Same as above: StoreKit Configuration = `DiaryVault.storekit`, Simulator Run, cloud AI key in scheme.
-2. Stay on **Free**. Open **Mirror** → after 3 uses, uses 4–6 show a dismissible paywall; at 6, “done for today”.
-3. Buy **Author Plus** → Mirror quota becomes 15/day. At 15, upsell **Author Pro**.
-4. Buy **Author Pro** → Mirror quota becomes 40/day. At 40, “done for today” (no higher CTA).
+1. Stay on **Free**. Open **Mirror** → after lifetime **40**, hard stop → paywall.
+2. Buy **Author Plus** → Mirror quota becomes **8/day**. At 8, upsell **Author Pro**.
+3. Buy **Author Pro** → Mirror quota becomes **16/day**. At 16, “done for today” (no higher CTA).
 
-#### App Store Connect (paid Apple Developer) — for Silas
+### App Store Connect (paid Apple Developer) — for Silas
 
 1. App Store Connect → your app → **Subscriptions** → create one subscription group, e.g. **Diary Vault Author** (same as local `.storekit`).
 2. Add **six** auto-renewable products with these IDs (must match the app / overrides exactly):
@@ -273,10 +270,9 @@ By default the Mirror tab uses a **local mock**. To call a real cloud chat API (
    | `DIARY_AI_MODEL` | No | OpenAI: `gpt-4o-mini` · Anthropic: `claude-sonnet-4-5` |
    | `DIARY_AI_MAX_TOKENS` | No | `400` |
    | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
-   | `DIARY_AI_FREE_DAILY_REQUEST_LIMIT` | No | `6` (Free tier daily Mirror hard cap) |
-   | `DIARY_AI_FREE_SOFT_PAYWALL_THRESHOLD` | No | `3` (Free: after this many uses, dismissible Author Plus reminder until hard cap) |
-   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `15` (Author Plus daily Mirror hard cap; `0` = unlimited for Plus) |
-   | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `40` (Author Pro daily Mirror hard cap; `0` = unlimited for Pro) |
+   | `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT` | No | `40` (Free Mirror lifetime hard cap; alias `DIARY_AI_FREE_DAILY_REQUEST_LIMIT`) |
+      | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `8` (Author Plus daily Mirror hard cap; `0` = unlimited for Plus) |
+   | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `16` (Author Pro daily Mirror hard cap; `0` = unlimited for Pro) |
 
 2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
 3. Restart the app. Settings → AI should show **Cloud API** and the resolved provider.
@@ -308,7 +304,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in; delete is soft-delete (`deleted` + `deletedAt`), Vault hides deleted rows |
 | Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
-| Usage safeguards | Max context entries, max tokens, **Free vs Author Plus** local daily Mirror quotas |
+| Usage safeguards | Max context entries, max tokens, Free lifetime / Plus–Pro daily Mirror + vault upload quotas |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
@@ -319,8 +315,8 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 - **App Store Connect live products / prices** — need paid Apple Developer; IDs are configurable here; local `.storekit` covers Personal Team testing
 - **Auth / receipt backend** — Firebase Phone Auth + Firestore text sync on iOS; Twilio / server receipt verify later
 - **Android SMS OTP / Play Billing** — stubs only
-- **Voice / video diary** — deferred (no media product tier in this build)
-- **Multimedia diary upload** — deferred (DA-15); text Firestore sync is phase 1
+- **Voice / video diary UI / Storage** — duration polish deferred (DA-15); Free/Plus/Pro vault **counts** already include multimedia in one bucket
+- **Text Firestore sync** is phase 1 (media Storage paths later)
 - **Taiwan residency** — product narrative + prefer Firestore `asia-east1` when creating the database
 - **Fine-tuning / private model training** — not used; learning = prompt context only
 - **Memorial mode, voice clone, legacy executor** — Settings stub copy only; no Phase 1 UI

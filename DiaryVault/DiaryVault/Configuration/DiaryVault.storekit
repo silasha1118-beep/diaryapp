@@ -94,17 +94,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Highest daily Mirror quota (40/day). Monthly.",
+              "description" : "Highest daily Mirror + vault quotas (16/day). Monthly.",
               "displayName" : "Author Pro Monthly",
               "locale" : "en_US"
             },
             {
-              "description" : "最高每日鏡子額度（40 次）。月訂。",
+              "description" : "最高每日鏡子與金庫額度（16 次）。月訂。",
               "displayName" : "Author Pro 月訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "最高每日镜子额度（40 次）。月订。",
+              "description" : "最高每日镜子与金库额度（16 次）。月订。",
               "displayName" : "Author Pro 月订",
               "locale" : "zh_Hans"
             }
@@ -132,17 +132,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Highest daily Mirror quota (40/day). Quarterly.",
+              "description" : "Highest daily Mirror + vault quotas (16/day). Quarterly.",
               "displayName" : "Author Pro Quarterly",
               "locale" : "en_US"
             },
             {
-              "description" : "最高每日鏡子額度（40 次）。季訂。",
+              "description" : "最高每日鏡子與金庫額度（16 次）。季訂。",
               "displayName" : "Author Pro 季訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "最高每日镜子额度（40 次）。季订。",
+              "description" : "最高每日镜子与金库额度（16 次）。季订。",
               "displayName" : "Author Pro 季订",
               "locale" : "zh_Hans"
             }
@@ -170,17 +170,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Highest daily Mirror quota (40/day). Yearly.",
+              "description" : "Highest daily Mirror + vault quotas (16/day). Yearly.",
               "displayName" : "Author Pro Yearly",
               "locale" : "en_US"
             },
             {
-              "description" : "最高每日鏡子額度（40 次）。年訂。",
+              "description" : "最高每日鏡子與金庫額度（16 次）。年訂。",
               "displayName" : "Author Pro 年訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "最高每日镜子额度（40 次）。年订。",
+              "description" : "最高每日镜子与金库额度（16 次）。年订。",
               "displayName" : "Author Pro 年订",
               "locale" : "zh_Hans"
             }
@@ -208,17 +208,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Higher Mirror quota (15/day). Monthly.",
+              "description" : "Higher Mirror + vault quotas (8/day). Monthly.",
               "displayName" : "Author Plus Monthly",
               "locale" : "en_US"
             },
             {
-              "description" : "更高鏡子額度（15 次／日）。月訂。",
+              "description" : "更高鏡子與金庫額度（8 次／日）。月訂。",
               "displayName" : "Author Plus 月訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "更高镜子额度（15 次／日）。月订。",
+              "description" : "更高镜子与金库额度（8 次／日）。月订。",
               "displayName" : "Author Plus 月订",
               "locale" : "zh_Hans"
             }
@@ -246,17 +246,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Higher Mirror quota (15/day). Quarterly.",
+              "description" : "Higher Mirror + vault quotas (8/day). Quarterly.",
               "displayName" : "Author Plus Quarterly",
               "locale" : "en_US"
             },
             {
-              "description" : "更高鏡子額度（15 次／日）。季訂。",
+              "description" : "更高鏡子與金庫額度（8 次／日）。季訂。",
               "displayName" : "Author Plus 季訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "更高镜子额度（15 次／日）。季订。",
+              "description" : "更高镜子与金库额度（8 次／日）。季订。",
               "displayName" : "Author Plus 季订",
               "locale" : "zh_Hans"
             }
@@ -284,17 +284,17 @@
           "introductoryOffer" : null,
           "localizations" : [
             {
-              "description" : "Higher Mirror quota (15/day). Yearly.",
+              "description" : "Higher Mirror + vault quotas (8/day). Yearly.",
               "displayName" : "Author Plus Yearly",
               "locale" : "en_US"
             },
             {
-              "description" : "更高鏡子額度（15 次／日）。年訂。",
+              "description" : "更高鏡子與金庫額度（8 次／日）。年訂。",
               "displayName" : "Author Plus 年訂",
               "locale" : "zh_Hant"
             },
             {
-              "description" : "更高镜子额度（15 次／日）。年订。",
+              "description" : "更高镜子与金库额度（8 次／日）。年订。",
               "displayName" : "Author Plus 年订",
               "locale" : "zh_Hans"
             }
