@@ -82,7 +82,7 @@
 "paywall.free.body" = "可写日记、试用镜子。";
 "paywall.free.benefit1" = "文字日记：每日最多 8 次";
 "paywall.free.benefit2" = "云端镜子：每日最多 6 次";
-"paywall.free.benefit3" = "私密金库留在你的设备";
+"paywall.free.benefit3" = "登录后文字日记可云端同步";
 "paywall.free.current" = "当前方案";
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "更多写作空间，镜子也更稳。";

@@ -82,7 +82,7 @@
 "paywall.free.body" = "可寫日記、試用鏡子。";
 "paywall.free.benefit1" = "文字日記：每日最多 8 次";
 "paywall.free.benefit2" = "雲端鏡子：每日最多 6 次";
-"paywall.free.benefit3" = "私密金庫留在你的裝置";
+"paywall.free.benefit3" = "登入後文字日記可雲端同步";
 "paywall.free.current" = "目前方案";
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "更多寫作空間，鏡子也更穩。";
