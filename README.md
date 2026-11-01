@@ -179,18 +179,32 @@ Three Mirror tiers (entitlement rank **Pro > Plus > Free**). Each paid tier has 
 You do **not** need a paid Apple Developer account to try purchase + restore on Simulator with the local `.storekit` file.
 
 1. On a Mac, open `DiaryVault/DiaryVault.xcodeproj` in Xcode 15+.
-2. Confirm StoreKit Configuration is attached:
+2. Confirm StoreKit Configuration is attached (**required** or every SKU shows “price unavailable” / empty catalog):
    - **Product → Scheme → Edit Scheme…** (or click the scheme name → Edit Scheme…)
    - Select **Run** on the left → **Options** tab
    - **StoreKit Configuration** = `DiaryVault.storekit`  
      (path in repo: `DiaryVault/DiaryVault/Configuration/DiaryVault.storekit`; the shared scheme already sets this)
+   - Do **not** leave this on **None** unless you intentionally want Sandbox / Connect (see below).
 3. Select an **iPhone Simulator** → **Run** (⌘R).
 4. Finish onboarding → sign in (Firebase phone OTP, or DEBUG “local session”) → open **Settings**.
 5. Tap **View plans / restore**:
-   - You should see **Free**, **Author Plus** (monthly / quarterly / yearly), and **Author Pro** (monthly / quarterly / yearly) with prices from the `.storekit` file.
-   - Tap a plan → confirm the StoreKit purchase sheet → Settings plan should flip to **Author Plus** or **Author Pro**.
+   - You should see three cards: **Free**, **Author Plus**, **Author Pro**.
+   - Plus / Pro show period chips (monthly / quarterly / yearly) and **StoreKit prices** (from `.storekit`, not hardcoded).
+   - Release builds never show raw product IDs; DEBUG builds may show a StoreKit diagnostic block.
+   - Tap **Subscribe** → confirm the StoreKit purchase sheet → Settings plan should flip to **Author Plus** or **Author Pro**.
    - Tap **Restore purchases** after a purchase (or after deleting/reinstalling the app) to re-sync entitlement.
 6. Optional debug: in Xcode menu **Debug → StoreKit → Manage Transactions…** to expire / refund / renew the local subscription.
+
+#### Why products show empty / “price unavailable”
+
+`Product.products(for:)` returns **no products** (empty array, often without throwing) when:
+
+| Mode | StoreKit Configuration | What happens |
+|------|------------------------|--------------|
+| **Local** | `DiaryVault.storekit` | Products + prices load from the file; purchase works without Connect. |
+| **Sandbox** | **None** | App talks to App Store Sandbox. Needs **paid** Apple Developer + six matching Connect SKUs + Sandbox Apple ID. If Connect SKUs are missing / wrong IDs, catalog is empty and purchase is impossible. |
+
+IDs in `BillingConfig` must match both `DiaryVault.storekit` and Connect exactly (`com.diaryvault.author.plus.*` / `com.diaryvault.author.pro.*`).
 
 #### Beginner Mac steps — diary **upload** quotas (text create)
 

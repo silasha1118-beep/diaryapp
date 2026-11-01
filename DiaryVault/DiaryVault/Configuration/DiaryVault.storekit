@@ -7,6 +7,8 @@
 
   ],
   "settings" : {
+    "_locale" : "en_US",
+    "_storefront" : "USA",
     "_failTransactionsEnabled" : false,
     "_storeKitErrors" : [
       {

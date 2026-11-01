@@ -16,6 +16,8 @@ final class SubscriptionStore: ObservableObject {
     @Published private(set) var willAutoRenew: Bool = false
     @Published private(set) var statusMessage: String?
     @Published private(set) var lastErrorDetail: String?
+    /// Product IDs requested but not returned by StoreKit (DEBUG paywall diagnostics).
+    @Published private(set) var missingProductIDs: [String] = []
     @Published private(set) var isLoading: Bool = false
 
     /// Retained for app lifetime (StoreKit `Transaction.updates` is endless). No `deinit` cancel —
@@ -42,17 +44,28 @@ final class SubscriptionStore: ObservableObject {
         lastErrorDetail = nil
         defer { isLoading = false }
 
+        let ids = BillingConfig.productIDs
         do {
-            let ids = BillingConfig.productIDs
-            let loaded = try await Product.products(for: ids)
+            var loaded = try await Product.products(for: Set(ids))
+            // Local `.storekit` / Sandbox can briefly return empty on first cold query.
+            if loaded.isEmpty {
+                try? await Task.sleep(nanoseconds: 350_000_000)
+                loaded = try await Product.products(for: Set(ids))
+            }
+
             products = sortProducts(loaded)
+            let returned = Set(loaded.map(\.id))
+            missingProductIDs = ids.filter { !returned.contains($0) }
             await updateEntitlement()
+
             if products.isEmpty {
                 statusMessage = "products.empty"
+                lastErrorDetail = emptyCatalogHint(requested: ids)
             }
         } catch {
             statusMessage = "products.error"
             lastErrorDetail = error.localizedDescription
+            missingProductIDs = ids
             products = []
         }
     }
@@ -213,5 +226,14 @@ final class SubscriptionStore: ObservableObject {
             if lo != ro { return lo < ro }
             return lhs.id < rhs.id
         }
+    }
+
+    private func emptyCatalogHint(requested: [String]) -> String {
+        """
+        StoreKit returned 0 products for \(requested.count) IDs.
+        Local: Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit.
+        Sandbox: clear StoreKit Configuration, create matching Connect SKUs, sign in with Sandbox Apple ID.
+        Requested: \(requested.joined(separator: ", "))
+        """
     }
 }
