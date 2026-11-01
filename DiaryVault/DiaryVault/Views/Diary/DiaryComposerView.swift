@@ -13,9 +13,8 @@ struct DiaryComposerView: View {
     @State private var bodyText = ""
     @State private var mood = ""
     @State private var hardGate: HardQuotaGate?
-    /// Presented from **this** sheet — a parent `fullScreenCover` while the composer sheet is
-    /// already up is a silent no-op on device (DA-57 regression).
-    @State private var showPaywall = false
+    /// Compact Plus/Pro + period checkout (owned by this sheet — nested parent cover is a no-op).
+    @State private var showUpgradeCheckout = false
     @State private var didLoadEditDraft = false
     @FocusState private var focusedField: ComposerField?
 
@@ -71,11 +70,13 @@ struct DiaryComposerView: View {
                 clearQuotaMessagesIfUnderCap()
             }
         }
-        // Cover is owned by the composer sheet (same pattern as DA-46), not the list behind it.
-        .fullScreenCover(isPresented: $showPaywall) {
-            PaywallView()
-                .environmentObject(localization)
-                .environmentObject(subscriptions)
+        // Owned by the composer sheet (parent cover while this sheet is up is a silent no-op).
+        .sheet(isPresented: $showUpgradeCheckout) {
+            UpgradeCheckoutSheet(
+                preferredTier: billingTier == .authorPlus ? .authorPro : .authorPlus
+            )
+            .environmentObject(localization)
+            .environmentObject(subscriptions)
         }
     }
 
@@ -146,18 +147,11 @@ struct DiaryComposerView: View {
             }
 
             if gate.showUpgrade {
-                VStack(spacing: 8) {
-                    Button {
-                        startDirectUpgradePurchase()
-                    } label: {
-                        HStack(spacing: 8) {
-                            if subscriptions.isLoading {
-                                ProgressView()
-                                    .tint(VaultTheme.paper)
-                            }
-                            Text(localization.text(quotaUpgradeCTAKey))
-                                .font(.system(size: 15, weight: .semibold))
-                        }
+                Button {
+                    presentUpgradeCheckout()
+                } label: {
+                    Text(localization.text(quotaUpgradeCTAKey))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(VaultTheme.paper)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
@@ -166,33 +160,9 @@ struct DiaryComposerView: View {
                                 .fill(VaultTheme.seal)
                         )
                         .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(subscriptions.isLoading)
-                    .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
-
-                    // Full Free / Plus / Pro picker — Settings「查看方案」equivalent.
-                    Button {
-                        presentPaywall()
-                    } label: {
-                        Text(localization.text("diary.quota.viewPlans"))
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(VaultTheme.inkMuted)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(subscriptions.isLoading)
-                    .accessibilityLabel(localization.text("diary.quota.viewPlans"))
                 }
-            }
-
-            if let purchaseStatusText {
-                Text(purchaseStatusText)
-                    .font(.system(size: 12))
-                    .foregroundStyle(VaultTheme.inkMuted)
-                    .fixedSize(horizontal: false, vertical: true)
+                .buttonStyle(.plain)
+                .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
             }
         }
         .padding(.horizontal, 20)
@@ -201,21 +171,6 @@ struct DiaryComposerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { quotaBannerChrome }
         .contentShape(Rectangle())
-    }
-
-    private var purchaseStatusText: String? {
-        guard let key = subscriptions.statusMessage else { return nil }
-        let map = [
-            "products.empty": "paywall.status.productsEmpty",
-            "products.error": "paywall.status.productsError",
-            "purchase.success": "paywall.status.purchaseSuccess",
-            "purchase.cancelled": "paywall.status.purchaseCancelled",
-            "purchase.pending": "paywall.status.purchasePending",
-            "purchase.unknown": "paywall.status.purchaseUnknown",
-            "purchase.error": "paywall.status.purchaseError",
-        ]
-        guard let loc = map[key] else { return nil }
-        return localization.text(loc)
     }
 
     private func quotaAccentIcon(systemName: String) -> some View {
@@ -299,27 +254,13 @@ struct DiaryComposerView: View {
         }
     }
 
-    /// Full Plans picker (same as Settings「查看方案」) — secondary path only.
-    private func presentPaywall() {
+    /// Compact sheet: Plus + Pro, each with 月／季／年, then 訂閱 → Apple sheet.
+    private func presentUpgradeCheckout() {
         focusedField = nil
         KeyboardDismiss.resign()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 80_000_000)
-            showPaywall = true
-        }
-    }
-
-    /// Primary upgrade CTA: Apple purchase sheet for default monthly Plus (or Pro if already Plus).
-    private func startDirectUpgradePurchase() {
-        focusedField = nil
-        KeyboardDismiss.resign()
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 80_000_000)
-            let started = await subscriptions.purchaseRecommendedUpgrade(from: billingTier)
-            // Catalog missing → fall back to Plans so the user is never stuck.
-            if !started {
-                showPaywall = true
-            }
+            showUpgradeCheckout = true
         }
     }
 

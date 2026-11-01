@@ -75,8 +75,9 @@
 
 /* Paywall */
 "paywall.title" = "แผน";
-"paywall.headline" = "กระจกที่รู้จักคำของคุณ";
-"paywall.body" = "เลือกฟรี Author Plus หรือ Author Pro ราคาจาก App Store";
+"paywall.headline" = "เขียนต่อไป";
+"paywall.body" = "เลือก Author Plus หรือ Author Pro ราคาจาก App Store";
+"paywall.body.short" = "เลือก Plus หรือ Pro แล้วเลือกรอบ แล้วสมัคร";
 "paywall.free.title" = "ฟรี";
 "paywall.free.price" = "ฟรี";
 "paywall.free.body" = "เขียนในห้องเก็บและลองกระจก";
@@ -87,16 +88,22 @@
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "พื้นที่เขียนมากขึ้น และกระจกเสถียรขึ้น";
 "paywall.plus.section" = "Author Plus";
+"paywall.plus.summary" = "คลัง + กระจก อย่างละ 8/วัน (ข้อความกับสื่อใช้โควตาคลังร่วมกัน)";
 "paywall.plus.benefit1" = "อัปโหลดคลัง: 8/วัน (ข้อความ + มัลติมีเดีย)";
 "paywall.plus.benefit2" = "กระจกคลาวด์: 8/วัน";
 "paywall.plus.benefit3" = "ข้อความและมัลติมีเดียใช้โควตาคลังรายวันร่วมกัน";
 "paywall.pro.title" = "Author Pro";
 "paywall.pro.section" = "Author Pro";
 "paywall.pro.body" = "พื้นที่รายวันสูงสุดสำหรับเขียน สื่อ และกระจก";
+"paywall.pro.summary" = "คลัง + กระจก อย่างละ 16/วัน (ข้อความกับสื่อใช้โควตาคลังร่วมกัน)";
 "paywall.pro.benefit1" = "อัปโหลดคลัง: 16/วัน (ข้อความ + มัลติมีเดีย)";
 "paywall.pro.benefit2" = "กระจกคลาวด์: 16/วัน";
 "paywall.pro.benefit3" = "ข้อความและมัลติมีเดียใช้โควตาคลังรายวันร่วมกัน";
 "paywall.pro.pending" = "สินค้า Author Pro โหลดจาก StoreKit เมื่อ Scheme ชี้ DiaryVault.storekit หรือ Connect";
+"upgrade.checkout.title" = "อัปเกรด";
+"upgrade.checkout.headline" = "เลือกแผน";
+"upgrade.checkout.body" = "เลือก Plus หรือ Pro แล้วเลือกรายเดือน / ไตรมาส / ปี";
+"upgrade.checkout.legal" = "ต่ออายุอัตโนมัติ เรียกเก็บจาก Apple ID เมื่อยืนยัน ยกเลิกได้ใน การตั้งค่า → Apple ID → การสมัคร";
 "paywall.pro.monthly" = "Author Pro · รายเดือน";
 "paywall.pro.quarterly" = "Author Pro · รายไตรมาส";
 "paywall.pro.yearly" = "Author Pro · รายปี";
@@ -122,6 +129,7 @@
 "paywall.productsMissing.debug" = "DEBUG: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit (ในเครื่อง) หรือล้างแล้วใช้ Connect Sandbox";
 "paywall.footer" = "การสมัครต่ออายุจนกว่าจะยกเลิกใน การตั้งค่า → Apple ID สินค้ามรดก/ผู้ดูแลมาทีหลัง — ไม่อยู่ในเพย์วอลล์นี้";
 "paywall.disclosure" = "Author Plus และ Author Pro เป็นการสมัครต่ออายุอัตโนมัติ (รายเดือน ไตรมาส หรือรายปี) ราคาและรอบแสดงบนแผนด้านบน เรียกเก็บจาก Apple ID เมื่อยืนยัน ต่ออายุเว้นแต่ยกเลิกอย่างน้อย 24 ชั่วโมงก่อนสิ้นรอบปัจจุบัน จัดการหรือยกเลิกใน การตั้งค่า → Apple ID → การสมัคร การลบบัญชี Diary Vault ไม่ยกเลิกการสมัคร Apple";
+"paywall.disclosure.short" = "ต่ออายุอัตโนมัติ เรียกเก็บจาก Apple ID เมื่อยืนยัน ยกเลิกได้ทุกเมื่อใน การตั้งค่า → Apple ID → การสมัคร";
 "paywall.privacy.pending" = "นโยบายความเป็นส่วนตัว: โฮสต์ URL และตั้ง DIARY_PRIVACY_POLICY_URL ก่อนส่ง App Store (เปิดในตั้งค่าได้ด้วย)";
 "paywall.status.productsEmpty" = "ยังไม่มีแผนที่ใช้ได้ โหลดใหม่หรือลองภายหลัง";
 "paywall.status.productsError" = "โหลดแผนจาก App Store ไม่ได้";

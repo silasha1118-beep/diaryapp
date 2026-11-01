@@ -75,8 +75,9 @@
 
 /* Paywall */
 "paywall.title" = "プラン";
-"paywall.headline" = "あなたの言葉を知るミラー。";
-"paywall.body" = "無料、Author Plus、Author Pro から選べます。価格は App Store から表示されます。";
+"paywall.headline" = "書き続けよう。";
+"paywall.body" = "Author Plus または Author Pro。価格は App Store から表示されます。";
+"paywall.body.short" = "Author Plus か Pro を選び、期間を選んで登録。";
 "paywall.free.title" = "無料";
 "paywall.free.price" = "無料";
 "paywall.free.body" = "ボールトに書いてミラーを試せます。";
@@ -87,16 +88,22 @@
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "より広い執筆枠と安定したミラー。";
 "paywall.plus.section" = "Author Plus";
+"paywall.plus.summary" = "ボールト＋ミラー各 8回／日（テキストとメディアは同じボールト枠）。";
 "paywall.plus.benefit1" = "ボールト投稿：1日 8 回（テキスト＋マルチメディア）";
 "paywall.plus.benefit2" = "クラウドミラー：1日 8 回";
 "paywall.plus.benefit3" = "テキストとマルチメディアは同じ1日ボールト枠";
 "paywall.pro.title" = "Author Pro";
 "paywall.pro.section" = "Author Pro";
 "paywall.pro.body" = "執筆・メディア・ミラーの1日上限が最も広い。";
+"paywall.pro.summary" = "ボールト＋ミラー各 16回／日（テキストとメディアは同じボールト枠）。";
 "paywall.pro.benefit1" = "ボールト投稿：1日 16 回（テキスト＋マルチメディア）";
 "paywall.pro.benefit2" = "クラウドミラー：1日 16 回";
 "paywall.pro.benefit3" = "テキストとマルチメディアは同じ1日ボールト枠";
 "paywall.pro.pending" = "Author Pro 商品は StoreKit から読み込みます（Scheme で DiaryVault.storekit または Connect）。";
+"upgrade.checkout.title" = "アップグレード";
+"upgrade.checkout.headline" = "プランを選ぶ";
+"upgrade.checkout.body" = "Plus か Pro を選び、月額／四半期／年額を選びます。";
+"upgrade.checkout.legal" = "自動更新。確認時に Apple ID に課金。設定 → Apple ID → サブスクリプションでキャンセル可。";
 "paywall.pro.monthly" = "Author Pro · 月額";
 "paywall.pro.quarterly" = "Author Pro · 四半期";
 "paywall.pro.yearly" = "Author Pro · 年額";
@@ -122,6 +129,7 @@
 "paywall.productsMissing.debug" = "DEBUG：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit（ローカル）、または解除して Connect Sandbox SKU。";
 "paywall.footer" = "サブスクリプションは設定 → Apple ID でキャンセルするまで更新されます。遺産／托管商品は後の段階——このペイウォールにはありません。";
 "paywall.disclosure" = "Author Plus と Author Pro は自動更新サブスクリプション（月額・四半期・年額）です。価格と期間は上の各プランに表示されます。確認時に Apple ID に課金されます。現在の期間終了の少なくとも24時間前にキャンセルしない限り更新されます。管理／キャンセルは設定 → Apple ID → サブスクリプション。Diary Vault アカウントの削除では Apple サブスクリプションはキャンセルされません。";
+"paywall.disclosure.short" = "自動更新。確認時に Apple ID 課金。設定 → Apple ID → サブスクリプションでいつでもキャンセル可。";
 "paywall.privacy.pending" = "プライバシーポリシー：App Store 提出前に URL をホストし DIARY_PRIVACY_POLICY_URL を設定（設定画面からも）。";
 "paywall.status.productsEmpty" = "利用可能なプランがありません。再読み込みするか、しばらくしてからお試しください。";
 "paywall.status.productsError" = "App Store からプランを読み込めませんでした。";

@@ -75,8 +75,9 @@
 
 /* Paywall */
 "paywall.title" = "方案";
-"paywall.headline" = "一面認得你文字的鏡子。";
-"paywall.body" = "可選免費、Author Plus 或 Author Pro。價格來自 App Store。";
+"paywall.headline" = "繼續書寫。";
+"paywall.body" = "可選 Author Plus 或 Author Pro。價格來自 App Store。";
+"paywall.body.short" = "Author Plus 或 Author Pro——選週期後訂閱。";
 "paywall.free.title" = "免費";
 "paywall.free.price" = "免費";
 "paywall.free.body" = "可寫日記、試用鏡子。";
@@ -87,16 +88,22 @@
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "更多寫作空間，鏡子也更穩。";
 "paywall.plus.section" = "Author Plus";
+"paywall.plus.summary" = "金庫＋鏡子各每日 8 次（文字與多媒體共用金庫額度）。";
 "paywall.plus.benefit1" = "金庫上傳：每日 8 次（文字＋多媒體）";
 "paywall.plus.benefit2" = "雲端鏡子：每日 8 次";
 "paywall.plus.benefit3" = "文字與多媒體共用同一每日金庫額度";
 "paywall.pro.title" = "Author Pro";
 "paywall.pro.section" = "Author Pro";
 "paywall.pro.body" = "最高每日寫作、多媒體與鏡子空間。";
+"paywall.pro.summary" = "金庫＋鏡子各每日 16 次（文字與多媒體共用金庫額度）。";
 "paywall.pro.benefit1" = "金庫上傳：每日 16 次（文字＋多媒體）";
 "paywall.pro.benefit2" = "雲端鏡子：每日 16 次";
 "paywall.pro.benefit3" = "文字與多媒體共用同一每日金庫額度";
 "paywall.pro.pending" = "Author Pro 商品會從 StoreKit 載入（Scheme 指向 DiaryVault.storekit 或 Connect）。";
+"upgrade.checkout.title" = "升級";
+"upgrade.checkout.headline" = "選擇方案";
+"upgrade.checkout.body" = "先選 Plus 或 Pro，再選月訂／季訂／年訂。";
+"upgrade.checkout.legal" = "自動續訂。確認後向 Apple ID 收費。可於「設定 → Apple ID → 訂閱項目」取消。";
 "paywall.pro.monthly" = "Author Pro · 月訂";
 "paywall.pro.quarterly" = "Author Pro · 季訂";
 "paywall.pro.yearly" = "Author Pro · 年訂";
@@ -122,6 +129,7 @@
 "paywall.productsMissing.debug" = "DEBUG：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit（本機），或清空後使用 Connect Sandbox 商品。";
 "paywall.footer" = "訂閱會自動續訂，可於「設定 → Apple ID」取消。遺產／托管商品屬後期——不在此付費牆。";
 "paywall.disclosure" = "Author Plus 與 Author Pro 為自動續訂訂閱（月訂、季訂或年訂）。價格與週期見上方各方案。確認購買後會向你的 Apple ID 收費；除非在目前週期結束前至少 24 小時取消，否則會自動續訂。請至「設定 → Apple ID → 訂閱項目」管理或取消。刪除日記金庫帳號不會取消 Apple 訂閱。";
+"paywall.disclosure.short" = "自動續訂。確認後向 Apple ID 收費。可於「設定 → Apple ID → 訂閱項目」隨時取消。";
 "paywall.privacy.pending" = "隱私權政策：上架前請託管網頁並在 Info.plist 設定 DIARY_PRIVACY_POLICY_URL（設定頁亦可開啟）。";
 "paywall.status.productsEmpty" = "尚無可用方案。請稍後再試或重新載入。";
 "paywall.status.productsError" = "無法從 App Store 載入方案。";
