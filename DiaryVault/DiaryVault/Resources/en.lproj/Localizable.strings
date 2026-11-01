@@ -9,6 +9,7 @@
 "common.edit" = "Edit";
 "common.done" = "Done";
 "common.delete" = "Delete";
+"common.ok" = "OK";
 
 /* Tabs */
 "tab.vault" = "Vault";
@@ -177,6 +178,32 @@
 "diary.quota.upgrade" = "Upgrade to Author Plus";
 "diary.quota.upgrade.pro" = "Upgrade to Author Pro";
 "diary.quota.viewPlans" = "View all plans";
+
+
+/* Diary media */
+"diary.media.voice" = "Voice";
+"diary.media.photo" = "Photo";
+"diary.media.video" = "Video";
+"diary.media.hint" = "Voice up to 90s · video up to 60s. Text and media share one vault upload.";
+"diary.media.recording" = "Recording…";
+"diary.media.stopSave" = "Save voice";
+"diary.media.remove" = "Remove attachment";
+"diary.media.photo.source" = "Add a photo";
+"diary.media.video.source" = "Add a video";
+"diary.media.takePhoto" = "Take photo";
+"diary.media.choosePhoto" = "Choose from library";
+"diary.media.recordVideo" = "Record video";
+"diary.media.chooseVideo" = "Choose from library";
+"diary.media.permission.mic" = "Microphone access is off. Enable it in Settings to record voice notes.";
+"diary.media.cameraUnavailable" = "Camera is not available on this device.";
+"diary.media.permission.camera" = "Camera access is off. Enable it in Settings to take photos or video.";
+"diary.media.recordFailed" = "Could not start recording.";
+"diary.media.saveFailed" = "Could not save this media.";
+"diary.media.videoTooLong" = "Please keep video within about 60 seconds.";
+"diary.media.alertTitle" = "Media";
+"diary.media.unavailable" = "Media unavailable on this device";
+"diary.media.previewOnly" = "Media attachment";
+
 
 /* Mirror */
 "mirror.title" = "Mirror";

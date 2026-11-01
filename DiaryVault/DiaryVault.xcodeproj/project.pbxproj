@@ -52,6 +52,13 @@
 		A1000000000000000000002E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000004 /* FirebaseFirestore */; };
 		A1000000000000000000002F /* DiaryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002E /* DiaryCloudSync.swift */; };
 		A10000000000000000000030 /* DisplayNamePromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002F /* DisplayNamePromptSheet.swift */; };
+		A10000000000000000000035 /* DiaryMediaAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000035 /* DiaryMediaAttachment.swift */; };
+		A10000000000000000000036 /* DiaryMediaConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000036 /* DiaryMediaConfig.swift */; };
+		A10000000000000000000037 /* DiaryMediaFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000037 /* DiaryMediaFileStore.swift */; };
+		A10000000000000000000038 /* DiaryMediaCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000038 /* DiaryMediaCloudSync.swift */; };
+		A10000000000000000000039 /* DiaryMediaViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000039 /* DiaryMediaViews.swift */; };
+		A1000000000000000000003A /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000005 /* FirebaseStorage */; };
+		A1000000000000000000003B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000003B /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -105,6 +112,16 @@
 		B1000000000000000000002E /* DiaryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryCloudSync.swift; sourceTree = "<group>"; };
 		B1000000000000000000002F /* DisplayNamePromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayNamePromptSheet.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000035 /* DiaryMediaAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaAttachment.swift; sourceTree = "<group>"; };
+		B10000000000000000000036 /* DiaryMediaConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaConfig.swift; sourceTree = "<group>"; };
+		B10000000000000000000037 /* DiaryMediaFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaFileStore.swift; sourceTree = "<group>"; };
+		B10000000000000000000038 /* DiaryMediaCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaCloudSync.swift; sourceTree = "<group>"; };
+		B10000000000000000000039 /* DiaryMediaViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaViews.swift; sourceTree = "<group>"; };
+		B1000000000000000000003C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		B1000000000000000000003D /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		B1000000000000000000003E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		B1000000000000000000003F /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		B10000000000000000000040 /* th */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = th; path = th.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +132,7 @@
 				A10000000000000000000026 /* FirebaseAuth in Frameworks */,
 				A10000000000000000000027 /* FirebaseCore in Frameworks */,
 				A1000000000000000000002E /* FirebaseFirestore in Frameworks */,
+				A1000000000000000000003A /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +179,7 @@
 			children = (
 				B10000000000000000000002 /* AppState.swift */,
 				B10000000000000000000003 /* DiaryEntry.swift */,
+				B10000000000000000000035 /* DiaryMediaAttachment.swift */,
 				B10000000000000000000004 /* MirrorMessage.swift */,
 			);
 			path = Models;
@@ -171,6 +190,8 @@
 			children = (
 				B10000000000000000000005 /* DiaryStore.swift */,
 				B1000000000000000000002E /* DiaryCloudSync.swift */,
+				B10000000000000000000038 /* DiaryMediaCloudSync.swift */,
+				B10000000000000000000037 /* DiaryMediaFileStore.swift */,
 				B10000000000000000000007 /* MirrorAIService.swift */,
 				B10000000000000000000008 /* MockMirrorAIClient.swift */,
 				B10000000000000000000009 /* CloudMirrorAIClient.swift */,
@@ -193,6 +214,7 @@
 			children = (
 				B10000000000000000000006 /* AIConfig.swift */,
 				B10000000000000000000032 /* UploadQuotaConfig.swift */,
+				B10000000000000000000036 /* DiaryMediaConfig.swift */,
 				B1000000000000000000001C /* BillingConfig.swift */,
 				B10000000000000000000023 /* AuthConfig.swift */,
 				B1000000000000000000002B /* LegalConfig.swift */,
@@ -227,6 +249,7 @@
 			isa = PBXGroup;
 			children = (
 				B10000000000000000000014 /* Localizable.strings */,
+				B1000000000000000000003B /* InfoPlist.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -256,6 +279,7 @@
 				B1000000000000000000000E /* DiaryListView.swift */,
 				B1000000000000000000000F /* DiaryComposerView.swift */,
 				B10000000000000000000010 /* DiaryDetailView.swift */,
+				B10000000000000000000039 /* DiaryMediaViews.swift */,
 			);
 			path = Diary;
 			sourceTree = "<group>";
@@ -306,6 +330,7 @@
 				P10000000000000000000002 /* FirebaseAuth */,
 				P10000000000000000000003 /* FirebaseCore */,
 				P10000000000000000000004 /* FirebaseFirestore */,
+				P10000000000000000000005 /* FirebaseStorage */,
 			);
 			productName = DiaryVault;
 			productReference = C10000000000000000000001 /* DiaryVault.app */;
@@ -358,6 +383,7 @@
 			files = (
 				A10000000000000000000013 /* Assets.xcassets in Resources */,
 				A10000000000000000000014 /* Localizable.strings in Resources */,
+				A1000000000000000000003B /* InfoPlist.strings in Resources */,
 				A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */,
 				A10000000000000000000021 /* DiaryVault.storekit in Resources */,
 			);
@@ -400,11 +426,15 @@
 				A10000000000000000000001 /* DiaryVaultApp.swift in Sources */,
 				A10000000000000000000002 /* AppState.swift in Sources */,
 				A10000000000000000000003 /* DiaryEntry.swift in Sources */,
+				A10000000000000000000035 /* DiaryMediaAttachment.swift in Sources */,
 				A10000000000000000000004 /* MirrorMessage.swift in Sources */,
 				A10000000000000000000005 /* DiaryStore.swift in Sources */,
 				A1000000000000000000002F /* DiaryCloudSync.swift in Sources */,
+				A10000000000000000000038 /* DiaryMediaCloudSync.swift in Sources */,
+				A10000000000000000000037 /* DiaryMediaFileStore.swift in Sources */,
 				A10000000000000000000006 /* AIConfig.swift in Sources */,
 				A10000000000000000000032 /* UploadQuotaConfig.swift in Sources */,
+				A10000000000000000000036 /* DiaryMediaConfig.swift in Sources */,
 				A1000000000000000000001C /* BillingConfig.swift in Sources */,
 				A10000000000000000000033 /* DiaryUploadUsageGuard.swift in Sources */,
 				A10000000000000000000023 /* AuthConfig.swift in Sources */,
@@ -431,6 +461,7 @@
 				A1000000000000000000000E /* DiaryListView.swift in Sources */,
 				A1000000000000000000000F /* DiaryComposerView.swift in Sources */,
 				A10000000000000000000010 /* DiaryDetailView.swift in Sources */,
+				A10000000000000000000039 /* DiaryMediaViews.swift in Sources */,
 				A10000000000000000000011 /* MirrorChatView.swift in Sources */,
 				A10000000000000000000020 /* PaywallView.swift in Sources */,
 				A10000000000000000000034 /* UpgradeCheckoutSheet.swift in Sources */,
@@ -451,6 +482,18 @@
 				B10000000000000000000031 /* th */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		B1000000000000000000003B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B1000000000000000000003C /* en */,
+				B1000000000000000000003D /* zh-Hant */,
+				B1000000000000000000003E /* zh-Hans */,
+				B1000000000000000000003F /* ja */,
+				B10000000000000000000040 /* th */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -601,6 +644,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = P10000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		P10000000000000000000005 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = P10000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

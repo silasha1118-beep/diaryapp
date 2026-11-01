@@ -9,6 +9,7 @@
 "common.edit" = "編集";
 "common.done" = "完了";
 "common.delete" = "削除";
+"common.ok" = "OK";
 
 /* Tabs */
 "tab.vault" = "ボールト";
@@ -177,6 +178,32 @@
 "diary.quota.upgrade" = "Author Plus にアップグレード";
 "diary.quota.upgrade.pro" = "Author Pro にアップグレード";
 "diary.quota.viewPlans" = "すべてのプランを見る";
+
+
+/* Diary media */
+"diary.media.voice" = "音声";
+"diary.media.photo" = "写真";
+"diary.media.video" = "動画";
+"diary.media.hint" = "音声は約90秒、動画は約60秒。テキストとメディアはボールト投稿1回分です。";
+"diary.media.recording" = "録音中…";
+"diary.media.stopSave" = "音声を保存";
+"diary.media.remove" = "添付を削除";
+"diary.media.photo.source" = "写真を追加";
+"diary.media.video.source" = "動画を追加";
+"diary.media.takePhoto" = "写真を撮る";
+"diary.media.choosePhoto" = "ライブラリから選ぶ";
+"diary.media.recordVideo" = "動画を撮る";
+"diary.media.chooseVideo" = "ライブラリから選ぶ";
+"diary.media.permission.mic" = "マイクがオフです。設定で許可すると音声メモを録音できます。";
+"diary.media.cameraUnavailable" = "この端末ではカメラを使えません。";
+"diary.media.permission.camera" = "カメラがオフです。設定で許可すると写真・動画を撮れます。";
+"diary.media.recordFailed" = "録音を開始できませんでした。";
+"diary.media.saveFailed" = "このメディアを保存できませんでした。";
+"diary.media.videoTooLong" = "動画は約60秒以内にしてください。";
+"diary.media.alertTitle" = "メディア";
+"diary.media.unavailable" = "この端末ではメディアを再生できません";
+"diary.media.previewOnly" = "メディア添付あり";
+
 
 /* Mirror */
 "mirror.title" = "ミラー";

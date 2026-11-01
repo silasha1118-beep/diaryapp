@@ -65,12 +65,18 @@ struct DiaryDetailView: View {
                 .padding(.top, entry.title.isEmpty && (entry.moodTag == nil || entry.moodTag?.isEmpty == true) ? 18 : 22)
                 .padding(.bottom, 22)
 
-            Text(entry.body.isEmpty ? localization.text("diary.emptyBody") : entry.body)
-                .font(.system(size: 17, design: .serif))
-                .foregroundStyle(entry.body.isEmpty ? VaultTheme.inkMuted : VaultTheme.ink)
-                .lineSpacing(8)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
+            if entry.body.isEmpty && entry.hasMedia {
+                // Media-only entry — skip the empty-body placeholder.
+            } else {
+                Text(entry.body.isEmpty ? localization.text("diary.emptyBody") : entry.body)
+                    .font(.system(size: 17, design: .serif))
+                    .foregroundStyle(entry.body.isEmpty ? VaultTheme.inkMuted : VaultTheme.ink)
+                    .lineSpacing(8)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            DiaryEntryMediaGallery(entry: entry, localization: localization)
         }
     }
 

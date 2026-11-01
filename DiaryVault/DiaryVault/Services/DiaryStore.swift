@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 /// Local JSON persistence for diary entries (source of truth offline).
-/// When Firebase Auth is signed in, text entries sync to Firestore in the background.
+/// When Firebase Auth is signed in, entries sync to Firestore and media to Storage.
 @MainActor
 final class DiaryStore: ObservableObject {
     @Published private(set) var entries: [DiaryEntry] = []
@@ -81,20 +81,36 @@ final class DiaryStore: ObservableObject {
         entries.first { $0.id == id }
     }
 
-    func add(title: String, body: String, moodTag: String?) {
+    func add(
+        id: UUID = UUID(),
+        title: String,
+        body: String,
+        moodTag: String?,
+        attachments: [DiaryMediaAttachment] = []
+    ) {
         let now = Date()
         let entry = DiaryEntry(
+            id: id,
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             body: body.trimmingCharacters(in: .whitespacesAndNewlines),
             moodTag: moodTag?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
+            attachments: attachments
         )
         entries.insert(entry, at: 0)
         resortEntries()
         save()
         enqueue(.upsert(entry.id))
         scheduleSynchronize()
+    }
+
+    /// Apply Storage `remotePath` updates after a successful cloud upsert without bumping `updatedAt`.
+    func applyCloudMediaPaths(_ entry: DiaryEntry) {
+        guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
+        guard entries[index].attachments != entry.attachments else { return }
+        entries[index].attachments = entry.attachments
+        save()
     }
 
     func update(_ entry: DiaryEntry) {
@@ -285,7 +301,8 @@ final class DiaryStore: ObservableObject {
         let missing = localIDs.subtracting(serverIDs)
         if !missing.isEmpty {
             for entry in entries where missing.contains(entry.id) {
-                try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                let written = try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                applyCloudMediaPaths(written)
             }
             try await DiaryCloudSync.waitForPendingWrites()
             serverIDs = try await DiaryCloudSync.fetchServerEntryIDs(uid: uid)
@@ -355,12 +372,14 @@ final class DiaryStore: ObservableObject {
                 case .upsert(let id):
                     // Includes soft-deleted rows so Firestore gets deleted / deletedAt.
                     if let entry = storedEntry(id: id) {
-                        try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                        let written = try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                        applyCloudMediaPaths(written)
                     }
                 case .delete(let id):
                     // Legacy pending hard-delete → soft-delete on Firestore (forever retention).
                     if let entry = storedEntry(id: id) {
-                        try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                        let written = try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+                        applyCloudMediaPaths(written)
                     } else {
                         try await DiaryCloudSync.markDeleted(entryID: id, uid: uid, at: Date())
                     }
@@ -379,7 +398,8 @@ final class DiaryStore: ObservableObject {
 
     private func pushMissingLocals(uid: String, remoteIDs: Set<UUID>) async throws {
         for entry in entries where !remoteIDs.contains(entry.id) {
-            try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+            let written = try await DiaryCloudSync.upsert(entry: entry, uid: uid)
+            applyCloudMediaPaths(written)
         }
     }
 

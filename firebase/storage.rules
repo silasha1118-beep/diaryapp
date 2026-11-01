@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// DiaryVault — paste into Firebase Console → Storage → Rules → Publish.
+// Objects live under users/{uid}/entries/{entryId}/{fileName}.
+// Soft-delete of diary docs does not delete Storage objects (archive retention).
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Reasonable per-object size for voice / compressed image / short video.
+    function sizeOk() {
+      return request.resource.size < 80 * 1024 * 1024;
+    }
+
+    match /users/{userId}/entries/{entryId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+        && sizeOk()
+        && request.resource.contentType.matches('image/.*|audio/.*|video/.*');
+      // Keep archive: clients soft-delete Firestore entries; do not require Storage deletes.
+      allow delete: if isOwner(userId);
+    }
+  }
+}

@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "日記金庫需要麥克風權限，才能錄製語音日記。";
+"NSCameraUsageDescription" = "日記金庫需要相機權限，才能拍攝照片與影片寫入日記。";
+"NSPhotoLibraryUsageDescription" = "日記金庫需要相簿權限，才能從相簿附加照片與影片。";

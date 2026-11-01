@@ -9,6 +9,7 @@
 "common.edit" = "แก้ไข";
 "common.done" = "เสร็จสิ้น";
 "common.delete" = "ลบ";
+"common.ok" = "ตกลง";
 
 /* Tabs */
 "tab.vault" = "ห้องเก็บ";
@@ -177,6 +178,32 @@
 "diary.quota.upgrade" = "อัปเกรด Author Plus";
 "diary.quota.upgrade.pro" = "อัปเกรด Author Pro";
 "diary.quota.viewPlans" = "ดูแผนทั้งหมด";
+
+
+/* Diary media */
+"diary.media.voice" = "เสียง";
+"diary.media.photo" = "รูป";
+"diary.media.video" = "วิดีโอ";
+"diary.media.hint" = "เสียงไม่เกิน ~90 วิ · วิดีโอไม่เกิน ~60 วิ ข้อความกับสื่อใช้อัปโหลดคลังครั้งเดียวกัน";
+"diary.media.recording" = "กำลังอัด…";
+"diary.media.stopSave" = "บันทึกเสียง";
+"diary.media.remove" = "ลบไฟล์แนบ";
+"diary.media.photo.source" = "เพิ่มรูป";
+"diary.media.video.source" = "เพิ่มวิดีโอ";
+"diary.media.takePhoto" = "ถ่ายรูป";
+"diary.media.choosePhoto" = "เลือกจากคลัง";
+"diary.media.recordVideo" = "ถ่ายวิดีโอ";
+"diary.media.chooseVideo" = "เลือกจากคลัง";
+"diary.media.permission.mic" = "ยังไม่อนุญาตไมโครโฟน เปิดในการตั้งค่าเพื่ออัดเสียง";
+"diary.media.cameraUnavailable" = "อุปกรณ์นี้ใช้กล้องไม่ได้";
+"diary.media.permission.camera" = "ยังไม่อนุญาตกล้อง เปิดในการตั้งค่าเพื่อถ่ายรูปหรือวิดีโอ";
+"diary.media.recordFailed" = "เริ่มอัดเสียงไม่ได้";
+"diary.media.saveFailed" = "บันทึกสื่อนี้ไม่ได้";
+"diary.media.videoTooLong" = "โปรดเก็บวิดีโอไว้ไม่เกินประมาณ 60 วินาที";
+"diary.media.alertTitle" = "สื่อ";
+"diary.media.unavailable" = "เล่นสื่อบนอุปกรณ์นี้ไม่ได้";
+"diary.media.previewOnly" = "มีไฟล์สื่อแนบ";
+
 
 /* Mirror */
 "mirror.title" = "กระจก";

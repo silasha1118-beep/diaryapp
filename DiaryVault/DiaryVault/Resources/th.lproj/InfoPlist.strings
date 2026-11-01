@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Diary Vault ต้องการไมโครโฟนเพื่ออัดบันทึกเสียงในไดอารี่";
+"NSCameraUsageDescription" = "Diary Vault ต้องการกล้องเพื่อถ่ายรูปและวิดีโอในไดอารี่";
+"NSPhotoLibraryUsageDescription" = "Diary Vault ต้องการคลังรูปเพื่อแนบรูปและวิดีโอในไดอารี่";

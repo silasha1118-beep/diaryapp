@@ -75,6 +75,13 @@
 			</array>
 		</dict>
 	</array>
+	<!-- Diary media (voice / camera / photo library) — zh + en localized via InfoPlist.strings -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Diary Vault needs the microphone to record voice notes for your diary.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Diary Vault needs the camera to take photos and videos for your diary.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Diary Vault needs photo library access to attach photos and videos to your diary.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

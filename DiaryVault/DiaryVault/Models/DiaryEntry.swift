@@ -11,6 +11,8 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
     var deleted: Bool
     /// When the user deleted this entry (nil if never soft-deleted).
     var deletedAt: Date?
+    /// Voice / image / video attachments (local filenames + optional Storage paths).
+    var attachments: [DiaryMediaAttachment]
 
     init(
         id: UUID = UUID(),
@@ -20,7 +22,8 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         deleted: Bool = false,
-        deletedAt: Date? = nil
+        deletedAt: Date? = nil,
+        attachments: [DiaryMediaAttachment] = []
     ) {
         self.id = id
         self.title = title
@@ -30,6 +33,7 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         self.updatedAt = updatedAt
         self.deleted = deleted
         self.deletedAt = deletedAt
+        self.attachments = attachments
     }
 
     init(from decoder: Decoder) throws {
@@ -43,11 +47,23 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         // Pre-soft-delete local JSON omits these keys.
         deleted = try c.decodeIfPresent(Bool.self, forKey: .deleted) ?? false
         deletedAt = try c.decodeIfPresent(Date.self, forKey: .deletedAt)
+        // Pre-media local JSON omits attachments.
+        attachments = try c.decodeIfPresent([DiaryMediaAttachment].self, forKey: .attachments) ?? []
     }
+
+    var hasMedia: Bool { !attachments.isEmpty }
 
     var preview: String {
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "" }
         if trimmed.count <= 120 { return trimmed }
         return String(trimmed.prefix(120)) + "…"
+    }
+
+    /// Stable kinds present (for list row icons) — order: voice, image, video.
+    var mediaKindsPresent: [DiaryMediaKind] {
+        DiaryMediaKind.allCases.filter { kind in
+            attachments.contains { $0.kind == kind }
+        }
     }
 }

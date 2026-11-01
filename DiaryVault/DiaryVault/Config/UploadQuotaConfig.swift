@@ -11,8 +11,8 @@ import Foundation
 enum UploadQuotaConfig {
     enum Kind: String {
         case text
-        /// Voice / video diary create. Counts toward the same vault bucket for **all** tiers
-        /// including Free (lifetime 40). Duration polish / Storage UI remain DA-15.
+        /// Voice / image / video diary create. Counts toward the same vault bucket for **all**
+        /// tiers including Free (lifetime 40). Duration soft caps: ``DiaryMediaConfig``.
         case multimedia
     }
 

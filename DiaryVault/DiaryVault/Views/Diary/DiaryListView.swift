@@ -158,11 +158,42 @@ struct DiaryListView: View {
                     .lineLimit(3)
                     .lineSpacing(3)
                     .multilineTextAlignment(.leading)
+            } else if entry.hasMedia {
+                Text(localization.text("diary.media.previewOnly"))
+                    .font(.system(size: 15))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .lineLimit(1)
+            }
+
+            if entry.hasMedia {
+                HStack(spacing: 10) {
+                    ForEach(entry.mediaKindsPresent, id: \.self) { kind in
+                        Label {
+                            Text(mediaKindLabel(kind))
+                                .font(.system(size: 11, weight: .medium))
+                        } icon: {
+                            Image(systemName: kind.systemImage)
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .labelStyle(.titleAndIcon)
+                        .foregroundStyle(VaultTheme.seal.opacity(0.9))
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 2)
             }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
         .contentShape(Rectangle())
+    }
+
+    private func mediaKindLabel(_ kind: DiaryMediaKind) -> String {
+        switch kind {
+        case .voice: return localization.text("diary.media.voice")
+        case .image: return localization.text("diary.media.photo")
+        case .video: return localization.text("diary.media.video")
+        }
     }
 
     private var emptyState: some View {

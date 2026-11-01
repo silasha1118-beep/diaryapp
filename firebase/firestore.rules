@@ -30,10 +30,10 @@ service cloud.firestore {
         && request.resource.data.ownerUid == userId;
       allow delete: if isOwner(userId);
 
-      // Text diary entries (phase 1). entryId MUST stay the DiaryEntry UUID
-      // (not phone+datetime). Optional non-key fields: label, bodyPreview, moodTag,
-      // deleted (bool), deletedAt (timestamp). Soft-delete only — no hard delete.
-      // Multimedia Storage paths come later (DA-15).
+      // Diary entries. entryId MUST stay the DiaryEntry UUID (not phone+datetime).
+      // Optional: label, bodyPreview, moodTag, deleted, deletedAt, attachments[].
+      // contentType is "text" or "multimedia". Soft-delete only — no hard delete.
+      // Media bytes live in Storage at users/{uid}/entries/{entryId}/{fileName}.
       match /entries/{entryId} {
         allow read: if isOwner(userId);
 
