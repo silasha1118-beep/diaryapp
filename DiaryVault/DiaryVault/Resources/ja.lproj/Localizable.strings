@@ -82,7 +82,7 @@
 "paywall.free.body" = "ボールトに書いてミラーを試せます。";
 "paywall.free.benefit1" = "テキスト日記：1日最大 8 回";
 "paywall.free.benefit2" = "クラウドミラー：1日最大 6 回";
-"paywall.free.benefit3" = "端末内のプライベート保管庫";
+"paywall.free.benefit3" = "サインイン後、テキスト日記はクラウド同期";
 "paywall.free.current" = "現在のプラン";
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "より広い執筆枠と安定したミラー。";

@@ -82,7 +82,7 @@
 "paywall.free.body" = "Write in your vault and try the mirror.";
 "paywall.free.benefit1" = "Text diary: up to 8 saves / day";
 "paywall.free.benefit2" = "Cloud Mirror: up to 6 / day";
-"paywall.free.benefit3" = "Private vault on your device";
+"paywall.free.benefit3" = "Text diaries sync to cloud after sign-in";
 "paywall.free.current" = "Your current plan";
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.section" = "Author Plus";
