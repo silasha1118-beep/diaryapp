@@ -90,13 +90,14 @@ struct MirrorChatView: View {
 
             if shouldShowQuotaUpgradeCTA(exhausted: exhausted) {
                 Button {
-                    presentPaywall()
+                    startDirectUpgradePurchase()
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(VaultTheme.seal)
                 }
                 .buttonStyle(.plain)
+                .disabled(subscriptions.isLoading)
             }
         }
         .padding(.horizontal, 20)
@@ -150,14 +151,27 @@ struct MirrorChatView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(VaultTheme.seal)
                             if showQuotaUpgrade {
-                                Button {
-                                    presentPaywall()
-                                } label: {
-                                    Text(localization.text(quotaUpgradeCTAKey))
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(VaultTheme.seal)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Button {
+                                        startDirectUpgradePurchase()
+                                    } label: {
+                                        Text(localization.text(quotaUpgradeCTAKey))
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(VaultTheme.seal)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(subscriptions.isLoading)
+
+                                    Button {
+                                        presentPaywall()
+                                    } label: {
+                                        Text(localization.text("diary.quota.viewPlans"))
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundStyle(VaultTheme.inkMuted)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(subscriptions.isLoading)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                         .id("error")
@@ -295,18 +309,27 @@ struct MirrorChatView: View {
         }
     }
 
-    /// Hard stop → show copy + open Plans immediately (same PaywallView as Settings).
+    /// Primary upgrade: Apple purchase sheet for default monthly Plus / Pro.
+    private func startDirectUpgradePurchase() {
+        KeyboardDismiss.resign()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            let started = await subscriptions.purchaseRecommendedUpgrade(from: billingTier)
+            if !started {
+                showPaywall = true
+            }
+        }
+    }
+
+    /// Hard stop → show copy + upgrade CTA (purchase on tap; Plans via secondary / Settings).
     private func applyHardQuotaGate(tier: BillingConfig.Tier, limit: Int? = nil) {
         let resolvedLimit = limit ?? MirrorUsageGuard.effectiveLimit(tier: tier)
         errorText = String(
             format: localization.text(exhaustedKey(for: tier)),
             resolvedLimit
         )
-        let canUpgrade = tier != .authorPro
-        showQuotaUpgrade = canUpgrade
-        if canUpgrade {
-            presentPaywall()
-        }
+        showQuotaUpgrade = tier != .authorPro
+        KeyboardDismiss.resign()
     }
 
     private func exhaustedKey(for tier: BillingConfig.Tier) -> String {

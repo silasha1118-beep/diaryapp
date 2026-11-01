@@ -168,6 +168,7 @@
 "diary.quota.hard.meta.pro" = "ถึงเพดานคลังรายวัน Pro แล้ว (%d)";
 "diary.quota.upgrade" = "อัปเกรด Author Plus";
 "diary.quota.upgrade.pro" = "อัปเกรด Author Pro";
+"diary.quota.viewPlans" = "ดูแผนทั้งหมด";
 
 /* Mirror */
 "mirror.title" = "กระจก";
@@ -186,8 +187,8 @@
 "mirror.quota.exhausted.free" = "กระจกฟรีใช้ครบแล้ว (%d ตลอดอายุบัญชี) อัปเกรด Author Plus เพื่อใช้ต่อ";
 "mirror.quota.exhausted.plus" = "กระจกวันนี้ใช้ครบแล้ว (%d) อัปเกรด Author Pro (16/วัน) หรือลองใหม่พรุ่งนี้";
 "mirror.quota.exhausted.pro" = "กระจกวันนี้ใช้ครบแล้ว (%d) ลองใหม่พรุ่งนี้";
-"mirror.quota.upgrade" = "ดู Author Plus";
-"mirror.quota.upgrade.pro" = "ดู Author Pro";
+"mirror.quota.upgrade" = "อัปเกรด Author Plus";
+"mirror.quota.upgrade.pro" = "อัปเกรด Author Pro";
 /* Settings */
 "settings.title" = "การตั้งค่า";
 "settings.section.account" = "บัญชี";

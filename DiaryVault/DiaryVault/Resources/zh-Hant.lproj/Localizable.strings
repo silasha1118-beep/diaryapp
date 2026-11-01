@@ -168,6 +168,7 @@
 "diary.quota.hard.meta.pro" = "已達 Pro 每日金庫上限（%d）";
 "diary.quota.upgrade" = "升級 Author Plus";
 "diary.quota.upgrade.pro" = "升級 Author Pro";
+"diary.quota.viewPlans" = "查看全部方案";
 
 /* Mirror */
 "mirror.title" = "鏡子";
@@ -186,8 +187,8 @@
 "mirror.quota.exhausted.free" = "免費鏡子已使用完畢（終身 %d 次）。升級 Author Plus 即可繼續。";
 "mirror.quota.exhausted.plus" = "今日鏡子已使用完畢（%d）。可升級 Author Pro（每日 16 次）以取得更多鏡子，或明天再試。";
 "mirror.quota.exhausted.pro" = "今日鏡子已使用完畢（%d）。請明天再試。";
-"mirror.quota.upgrade" = "查看 Author Plus";
-"mirror.quota.upgrade.pro" = "查看 Author Pro";
+"mirror.quota.upgrade" = "升級 Author Plus";
+"mirror.quota.upgrade.pro" = "升級 Author Pro";
 /* Settings */
 "settings.title" = "設定";
 "settings.section.account" = "帳號";

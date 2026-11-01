@@ -168,6 +168,7 @@
 "diary.quota.hard.meta.pro" = "Pro daily vault limit reached (%d)";
 "diary.quota.upgrade" = "Upgrade to Author Plus";
 "diary.quota.upgrade.pro" = "Upgrade to Author Pro";
+"diary.quota.viewPlans" = "View all plans";
 
 /* Mirror */
 "mirror.title" = "Mirror";
@@ -186,8 +187,8 @@
 "mirror.quota.exhausted.free" = "Free Mirror use is finished (%d lifetime). Upgrade to Author Plus to continue.";
 "mirror.quota.exhausted.plus" = "Today’s Mirror use is finished (%d). Upgrade to Author Pro (16/day) for more Mirror, or try again tomorrow.";
 "mirror.quota.exhausted.pro" = "Today’s Mirror use is finished (%d). Try again tomorrow.";
-"mirror.quota.upgrade" = "View Author Plus";
-"mirror.quota.upgrade.pro" = "View Author Pro";
+"mirror.quota.upgrade" = "Upgrade to Author Plus";
+"mirror.quota.upgrade.pro" = "Upgrade to Author Pro";
 
 /* Settings */
 "settings.title" = "Settings";
