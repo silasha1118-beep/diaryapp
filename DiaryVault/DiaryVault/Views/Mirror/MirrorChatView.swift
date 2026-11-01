@@ -11,7 +11,7 @@ struct MirrorChatView: View {
     @State private var isThinking = false
     @State private var errorText: String?
     @State private var showQuotaUpgrade = false
-    @State private var showPaywall = false
+    @State private var showUpgradeCheckout = false
     @State private var client: (any MirrorAIService) = MockMirrorAIClient()
     @State private var quotaTick = 0
 
@@ -58,11 +58,12 @@ struct MirrorChatView: View {
                     }
                 }
             }
-            // Match Settings / Vault: full-screen Plans so prices + purchase are immediate.
-            .fullScreenCover(isPresented: $showPaywall) {
-                PaywallView()
-                    .environmentObject(localization)
-                    .environmentObject(subscriptions)
+            .sheet(isPresented: $showUpgradeCheckout) {
+                UpgradeCheckoutSheet(
+                    preferredTier: billingTier == .authorPlus ? .authorPro : .authorPlus
+                )
+                .environmentObject(localization)
+                .environmentObject(subscriptions)
             }
         }
     }
@@ -90,14 +91,13 @@ struct MirrorChatView: View {
 
             if shouldShowQuotaUpgradeCTA(exhausted: exhausted) {
                 Button {
-                    startDirectUpgradePurchase()
+                    presentUpgradeCheckout()
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(VaultTheme.seal)
                 }
                 .buttonStyle(.plain)
-                .disabled(subscriptions.isLoading)
             }
         }
         .padding(.horizontal, 20)
@@ -151,27 +151,14 @@ struct MirrorChatView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(VaultTheme.seal)
                             if showQuotaUpgrade {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Button {
-                                        startDirectUpgradePurchase()
-                                    } label: {
-                                        Text(localization.text(quotaUpgradeCTAKey))
-                                            .font(.system(size: 14, weight: .semibold))
-                                            .foregroundStyle(VaultTheme.seal)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .disabled(subscriptions.isLoading)
-
-                                    Button {
-                                        presentPaywall()
-                                    } label: {
-                                        Text(localization.text("diary.quota.viewPlans"))
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundStyle(VaultTheme.inkMuted)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .disabled(subscriptions.isLoading)
+                                Button {
+                                    presentUpgradeCheckout()
+                                } label: {
+                                    Text(localization.text(quotaUpgradeCTAKey))
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(VaultTheme.seal)
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                         .id("error")
@@ -301,27 +288,15 @@ struct MirrorChatView: View {
         quotaTick &+= 1
     }
 
-    private func presentPaywall() {
+    private func presentUpgradeCheckout() {
         KeyboardDismiss.resign()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 80_000_000)
-            showPaywall = true
+            showUpgradeCheckout = true
         }
     }
 
-    /// Primary upgrade: Apple purchase sheet for default monthly Plus / Pro.
-    private func startDirectUpgradePurchase() {
-        KeyboardDismiss.resign()
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 80_000_000)
-            let started = await subscriptions.purchaseRecommendedUpgrade(from: billingTier)
-            if !started {
-                showPaywall = true
-            }
-        }
-    }
-
-    /// Hard stop → show copy + upgrade CTA (purchase on tap; Plans via secondary / Settings).
+    /// Hard stop → show copy + upgrade CTA (compact Plus/Pro period sheet on tap).
     private func applyHardQuotaGate(tier: BillingConfig.Tier, limit: Int? = nil) {
         let resolvedLimit = limit ?? MirrorUsageGuard.effectiveLimit(tier: tier)
         errorText = String(

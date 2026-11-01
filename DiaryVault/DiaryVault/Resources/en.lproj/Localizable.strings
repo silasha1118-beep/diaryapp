@@ -75,8 +75,9 @@
 
 /* Paywall */
 "paywall.title" = "Plans";
-"paywall.headline" = "A mirror that knows your words.";
-"paywall.body" = "Choose Free, Author Plus, or Author Pro. Prices come from the App Store.";
+"paywall.headline" = "Keep writing.";
+"paywall.body" = "Choose Author Plus or Author Pro. Prices come from the App Store.";
+"paywall.body.short" = "Author Plus or Author Pro — pick a period and subscribe.";
 "paywall.free.title" = "Free";
 "paywall.free.price" = "Free";
 "paywall.free.body" = "Write in your vault and try the mirror.";
@@ -87,6 +88,7 @@
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.section" = "Author Plus";
 "paywall.plus.blurb" = "More writing room and a steadier Mirror.";
+"paywall.plus.summary" = "Vault + Mirror: 8 / day each (text and media share one vault bucket).";
 "paywall.plus.benefit1" = "Vault uploads: 8 / day (text + media)";
 "paywall.plus.benefit2" = "Cloud Mirror: 8 / day";
 "paywall.plus.benefit3" = "Text and media share one daily vault bucket";
@@ -96,9 +98,14 @@
 "paywall.pro.section" = "Author Pro";
 "paywall.pro.title" = "Author Pro";
 "paywall.pro.body" = "Highest daily room for writing, media, and Mirror.";
+"paywall.pro.summary" = "Vault + Mirror: 16 / day each (text and media share one vault bucket).";
 "paywall.pro.benefit1" = "Vault uploads: 16 / day (text + media)";
 "paywall.pro.benefit2" = "Cloud Mirror: 16 / day";
 "paywall.pro.benefit3" = "Text and media share one daily vault bucket";
+"upgrade.checkout.title" = "Upgrade";
+"upgrade.checkout.headline" = "Choose a plan";
+"upgrade.checkout.body" = "Pick Plus or Pro, then monthly / quarterly / yearly.";
+"upgrade.checkout.legal" = "Auto-renewing subscription. Charged to your Apple ID. Cancel in Settings → Apple ID → Subscriptions.";
 "paywall.pro.pending" = "Author Pro products load from StoreKit when the scheme points at DiaryVault.storekit (or Connect).";
 "paywall.pro.monthly" = "Author Pro · Monthly";
 "paywall.pro.quarterly" = "Author Pro · Quarterly";
@@ -122,6 +129,7 @@
 "paywall.productsMissing.debug" = "DEBUG: Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit (local), or clear it and use Connect Sandbox SKUs.";
 "paywall.footer" = "Subscriptions renew until cancelled in Settings → Apple ID. Estate / legacy custody products are later — not in this paywall.";
 "paywall.disclosure" = "Author Plus and Author Pro are auto-renewable subscriptions (monthly, quarterly, or yearly). Price and period are shown on each plan above. Payment is charged to your Apple ID at confirmation. Subscription renews unless cancelled at least 24 hours before the end of the current period. Manage or cancel in Settings → Apple ID → Subscriptions. Deleting the Diary Vault account does not cancel an Apple subscription.";
+"paywall.disclosure.short" = "Auto-renewing. Charged to Apple ID at confirmation. Cancel anytime in Settings → Apple ID → Subscriptions.";
 "paywall.privacy.pending" = "Privacy Policy: host a URL and set DIARY_PRIVACY_POLICY_URL before App Store submit (also in Settings).";
 "paywall.status.productsEmpty" = "No plans available yet. Pull to reload, or try again later.";
 "paywall.status.productsError" = "Could not load plans from the App Store.";

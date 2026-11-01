@@ -75,8 +75,9 @@
 
 /* Paywall */
 "paywall.title" = "方案";
-"paywall.headline" = "一面认得你文字的镜子。";
-"paywall.body" = "可选免费、Author Plus 或 Author Pro。价格来自 App Store。";
+"paywall.headline" = "继续书写。";
+"paywall.body" = "可选 Author Plus 或 Author Pro。价格来自 App Store。";
+"paywall.body.short" = "Author Plus 或 Author Pro——选周期后订阅。";
 "paywall.free.title" = "免费";
 "paywall.free.price" = "免费";
 "paywall.free.body" = "可写日记、试用镜子。";
@@ -87,16 +88,22 @@
 "paywall.plus.title" = "Author Plus";
 "paywall.plus.blurb" = "更多写作空间，镜子也更稳。";
 "paywall.plus.section" = "Author Plus";
+"paywall.plus.summary" = "金库＋镜子各每日 8 次（文字与多媒体共用金库额度）。";
 "paywall.plus.benefit1" = "金库上传：每日 8 次（文字＋多媒体）";
 "paywall.plus.benefit2" = "云端镜子：每日 8 次";
 "paywall.plus.benefit3" = "文字与多媒体共用同一每日金库额度";
 "paywall.pro.title" = "Author Pro";
 "paywall.pro.section" = "Author Pro";
 "paywall.pro.body" = "最高每日写作、多媒体与镜子空间。";
+"paywall.pro.summary" = "金库＋镜子各每日 16 次（文字与多媒体共用金库额度）。";
 "paywall.pro.benefit1" = "金库上传：每日 16 次（文字＋多媒体）";
 "paywall.pro.benefit2" = "云端镜子：每日 16 次";
 "paywall.pro.benefit3" = "文字与多媒体共用同一每日金库额度";
 "paywall.pro.pending" = "Author Pro 商品会从 StoreKit 加载（Scheme 指向 DiaryVault.storekit 或 Connect）。";
+"upgrade.checkout.title" = "升级";
+"upgrade.checkout.headline" = "选择方案";
+"upgrade.checkout.body" = "先选 Plus 或 Pro，再选月订／季订／年订。";
+"upgrade.checkout.legal" = "自动续订。确认后向 Apple ID 收费。可在「设置 → Apple ID → 订阅」取消。";
 "paywall.pro.monthly" = "Author Pro · 月订";
 "paywall.pro.quarterly" = "Author Pro · 季订";
 "paywall.pro.yearly" = "Author Pro · 年订";
@@ -122,6 +129,7 @@
 "paywall.productsMissing.debug" = "DEBUG：Edit Scheme → Run → Options → StoreKit Configuration = DiaryVault.storekit（本机），或清空后使用 Connect Sandbox 商品。";
 "paywall.footer" = "订阅会自动续订，可在「设置 → Apple ID」取消。遗产／托管商品属后期——不在此付费墙。";
 "paywall.disclosure" = "Author Plus 与 Author Pro 为自动续订订阅（月订、季订或年订）。价格与周期见上方各方案。确认购买后会向你的 Apple ID 收费；除非在当前周期结束前至少 24 小时取消，否则会自动续订。请到「设置 → Apple ID → 订阅」管理或取消。删除日记金库账号不会取消 Apple 订阅。";
+"paywall.disclosure.short" = "自动续订。确认后向 Apple ID 收费。可在「设置 → Apple ID → 订阅」随时取消。";
 "paywall.privacy.pending" = "隐私政策：上架前请托管网页并在 Info.plist 设置 DIARY_PRIVACY_POLICY_URL（设置页也可打开）。";
 "paywall.status.productsEmpty" = "尚无可用方案。请稍后再试或重新加载。";
 "paywall.status.productsError" = "无法从 App Store 加载方案。";
