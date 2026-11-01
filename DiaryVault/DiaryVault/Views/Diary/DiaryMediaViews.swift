@@ -32,21 +32,11 @@ struct DiaryComposerMediaBar: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if !attachments.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(attachments) { item in
-                            attachmentChip(item)
-                        }
-                    }
-                }
-            }
-
+        VStack(alignment: .leading, spacing: 8) {
             if isRecordingVoice {
                 voiceRecordingRow
             } else {
-                HStack(spacing: 18) {
+                HStack(spacing: 8) {
                     mediaToolButton(
                         systemName: "mic.fill",
                         labelKey: "diary.media.voice",
@@ -72,6 +62,16 @@ struct DiaryComposerMediaBar: View {
                     if isImporting {
                         ProgressView()
                             .controlSize(.small)
+                    }
+                }
+            }
+
+            if !attachments.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(attachments) { item in
+                            attachmentChip(item)
+                        }
                     }
                 }
             }
@@ -145,19 +145,19 @@ struct DiaryComposerMediaBar: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: systemName)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(disabled ? VaultTheme.inkMuted.opacity(0.4) : VaultTheme.seal)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        Circle()
-                            .fill(VaultTheme.seal.opacity(disabled ? 0.04 : 0.1))
-                    )
+                    .font(.system(size: 13, weight: .semibold))
                 Text(localization.text(labelKey))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(disabled ? VaultTheme.inkMuted.opacity(0.45) : VaultTheme.inkMuted)
+                    .font(.system(size: 12, weight: .medium))
             }
+            .foregroundStyle(disabled ? VaultTheme.inkMuted.opacity(0.4) : VaultTheme.seal)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(VaultTheme.seal.opacity(disabled ? 0.04 : 0.1))
+            )
         }
         .buttonStyle(.plain)
         .disabled(disabled || isImporting)
@@ -202,51 +202,49 @@ struct DiaryComposerMediaBar: View {
     }
 
     private func attachmentChip(_ item: DiaryMediaAttachment) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             if item.kind == .image,
                let ui = UIImage(contentsOfFile: DiaryMediaFileStore.absoluteURL(entryID: entryID, attachment: item).path) {
                 Image(uiImage: ui)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 28, height: 28)
                     .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
             } else {
                 Image(systemName: item.kind.systemImage)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(VaultTheme.seal)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 28, height: 28)
                     .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
                             .fill(VaultTheme.seal.opacity(0.1))
                     )
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(localization.text(item.kind.localizationKey))
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(VaultTheme.ink)
-                if let duration = item.durationSeconds {
-                    Text(formatDuration(duration))
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                }
+            Text(localization.text(item.kind.localizationKey))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(VaultTheme.ink)
+            if let duration = item.durationSeconds {
+                Text(formatDuration(duration))
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(VaultTheme.inkMuted)
             }
             Button {
                 removeAttachment(item)
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 18))
-                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.7))
+                    .font(.system(size: 14))
+                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.65))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(localization.text("diary.media.remove"))
         }
         .padding(.trailing, 6)
-        .padding(.vertical, 4)
-        .padding(.leading, 4)
+        .padding(.vertical, 3)
+        .padding(.leading, 3)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(VaultTheme.line.opacity(0.8), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(VaultTheme.line.opacity(0.75), lineWidth: 1)
         )
     }
 
@@ -418,7 +416,7 @@ struct DiaryEntryMediaGallery: View {
 
     var body: some View {
         if entry.hasMedia {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 ForEach(entry.attachments) { item in
                     switch item.kind {
                     case .image:
@@ -438,7 +436,7 @@ struct DiaryEntryMediaGallery: View {
                     }
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, 18)
         }
     }
 }
@@ -455,14 +453,14 @@ struct DiaryImageAttachmentView: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
             } else if failed {
                 mediaPlaceholder(systemName: "photo")
             } else {
                 ProgressView()
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 12)
             }
         }
         .task {
@@ -493,49 +491,51 @@ struct DiaryAudioAttachmentView: View {
     @State private var tick: Timer?
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 10) {
             Button {
                 togglePlay()
             } label: {
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(VaultTheme.paper)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 28, height: 28)
                     .background(Circle().fill(VaultTheme.seal))
             }
             .buttonStyle(.plain)
             .disabled(failed)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(localization.text("diary.media.voice"))
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(VaultTheme.ink)
-                if failed {
-                    Text(localization.text("diary.media.unavailable"))
-                        .font(.system(size: 12))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                } else {
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(VaultTheme.line.opacity(0.7))
-                            Capsule()
-                                .fill(VaultTheme.seal.opacity(0.85))
-                                .frame(width: max(4, geo.size.width * progress))
-                        }
-                    }
-                    .frame(height: 4)
-                }
-            }
-            Spacer(minLength: 0)
-            if let duration = attachment.durationSeconds ?? player?.duration {
-                Text(formatDuration(duration))
-                    .font(.system(size: 12, design: .monospaced))
+            if failed {
+                Text(localization.text("diary.media.unavailable"))
+                    .font(.system(size: 13))
                     .foregroundStyle(VaultTheme.inkMuted)
+            } else {
+                audioProgressBar
             }
+
+            Text(formatDuration(attachment.durationSeconds ?? player?.duration ?? 0))
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(VaultTheme.inkMuted)
+                .frame(minWidth: 36, alignment: .trailing)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(localization.text("diary.media.voice"))
         .task { await prepare() }
         .onDisappear { stopPlayback() }
+    }
+
+    private var audioProgressBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(VaultTheme.line.opacity(0.75))
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(VaultTheme.seal.opacity(0.9))
+                    .frame(width: max(3, geo.size.width * progress))
+            }
+        }
+        .frame(height: 3)
+        .frame(maxWidth: .infinity)
     }
 
     private func prepare() async {
@@ -561,15 +561,19 @@ struct DiaryAudioAttachmentView: View {
             player.play()
             isPlaying = true
             tick?.invalidate()
-            tick = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
-                guard player.duration > 0 else { return }
-                progress = player.currentTime / player.duration
-                if !player.isPlaying {
-                    isPlaying = false
-                    progress = 0
-                    tick?.invalidate()
+            let timer = Timer(timeInterval: 0.2, repeats: true) { _ in
+                Task { @MainActor in
+                    guard player.duration > 0 else { return }
+                    progress = player.currentTime / player.duration
+                    if !player.isPlaying {
+                        isPlaying = false
+                        progress = 0
+                        tick?.invalidate()
+                    }
                 }
             }
+            RunLoop.main.add(timer, forMode: .common)
+            tick = timer
         }
     }
 
@@ -590,21 +594,25 @@ struct DiaryVideoAttachmentView: View {
     let attachment: DiaryMediaAttachment
     let localization: LocalizationManager
     @State private var player: AVPlayer?
+    @State private var aspectRatio: CGFloat = 16.0 / 9.0
     @State private var failed = false
 
     var body: some View {
         Group {
             if let player {
+                // Size the player to the video’s natural aspect so AVKit doesn’t
+                // letterbox inside a tall fixed frame (black bars / pillarboxing).
                 VideoPlayer(player: player)
+                    .aspectRatio(aspectRatio, contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 220)
-                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+                    .background(VaultTheme.paper.opacity(0.01))
             } else if failed {
                 mediaPlaceholder(systemName: "video")
             } else {
                 ProgressView()
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    .padding(.vertical, 16)
             }
         }
         .task { await load() }
@@ -614,10 +622,27 @@ struct DiaryVideoAttachmentView: View {
     private func load() async {
         do {
             let url = try await DiaryMediaCloudSync.ensureLocalFile(entryID: entryID, attachment: attachment)
+            let asset = AVURLAsset(url: url)
+            if let ratio = try await videoAspectRatio(for: asset) {
+                aspectRatio = ratio
+            }
             player = AVPlayer(url: url)
         } catch {
             failed = true
         }
+    }
+
+    private func videoAspectRatio(for asset: AVURLAsset) async throws -> CGFloat? {
+        guard let track = try await asset.loadTracks(withMediaType: .video).first else {
+            return nil
+        }
+        let size = try await track.load(.naturalSize)
+        let transform = try await track.load(.preferredTransform)
+        let rendered = size.applying(transform)
+        let width = abs(rendered.width)
+        let height = abs(rendered.height)
+        guard width > 1, height > 1 else { return nil }
+        return width / height
     }
 }
 
@@ -625,14 +650,14 @@ private func mediaPlaceholder(systemName: String) -> some View {
     HStack {
         Spacer()
         Image(systemName: systemName)
-            .font(.system(size: 22))
+            .font(.system(size: 18))
             .foregroundStyle(VaultTheme.inkMuted)
-            .padding(.vertical, 28)
+            .padding(.vertical, 16)
         Spacer()
     }
     .background(
-        RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(VaultTheme.paperDeep.opacity(0.6))
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(VaultTheme.paperDeep.opacity(0.45))
     )
 }
 

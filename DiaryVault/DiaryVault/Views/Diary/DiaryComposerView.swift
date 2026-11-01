@@ -106,9 +106,10 @@ struct DiaryComposerView: View {
 
     // MARK: - Split views (keeps the type checker happy)
 
+    /// Title → mood → compact media + tip → hairline → body fills the rest (no empty middle gap).
     private var formContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
                 TextField(localization.text("diary.field.title"), text: $title)
                     .font(.system(size: 22, weight: .semibold, design: .serif))
                     .foregroundStyle(VaultTheme.ink)
@@ -127,29 +128,38 @@ struct DiaryComposerView: View {
                     onError: { mediaAlertMessage = $0 }
                 )
                 .allowsHitTesting(hardGate == nil)
-
-                Rectangle()
-                    .fill(VaultTheme.line)
-                    .frame(height: 1)
-
-                TextEditor(text: $bodyText)
-                    .font(.system(size: 17, design: .serif))
-                    .foregroundStyle(VaultTheme.ink)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
-                    .frame(minHeight: 220)
-                    .focused($focusedField, equals: .body)
-                    // TextEditor often extends its hit-testing under bottom insets and steals
-                    // the upgrade CTA tap (keyboard stays up, Button never fires).
-                    .allowsHitTesting(hardGate == nil)
+                .padding(.top, 2)
 
                 Text(localization.text("diary.media.hint"))
-                    .font(.system(size: 12))
-                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.85))
+                    .font(.system(size: 11))
+                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 2)
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
+
+            Rectangle()
+                .fill(VaultTheme.line.opacity(0.85))
+                .frame(height: 1)
+                .padding(.horizontal, 20)
+
+            TextEditor(text: $bodyText)
+                .font(.system(size: 17, design: .serif))
+                .foregroundStyle(VaultTheme.ink)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+                .focused($focusedField, equals: .body)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                // TextEditor often extends its hit-testing under bottom insets and steals
+                // the upgrade CTA tap (keyboard stays up, Button never fires).
+                .allowsHitTesting(hardGate == nil)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         // When hard-gated, disable the form (banner owns taps via safeAreaInset).
         .disabled(hardGate != nil)
     }

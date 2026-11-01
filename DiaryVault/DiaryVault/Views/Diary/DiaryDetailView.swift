@@ -76,6 +76,7 @@ struct DiaryDetailView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            // Media sits under the body, flush with the same content column (no card chrome).
             DiaryEntryMediaGallery(entry: entry, localization: localization)
         }
     }
