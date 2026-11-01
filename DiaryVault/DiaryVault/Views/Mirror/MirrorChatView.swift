@@ -58,7 +58,8 @@ struct MirrorChatView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showPaywall) {
+            // Match Settings / Vault: full-screen Plans so prices + purchase are immediate.
+            .fullScreenCover(isPresented: $showPaywall) {
                 PaywallView()
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
@@ -89,7 +90,7 @@ struct MirrorChatView: View {
 
             if shouldShowQuotaUpgradeCTA(exhausted: exhausted) {
                 Button {
-                    showPaywall = true
+                    presentPaywall()
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
                         .font(.system(size: 13, weight: .semibold))
@@ -150,7 +151,7 @@ struct MirrorChatView: View {
                                 .foregroundStyle(VaultTheme.seal)
                             if showQuotaUpgrade {
                                 Button {
-                                    showPaywall = true
+                                    presentPaywall()
                                 } label: {
                                     Text(localization.text(quotaUpgradeCTAKey))
                                         .font(.system(size: 14, weight: .semibold))
@@ -251,12 +252,7 @@ struct MirrorChatView: View {
 
         // Hard-capped (Free lifetime / paid daily) — Plus also offers Author Pro CTA.
         if MirrorUsageGuard.isExhausted(tier: billingTier) {
-            let limit = MirrorUsageGuard.effectiveLimit(tier: billingTier)
-            errorText = String(
-                format: localization.text(exhaustedKey(for: billingTier)),
-                limit
-            )
-            showQuotaUpgrade = billingTier != .authorPro
+            applyHardQuotaGate(tier: billingTier)
             return
         }
 
@@ -279,11 +275,7 @@ struct MirrorChatView: View {
         } catch let error as MirrorAIError {
             switch error {
             case .rateLimited(let limit, let tier):
-                errorText = String(
-                    format: localization.text(exhaustedKey(for: tier)),
-                    limit
-                )
-                showQuotaUpgrade = tier != .authorPro
+                applyHardQuotaGate(tier: tier, limit: limit)
             default:
                 errorText = error.localizedDescription
             }
@@ -293,6 +285,24 @@ struct MirrorChatView: View {
 
         isThinking = false
         quotaTick &+= 1
+    }
+
+    private func presentPaywall() {
+        showPaywall = true
+    }
+
+    /// Hard stop → show copy + open Plans immediately (same PaywallView as Settings).
+    private func applyHardQuotaGate(tier: BillingConfig.Tier, limit: Int? = nil) {
+        let resolvedLimit = limit ?? MirrorUsageGuard.effectiveLimit(tier: tier)
+        errorText = String(
+            format: localization.text(exhaustedKey(for: tier)),
+            resolvedLimit
+        )
+        let canUpgrade = tier != .authorPro
+        showQuotaUpgrade = canUpgrade
+        if canUpgrade {
+            presentPaywall()
+        }
     }
 
     private func exhaustedKey(for tier: BillingConfig.Tier) -> String {
