@@ -158,10 +158,14 @@ enum BillingConfig {
     }
 
     private static func value(for key: String) -> String? {
-        if let env = ProcessInfo.processInfo.environment[key], !env.isEmpty {
+        if let env = ProcessInfo.processInfo.environment[key]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !env.isEmpty {
             return env
         }
-        if let plist = Bundle.main.object(forInfoDictionaryKey: key) as? String, !plist.isEmpty {
+        if let plist = (Bundle.main.object(forInfoDictionaryKey: key) as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !plist.isEmpty {
             return plist
         }
         return nil

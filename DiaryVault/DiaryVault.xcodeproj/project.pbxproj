@@ -92,7 +92,7 @@
 		B1000000000000000000001F /* AuthGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthGateView.swift; sourceTree = "<group>"; };
 		B10000000000000000000028 /* PhoneOTPLoginForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOTPLoginForm.swift; sourceTree = "<group>"; };
 		B10000000000000000000020 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		B10000000000000000000021 /* DiaryVault.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = DiaryVault.storekit; sourceTree = "<group>"; };
+		B10000000000000000000021 /* DiaryVault.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DiaryVault.storekit; sourceTree = "<group>"; };
 		B10000000000000000000022 /* DiaryVault.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiaryVault.entitlements; sourceTree = "<group>"; };
 		B10000000000000000000025 /* FirebaseAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAppDelegate.swift; sourceTree = "<group>"; };
 		B10000000000000000000029 /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
