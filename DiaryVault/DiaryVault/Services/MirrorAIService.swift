@@ -36,7 +36,7 @@ enum MirrorAIError: LocalizedError {
             case .authorPlus:
                 return "Today’s Mirror use is finished (\(limit)). Author Pro raises the daily limit — or try again tomorrow."
             case .free:
-                return "Today’s Mirror use is finished (\(limit)). Upgrade to Author Plus for a higher quota, or try again tomorrow."
+                return "Free Mirror use is finished (\(limit) lifetime). Upgrade to Author Plus to continue."
             }
         }
     }

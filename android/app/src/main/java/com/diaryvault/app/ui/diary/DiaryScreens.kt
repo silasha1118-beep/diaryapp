@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -277,8 +276,6 @@ private fun DiaryComposerScreen(
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var body by remember { mutableStateOf(existing?.body.orEmpty()) }
     var mood by remember { mutableStateOf(existing?.moodTag.orEmpty()) }
-    var softRemaining by remember { mutableStateOf<Int?>(null) }
-    var softLimit by remember { mutableStateOf<Int?>(null) }
     var hardTitle by remember { mutableStateOf<String?>(null) }
     var hardBenefit by remember { mutableStateOf<String?>(null) }
     var hardMeta by remember { mutableStateOf<String?>(null) }
@@ -291,7 +288,7 @@ private fun DiaryComposerScreen(
         cursorColor = VaultColors.seal,
     )
 
-    fun trySave(suppressSoft: Boolean = false) {
+    fun trySave() {
         if (existing != null) {
             viewModel.updateEntry(
                 existing.copy(title = title.trim(), body = body.trim(), moodTag = mood.trim().ifBlank { null }),
@@ -299,20 +296,9 @@ private fun DiaryComposerScreen(
             onDone()
             return
         }
-        when (
-            val result = viewModel.addEntry(title, body, mood, suppressSoftPaywall = suppressSoft)
-        ) {
+        when (val result = viewModel.addEntry(title, body, mood)) {
             is VaultViewModel.AddEntryResult.Saved -> onDone()
-            is VaultViewModel.AddEntryResult.SoftPaywall -> {
-                softRemaining = (result.limit - result.used).coerceAtLeast(0)
-                softLimit = result.limit
-                hardTitle = null
-                hardBenefit = null
-                hardMeta = null
-            }
             is VaultViewModel.AddEntryResult.Blocked -> {
-                softRemaining = null
-                softLimit = null
                 when {
                     result.isAuthorPro -> {
                         hardTitle = viewModel.string(R.string.diary_quota_hard_title_pro)
@@ -336,51 +322,6 @@ private fun DiaryComposerScreen(
                 hardMeta = viewModel.string(R.string.diary_quota_hard_meta, result.limit)
             }
         }
-    }
-
-    val softPending = softRemaining != null && softLimit != null
-    if (softPending) {
-        val remaining = softRemaining ?: 0
-        val limit = softLimit ?: 0
-        AlertDialog(
-            onDismissRequest = {
-                softRemaining = null
-                softLimit = null
-            },
-            title = { Text(localizedString(R.string.diary_quota_soft_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedString(R.string.diary_quota_soft_benefit))
-                    Text(
-                        viewModel.string(R.string.diary_quota_soft_meta, remaining, limit),
-                        color = VaultColors.inkMuted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            },
-            // Primary = upgrade (Play Billing not wired — dismiss keeps composer open).
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        softRemaining = null
-                        softLimit = null
-                    },
-                ) {
-                    Text(localizedString(R.string.diary_quota_upgrade), color = VaultColors.seal)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        softRemaining = null
-                        softLimit = null
-                        trySave(suppressSoft = true)
-                    },
-                ) {
-                    Text(localizedString(R.string.diary_quota_soft_continue))
-                }
-            },
-        )
     }
 
     Scaffold(
@@ -437,41 +378,39 @@ private fun DiaryComposerScreen(
                 colors = fieldColors,
                 shape = RoundedCornerShape(12.dp),
             )
-            if (!softPending) {
-                hardTitle?.let { titleText ->
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            hardTitle?.let { titleText ->
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        titleText,
+                        color = VaultColors.ink,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    hardBenefit?.let { benefit ->
                         Text(
-                            titleText,
-                            color = VaultColors.ink,
-                            style = MaterialTheme.typography.titleSmall,
+                            benefit,
+                            color = VaultColors.inkMuted,
+                            style = MaterialTheme.typography.bodySmall,
                         )
-                        hardBenefit?.let { benefit ->
-                            Text(
-                                benefit,
-                                color = VaultColors.inkMuted,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                        hardMeta?.let { meta ->
-                            Text(
-                                meta,
-                                color = VaultColors.inkMuted,
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        if (hardShowUpgrade) {
-                            Text(
-                                localizedString(
-                                    if (hardUpgradePro) {
-                                        R.string.diary_quota_upgrade_pro
-                                    } else {
-                                        R.string.diary_quota_upgrade
-                                    },
-                                ),
-                                color = VaultColors.seal,
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-                        }
+                    }
+                    hardMeta?.let { meta ->
+                        Text(
+                            meta,
+                            color = VaultColors.inkMuted,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    if (hardShowUpgrade) {
+                        Text(
+                            localizedString(
+                                if (hardUpgradePro) {
+                                    R.string.diary_quota_upgrade_pro
+                                } else {
+                                    R.string.diary_quota_upgrade
+                                },
+                            ),
+                            color = VaultColors.seal,
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
             }

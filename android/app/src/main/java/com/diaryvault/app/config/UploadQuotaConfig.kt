@@ -1,54 +1,44 @@
 package com.diaryvault.app.config
 
 /**
- * Daily diary **upload** quotas (Silas 2026-10-31): text create + multimedia (DA-15 stub).
- * Day boundary matches [DiaryUploadUsageGuard] / [com.diaryvault.app.service.MirrorUsageGuard]
- * (device local calendar day).
+ * Diary **vault upload** quotas (Silas 2026-11-01): one shared counter for text + multimedia.
  *
- * Independent of Mirror AI quotas in [AIConfig] (Free 3→6, Plus 15, Pro 40).
+ * - Free: **lifetime** hard cap (not daily) — hard stop → paywall. Multimedia is included in
+ *   the same lifetime 40 (Free is not media-blocked before that cap).
+ * - Author Plus / Pro: **daily** hard caps (device local calendar day).
+ *
+ * Independent of Mirror AI quotas in [AIConfig].
  */
 object UploadQuotaConfig {
     enum class Kind {
         TEXT,
-        /** Voice / video diary create — API ready; UI deferred (DA-15). */
+        /** Voice / video diary create — counts toward the same vault bucket for all tiers incl. Free. */
         MULTIMEDIA,
     }
 
-    const val FREE_TEXT_SOFT_THRESHOLD = 4
-    const val FREE_TEXT_HARD_LIMIT = 8
+    const val FREE_LIFETIME_VAULT_LIMIT = 40
+    const val PLUS_DAILY_VAULT_LIMIT = 8
+    const val PRO_DAILY_VAULT_LIMIT = 16
 
-    const val FREE_MEDIA_SOFT_THRESHOLD = 3
-    const val FREE_MEDIA_HARD_LIMIT = 5
-
-    const val PLUS_TEXT_HARD_LIMIT = 20
-    const val PLUS_MEDIA_HARD_LIMIT = 11
-
-    const val PRO_TEXT_HARD_LIMIT = 40
-    const val PRO_MEDIA_HARD_LIMIT = 22
-
-    fun softThreshold(kind: Kind): Int = when (kind) {
-        Kind.TEXT -> FREE_TEXT_SOFT_THRESHOLD
-        Kind.MULTIMEDIA -> FREE_MEDIA_SOFT_THRESHOLD
+    /** Soft ladders removed (2026-11-01). */
+    fun softThreshold(kind: Kind): Int {
+        @Suppress("UNUSED_PARAMETER")
+        kind
+        return 0
     }
 
     /**
+     * Effective hard cap for the vault upload bucket (kind is ignored — unified counter).
      * @param isAuthorPro Prefer over Plus when both are somehow true.
      * @param isAuthorPlus Plus entitlement when not Pro.
      */
     fun hardLimit(kind: Kind, isAuthorPlus: Boolean, isAuthorPro: Boolean = false): Int {
+        @Suppress("UNUSED_PARAMETER")
+        kind
         return when {
-            isAuthorPro -> when (kind) {
-                Kind.TEXT -> PRO_TEXT_HARD_LIMIT
-                Kind.MULTIMEDIA -> PRO_MEDIA_HARD_LIMIT
-            }
-            isAuthorPlus -> when (kind) {
-                Kind.TEXT -> PLUS_TEXT_HARD_LIMIT
-                Kind.MULTIMEDIA -> PLUS_MEDIA_HARD_LIMIT
-            }
-            else -> when (kind) {
-                Kind.TEXT -> FREE_TEXT_HARD_LIMIT
-                Kind.MULTIMEDIA -> FREE_MEDIA_HARD_LIMIT
-            }
+            isAuthorPro -> PRO_DAILY_VAULT_LIMIT
+            isAuthorPlus -> PLUS_DAILY_VAULT_LIMIT
+            else -> FREE_LIFETIME_VAULT_LIMIT
         }
     }
 }
