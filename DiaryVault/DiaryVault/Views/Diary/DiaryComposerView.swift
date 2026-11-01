@@ -9,14 +9,21 @@ struct DiaryComposerView: View {
     /// When non-nil, composer updates this entry instead of creating a new one (no upload quota).
     var editingEntry: DiaryEntry? = nil
 
-    /// Owned by `DiaryListView` so Paywall covers the composer sheet (not nested inside it).
-    @Binding var showPaywall: Bool
-
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
     @State private var hardGate: HardQuotaGate?
+    /// Presented from **this** sheet — a parent `fullScreenCover` while the composer sheet is
+    /// already up is a silent no-op on device (DA-57 regression).
+    @State private var showPaywall = false
     @State private var didLoadEditDraft = false
+    @FocusState private var focusedField: ComposerField?
+
+    private enum ComposerField: Hashable {
+        case title
+        case mood
+        case body
+    }
 
     private var isEditing: Bool { editingEntry != nil }
 
@@ -53,6 +60,8 @@ struct DiaryComposerView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let hardGate {
                     hardQuotaBanner(hardGate)
+                        // Keep the purchase chrome above the TextEditor hit target.
+                        .zIndex(2)
                 }
             }
             .onAppear {
@@ -61,6 +70,12 @@ struct DiaryComposerView: View {
             .onChange(of: subscriptions.tier) { _, _ in
                 clearQuotaMessagesIfUnderCap()
             }
+        }
+        // Cover is owned by the composer sheet (same pattern as DA-46), not the list behind it.
+        .fullScreenCover(isPresented: $showPaywall) {
+            PaywallView()
+                .environmentObject(localization)
+                .environmentObject(subscriptions)
         }
     }
 
@@ -71,10 +86,12 @@ struct DiaryComposerView: View {
             TextField(localization.text("diary.field.title"), text: $title)
                 .font(.system(size: 22, weight: .semibold, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
+                .focused($focusedField, equals: .title)
 
             TextField(localization.text("diary.field.mood"), text: $mood)
                 .font(.system(size: 14))
                 .foregroundStyle(VaultTheme.inkMuted)
+                .focused($focusedField, equals: .mood)
 
             Rectangle()
                 .fill(VaultTheme.line)
@@ -85,10 +102,16 @@ struct DiaryComposerView: View {
                 .foregroundStyle(VaultTheme.ink)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
+                .focused($focusedField, equals: .body)
+                // TextEditor often extends its hit-testing under bottom insets and steals
+                // the upgrade CTA tap (keyboard stays up, Button never fires).
+                .allowsHitTesting(hardGate == nil)
 
             Spacer(minLength: 0)
+                .allowsHitTesting(false)
         }
         .padding(20)
+        .allowsHitTesting(hardGate == nil)
     }
 
     // MARK: - Hard gate (premium stop, still purchase-oriented)
@@ -135,6 +158,7 @@ struct DiaryComposerView: View {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(VaultTheme.seal)
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
@@ -145,6 +169,7 @@ struct DiaryComposerView: View {
         .padding(.bottom, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { quotaBannerChrome }
+        .contentShape(Rectangle())
     }
 
     private func quotaAccentIcon(systemName: String) -> some View {
@@ -228,9 +253,16 @@ struct DiaryComposerView: View {
         }
     }
 
-    /// Opens Settings-equivalent Plans UI on top of the composer (prices + StoreKit buy).
+    /// Resign first responder, then present Plans from this sheet (prices + StoreKit).
     private func presentPaywall() {
-        showPaywall = true
+        focusedField = nil
+        KeyboardDismiss.resign()
+        // Let keyboard teardown finish — presenting a cover while TextEditor is first responder
+        // often yields a silent miss on device (matches “tap does nothing, keyboard stays”).
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            showPaywall = true
+        }
     }
 
     private func applyHardGate(tier: BillingConfig.Tier, limit: Int) {
@@ -240,10 +272,12 @@ struct DiaryComposerView: View {
             limit: limit,
             showUpgrade: showUpgrade
         )
-        // Hard-capped Free/Plus: jump straight into Plans so purchase intent is not lost
-        // on an intermediate banner-only stop. Banner CTA remains to reopen after dismiss.
+        // Hard-capped Free/Plus: jump straight into Plans. Banner CTA remains to reopen.
         if showUpgrade {
             presentPaywall()
+        } else {
+            focusedField = nil
+            KeyboardDismiss.resign()
         }
     }
 

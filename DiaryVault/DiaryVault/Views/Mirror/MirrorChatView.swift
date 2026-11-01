@@ -288,7 +288,11 @@ struct MirrorChatView: View {
     }
 
     private func presentPaywall() {
-        showPaywall = true
+        KeyboardDismiss.resign()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            showPaywall = true
+        }
     }
 
     /// Hard stop → show copy + open Plans immediately (same PaywallView as Settings).
