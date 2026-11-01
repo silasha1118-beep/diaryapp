@@ -8,6 +8,9 @@ struct DiaryListView: View {
 
     /// Item-based sheet so Edit always receives the tapped entry (not a stale nil capture).
     @State private var composerSession: ComposerSession?
+    /// Paywall is presented from the list (not nested inside the composer sheet) so StoreKit
+    /// plans open reliably on top of New Diary — same PaywallView as Settings「查看方案」.
+    @State private var showPaywall = false
 
     private var vaultSubtitle: String {
         appState.displayName.isEmpty
@@ -59,8 +62,17 @@ struct DiaryListView: View {
             }
             .sheet(item: $composerSession) { session in
                 // Re-attach env objects — sheet inheritance is unreliable on some iOS builds.
-                DiaryComposerView(editingEntry: session.editingEntry)
+                DiaryComposerView(
+                    editingEntry: session.editingEntry,
+                    showPaywall: $showPaywall
+                )
                     .environmentObject(diaryStore)
+                    .environmentObject(localization)
+                    .environmentObject(subscriptions)
+            }
+            // Sibling of the composer sheet — avoids nested sheet→cover presentation bugs.
+            .fullScreenCover(isPresented: $showPaywall) {
+                PaywallView()
                     .environmentObject(localization)
                     .environmentObject(subscriptions)
             }

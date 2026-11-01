@@ -9,11 +9,13 @@ struct DiaryComposerView: View {
     /// When non-nil, composer updates this entry instead of creating a new one (no upload quota).
     var editingEntry: DiaryEntry? = nil
 
+    /// Owned by `DiaryListView` so Paywall covers the composer sheet (not nested inside it).
+    @Binding var showPaywall: Bool
+
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
     @State private var hardGate: HardQuotaGate?
-    @State private var showPaywall = false
     @State private var didLoadEditDraft = false
 
     private var isEditing: Bool { editingEntry != nil }
@@ -58,11 +60,6 @@ struct DiaryComposerView: View {
             }
             .onChange(of: subscriptions.tier) { _, _ in
                 clearQuotaMessagesIfUnderCap()
-            }
-            .fullScreenCover(isPresented: $showPaywall) {
-                PaywallView()
-                    .environmentObject(localization)
-                    .environmentObject(subscriptions)
             }
         }
     }
@@ -127,7 +124,7 @@ struct DiaryComposerView: View {
 
             if gate.showUpgrade {
                 Button {
-                    showPaywall = true
+                    presentPaywall()
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
                         .font(.system(size: 15, weight: .semibold))
@@ -231,6 +228,25 @@ struct DiaryComposerView: View {
         }
     }
 
+    /// Opens Settings-equivalent Plans UI on top of the composer (prices + StoreKit buy).
+    private func presentPaywall() {
+        showPaywall = true
+    }
+
+    private func applyHardGate(tier: BillingConfig.Tier, limit: Int) {
+        let showUpgrade = tier != .authorPro
+        hardGate = HardQuotaGate(
+            tier: tier,
+            limit: limit,
+            showUpgrade: showUpgrade
+        )
+        // Hard-capped Free/Plus: jump straight into Plans so purchase intent is not lost
+        // on an intermediate banner-only stop. Banner CTA remains to reopen after dismiss.
+        if showUpgrade {
+            presentPaywall()
+        }
+    }
+
     private func attemptSave() {
         guard canSave else { return }
 
@@ -243,11 +259,9 @@ struct DiaryComposerView: View {
 
         // Hard stop only — Free soft ladders removed (lifetime vault uploads incl. media).
         if DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
-            let limit = DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
-            hardGate = HardQuotaGate(
+            applyHardGate(
                 tier: billingTier,
-                limit: limit,
-                showUpgrade: billingTier != .authorPro
+                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
             )
             return
         }
@@ -256,17 +270,12 @@ struct DiaryComposerView: View {
             try DiaryUploadUsageGuard.checkAndIncrement(kind: .text, tier: billingTier)
         } catch {
             if case let DiaryUploadUsageGuard.UploadError.rateLimited(_, limit, tier) = error {
-                hardGate = HardQuotaGate(
-                    tier: tier,
-                    limit: limit,
-                    showUpgrade: tier != .authorPro
-                )
+                applyHardGate(tier: tier, limit: limit)
                 return
             }
-            hardGate = HardQuotaGate(
+            applyHardGate(
                 tier: billingTier,
-                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier),
-                showUpgrade: billingTier != .authorPro
+                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
             )
             return
         }
