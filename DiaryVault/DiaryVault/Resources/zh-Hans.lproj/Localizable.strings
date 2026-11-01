@@ -137,9 +137,21 @@
 "diary.quota.exhausted.plus" = "今日文字上传已用完（%d）。可升级 Author Pro（每日 40 次），或明天再试。";
 "diary.quota.exhausted.pro" = "今日文字上传已用完（%d）。请明天再试。";
 "diary.quota.softReminder" = "今日文字上传还剩 %d／%d 次——升级 Author Plus 可提高每日额度";
+"diary.quota.soft.title" = "让书写更从容";
+"diary.quota.soft.benefit" = "Author Plus 每日 20 次文字上传——为想养成的写作习惯留更安静的金库空间。";
+"diary.quota.soft.meta" = "今日免费额度还剩 %d／%d 次";
 "diary.quota.soft.continue" = "继续保存";
-"diary.quota.upgrade" = "查看 Author Plus";
-"diary.quota.upgrade.pro" = "查看 Author Pro";
+"diary.quota.hard.title.free" = "今日免费页面已写满";
+"diary.quota.hard.title.plus" = "今日 Plus 页面已写满";
+"diary.quota.hard.title.pro" = "今日书写页面已写满";
+"diary.quota.hard.benefit.free" = "升级 Author Plus，金库每日可再写 20 篇——字句来时不必停笔。";
+"diary.quota.hard.benefit.plus" = "升级 Author Pro，每日 40 次文字上传，书桌更宽。";
+"diary.quota.hard.benefit.pro" = "先让笔休息——金库明天会再为你敞开。";
+"diary.quota.hard.meta.free" = "已达免费每日上限（%d）";
+"diary.quota.hard.meta.plus" = "已达 Plus 每日上限（%d）";
+"diary.quota.hard.meta.pro" = "已达 Pro 每日上限（%d）";
+"diary.quota.upgrade" = "升级 Author Plus";
+"diary.quota.upgrade.pro" = "升级 Author Pro";
 
 /* Mirror */
 "mirror.title" = "镜子";

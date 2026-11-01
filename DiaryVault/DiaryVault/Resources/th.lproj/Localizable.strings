@@ -137,9 +137,21 @@
 "diary.quota.exhausted.plus" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) อัปเกรด Author Pro (40/วัน) หรือลองใหม่พรุ่งนี้";
 "diary.quota.exhausted.pro" = "อัปโหลดข้อความวันนี้ครบแล้ว (%d) ลองใหม่พรุ่งนี้";
 "diary.quota.softReminder" = "อัปโหลดข้อความวันนี้เหลือ %d จาก %d ครั้ง — Author Plus เพิ่มเพดานรายวัน";
+"diary.quota.soft.title" = "เขียนได้สบายขึ้นอีกนิด";
+"diary.quota.soft.benefit" = "Author Plus เปิดอัปโหลดข้อความ 20 ครั้ง/วัน — ห้องเก็บที่เงียบกว่าสำหรับนิสัยที่อยากรักษา";
+"diary.quota.soft.meta" = "โควตาฟรีวันนี้เหลือ %d จาก %d ครั้ง";
 "diary.quota.soft.continue" = "บันทึกต่อ";
-"diary.quota.upgrade" = "ดู Author Plus";
-"diary.quota.upgrade.pro" = "ดู Author Pro";
+"diary.quota.hard.title.free" = "หน้าฟรีวันนี้เต็มแล้ว";
+"diary.quota.hard.title.plus" = "หน้า Plus วันนี้เต็มแล้ว";
+"diary.quota.hard.title.pro" = "หน้าเขียนวันนี้เต็มแล้ว";
+"diary.quota.hard.benefit.free" = "อัปเกรด Author Plus ให้ห้องเก็บเปิดต่อ — อัปโหลดข้อความ 20 ครั้งทุกวัน เมื่อคำมาถึงไม่ต้องหยุด";
+"diary.quota.hard.benefit.plus" = "อัปเกรด Author Pro ได้ 40 ครั้ง/วัน เมื่อต้องการโต๊ะที่กว้างขึ้น";
+"diary.quota.hard.benefit.pro" = "พักปากกาไว้ก่อน — ห้องเก็บจะเปิดอีกครั้งพรุ่งนี้";
+"diary.quota.hard.meta.free" = "ถึงเพดานฟรีรายวันแล้ว (%d)";
+"diary.quota.hard.meta.plus" = "ถึงเพดาน Plus รายวันแล้ว (%d)";
+"diary.quota.hard.meta.pro" = "ถึงเพดาน Pro รายวันแล้ว (%d)";
+"diary.quota.upgrade" = "อัปเกรด Author Plus";
+"diary.quota.upgrade.pro" = "อัปเกรด Author Pro";
 
 /* Mirror */
 "mirror.title" = "กระจก";

@@ -277,8 +277,13 @@ private fun DiaryComposerScreen(
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var body by remember { mutableStateOf(existing?.body.orEmpty()) }
     var mood by remember { mutableStateOf(existing?.moodTag.orEmpty()) }
-    var quotaMessage by remember { mutableStateOf<String?>(null) }
-    var softPaywallPending by remember { mutableStateOf(false) }
+    var softRemaining by remember { mutableStateOf<Int?>(null) }
+    var softLimit by remember { mutableStateOf<Int?>(null) }
+    var hardTitle by remember { mutableStateOf<String?>(null) }
+    var hardBenefit by remember { mutableStateOf<String?>(null) }
+    var hardMeta by remember { mutableStateOf<String?>(null) }
+    var hardShowUpgrade by remember { mutableStateOf(false) }
+    var hardUpgradePro by remember { mutableStateOf(false) }
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = VaultColors.seal,
         unfocusedBorderColor = VaultColors.line,
@@ -299,46 +304,80 @@ private fun DiaryComposerScreen(
         ) {
             is VaultViewModel.AddEntryResult.Saved -> onDone()
             is VaultViewModel.AddEntryResult.SoftPaywall -> {
-                softPaywallPending = true
-                quotaMessage = viewModel.string(
-                    R.string.diary_quota_soft_reminder,
-                    result.used,
-                    result.limit,
-                )
+                softRemaining = (result.limit - result.used).coerceAtLeast(0)
+                softLimit = result.limit
+                hardTitle = null
+                hardBenefit = null
+                hardMeta = null
             }
             is VaultViewModel.AddEntryResult.Blocked -> {
-                softPaywallPending = false
-                val resId = when {
-                    result.isAuthorPro -> R.string.diary_quota_exhausted_pro
-                    result.isAuthorPlus -> R.string.diary_quota_exhausted_plus
-                    else -> R.string.diary_quota_exhausted_free
+                softRemaining = null
+                softLimit = null
+                when {
+                    result.isAuthorPro -> {
+                        hardTitle = viewModel.string(R.string.diary_quota_hard_title_pro)
+                        hardBenefit = viewModel.string(R.string.diary_quota_hard_benefit_pro)
+                        hardShowUpgrade = false
+                        hardUpgradePro = false
+                    }
+                    result.isAuthorPlus -> {
+                        hardTitle = viewModel.string(R.string.diary_quota_hard_title_plus)
+                        hardBenefit = viewModel.string(R.string.diary_quota_hard_benefit_plus)
+                        hardShowUpgrade = true
+                        hardUpgradePro = true
+                    }
+                    else -> {
+                        hardTitle = viewModel.string(R.string.diary_quota_hard_title_free)
+                        hardBenefit = viewModel.string(R.string.diary_quota_hard_benefit_free)
+                        hardShowUpgrade = true
+                        hardUpgradePro = false
+                    }
                 }
-                quotaMessage = viewModel.string(resId, result.limit)
+                hardMeta = viewModel.string(R.string.diary_quota_hard_meta, result.limit)
             }
         }
     }
 
-    if (softPaywallPending && quotaMessage != null) {
+    val softPending = softRemaining != null && softLimit != null
+    if (softPending) {
+        val remaining = softRemaining ?: 0
+        val limit = softLimit ?: 0
         AlertDialog(
             onDismissRequest = {
-                softPaywallPending = false
-                trySave(suppressSoft = true)
+                softRemaining = null
+                softLimit = null
             },
-            title = { Text(localizedString(R.string.diary_quota_upgrade)) },
-            text = { Text(quotaMessage.orEmpty()) },
+            title = { Text(localizedString(R.string.diary_quota_soft_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(localizedString(R.string.diary_quota_soft_benefit))
+                    Text(
+                        viewModel.string(R.string.diary_quota_soft_meta, remaining, limit),
+                        color = VaultColors.inkMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
+            // Primary = upgrade (Play Billing not wired — dismiss keeps composer open).
             confirmButton = {
                 TextButton(
                     onClick = {
-                        softPaywallPending = false
-                        trySave(suppressSoft = true)
+                        softRemaining = null
+                        softLimit = null
                     },
                 ) {
-                    Text(localizedString(R.string.common_continue))
+                    Text(localizedString(R.string.diary_quota_upgrade), color = VaultColors.seal)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { softPaywallPending = false }) {
-                    Text(localizedString(R.string.common_cancel))
+                TextButton(
+                    onClick = {
+                        softRemaining = null
+                        softLimit = null
+                        trySave(suppressSoft = true)
+                    },
+                ) {
+                    Text(localizedString(R.string.diary_quota_soft_continue))
                 }
             },
         )
@@ -398,9 +437,42 @@ private fun DiaryComposerScreen(
                 colors = fieldColors,
                 shape = RoundedCornerShape(12.dp),
             )
-            if (!softPaywallPending) {
-                quotaMessage?.let { msg ->
-                    Text(msg, color = VaultColors.seal, style = MaterialTheme.typography.bodySmall)
+            if (!softPending) {
+                hardTitle?.let { titleText ->
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            titleText,
+                            color = VaultColors.ink,
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        hardBenefit?.let { benefit ->
+                            Text(
+                                benefit,
+                                color = VaultColors.inkMuted,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        hardMeta?.let { meta ->
+                            Text(
+                                meta,
+                                color = VaultColors.inkMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                        if (hardShowUpgrade) {
+                            Text(
+                                localizedString(
+                                    if (hardUpgradePro) {
+                                        R.string.diary_quota_upgrade_pro
+                                    } else {
+                                        R.string.diary_quota_upgrade
+                                    },
+                                ),
+                                color = VaultColors.seal,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
+                    }
                 }
             }
         }

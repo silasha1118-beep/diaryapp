@@ -12,9 +12,8 @@ struct DiaryComposerView: View {
     @State private var title = ""
     @State private var bodyText = ""
     @State private var mood = ""
-    @State private var quotaError: String?
-    @State private var softReminder: String?
-    @State private var showQuotaUpgrade = false
+    @State private var softNudge: SoftQuotaNudge?
+    @State private var hardGate: HardQuotaGate?
     @State private var showPaywall = false
     /// After the user taps Continue on the inline soft reminder, allow one save without re-nudge.
     @State private var suppressPaywallNagOnce = false
@@ -53,10 +52,10 @@ struct DiaryComposerView: View {
                 }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                if let softReminder {
-                    softReminderBanner(softReminder)
-                } else if let quotaError {
-                    hardQuotaBanner(quotaError)
+                if let softNudge {
+                    softNudgeBanner(softNudge)
+                } else if let hardGate {
+                    hardQuotaBanner(hardGate)
                 }
             }
             .onAppear {
@@ -101,38 +100,50 @@ struct DiaryComposerView: View {
         .padding(20)
     }
 
-    private func softReminderBanner(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(VaultTheme.seal)
-                    .accessibilityHidden(true)
-                    .padding(.top, 1)
+    // MARK: - Soft nudge (purchase-first, benefit copy)
 
-                Text(message)
-                    .font(.system(size: 14))
-                    .foregroundStyle(VaultTheme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+    private func softNudgeBanner(_ nudge: SoftQuotaNudge) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                quotaAccentIcon(systemName: "book.closed.fill")
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(localization.text("diary.quota.soft.title"))
+                        .font(.system(size: 17, weight: .semibold, design: .serif))
+                        .foregroundStyle(VaultTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(localization.text("diary.quota.soft.benefit"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(
+                        String(
+                            format: localization.text("diary.quota.soft.meta"),
+                            nudge.remaining,
+                            nudge.limit
+                        )
+                    )
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.9))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            HStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Button {
                     showPaywall = true
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(VaultTheme.seal)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(VaultTheme.paper)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 13)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(VaultTheme.paper)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(VaultTheme.seal.opacity(0.4), lineWidth: 1)
+                                .fill(VaultTheme.seal)
                         )
                 }
                 .buttonStyle(.plain)
@@ -140,17 +151,21 @@ struct DiaryComposerView: View {
 
                 Button {
                     suppressPaywallNagOnce = true
-                    softReminder = nil
+                    softNudge = nil
                     attemptSave()
                 } label: {
                     Text(localization.text("diary.quota.soft.continue"))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(VaultTheme.paper)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(VaultTheme.inkMuted)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 11)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(VaultTheme.seal)
+                                .fill(VaultTheme.paper.opacity(0.55))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(VaultTheme.line.opacity(0.9), lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -158,45 +173,52 @@ struct DiaryComposerView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(VaultTheme.line.opacity(0.75))
-                    .frame(height: 1)
-                VaultTheme.paperDeep
-            }
-            .ignoresSafeArea(edges: .bottom)
-        }
+        .background { quotaBannerChrome }
     }
 
-    private func hardQuotaBanner(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "exclamationmark.circle.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(VaultTheme.seal)
-                    .accessibilityHidden(true)
-                    .padding(.top, 1)
+    // MARK: - Hard gate (premium stop, still purchase-oriented)
 
-                Text(message)
-                    .font(.system(size: 14))
-                    .foregroundStyle(VaultTheme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+    private func hardQuotaBanner(_ gate: HardQuotaGate) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                quotaAccentIcon(systemName: gate.showUpgrade ? "lock.open.fill" : "moon.stars.fill")
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(localization.text(hardTitleKey(for: gate.tier)))
+                        .font(.system(size: 17, weight: .semibold, design: .serif))
+                        .foregroundStyle(VaultTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(localization.text(hardBenefitKey(for: gate.tier)))
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(
+                        String(
+                            format: localization.text(hardMetaKey(for: gate.tier)),
+                            gate.limit
+                        )
+                    )
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.9))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if showQuotaUpgrade {
+            if gate.showUpgrade {
                 Button {
                     showPaywall = true
                 } label: {
                     Text(localization.text(quotaUpgradeCTAKey))
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(VaultTheme.paper)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 13)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .fill(VaultTheme.seal)
@@ -207,18 +229,44 @@ struct DiaryComposerView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(VaultTheme.line.opacity(0.75))
-                    .frame(height: 1)
-                VaultTheme.paperDeep
-            }
-            .ignoresSafeArea(edges: .bottom)
+        .background { quotaBannerChrome }
+    }
+
+    private func quotaAccentIcon(systemName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(VaultTheme.seal.opacity(0.12))
+                .frame(width: 36, height: 36)
+            Image(systemName: systemName)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(VaultTheme.seal)
+                .accessibilityHidden(true)
         }
+        .padding(.top, 1)
+    }
+
+    private var quotaBannerChrome: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(VaultTheme.line.opacity(0.7))
+                .frame(height: 1)
+            ZStack {
+                VaultTheme.paperDeep
+                // Quiet warm wash — purchase cue without glow / purple.
+                LinearGradient(
+                    colors: [
+                        VaultTheme.seal.opacity(0.07),
+                        VaultTheme.paperDeep.opacity(0),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        .ignoresSafeArea(edges: .bottom)
     }
 
     private var quotaUpgradeCTAKey: String {
@@ -230,11 +278,27 @@ struct DiaryComposerView: View {
         }
     }
 
-    private func exhaustedKey(for tier: BillingConfig.Tier) -> String {
+    private func hardTitleKey(for tier: BillingConfig.Tier) -> String {
         switch tier {
-        case .free: return "diary.quota.exhausted.free"
-        case .authorPlus: return "diary.quota.exhausted.plus"
-        case .authorPro: return "diary.quota.exhausted.pro"
+        case .free: return "diary.quota.hard.title.free"
+        case .authorPlus: return "diary.quota.hard.title.plus"
+        case .authorPro: return "diary.quota.hard.title.pro"
+        }
+    }
+
+    private func hardBenefitKey(for tier: BillingConfig.Tier) -> String {
+        switch tier {
+        case .free: return "diary.quota.hard.benefit.free"
+        case .authorPlus: return "diary.quota.hard.benefit.plus"
+        case .authorPro: return "diary.quota.hard.benefit.pro"
+        }
+    }
+
+    private func hardMetaKey(for tier: BillingConfig.Tier) -> String {
+        switch tier {
+        case .free: return "diary.quota.hard.meta.free"
+        case .authorPlus: return "diary.quota.hard.meta.plus"
+        case .authorPro: return "diary.quota.hard.meta.pro"
         }
     }
 
@@ -248,9 +312,8 @@ struct DiaryComposerView: View {
 
     private func clearQuotaMessagesIfUnderCap() {
         if !DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
-            quotaError = nil
-            showQuotaUpgrade = false
-            softReminder = nil
+            softNudge = nil
+            hardGate = nil
         }
     }
 
@@ -262,14 +325,16 @@ struct DiaryComposerView: View {
             return
         }
 
-        softReminder = nil
-        quotaError = nil
-        showQuotaUpgrade = false
+        softNudge = nil
+        hardGate = nil
 
         if DiaryUploadUsageGuard.isExhausted(kind: .text, tier: billingTier) {
             let limit = DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
-            quotaError = String(format: localization.text(exhaustedKey(for: billingTier)), limit)
-            showQuotaUpgrade = billingTier != .authorPro
+            hardGate = HardQuotaGate(
+                tier: billingTier,
+                limit: limit,
+                showUpgrade: billingTier != .authorPro
+            )
             return
         }
 
@@ -279,11 +344,7 @@ struct DiaryComposerView: View {
            !suppressPaywallNagOnce {
             let remaining = DiaryUploadUsageGuard.remaining(kind: .text, tier: billingTier)
             let limit = DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier)
-            softReminder = String(
-                format: localization.text("diary.quota.softReminder"),
-                remaining,
-                limit
-            )
+            softNudge = SoftQuotaNudge(remaining: remaining, limit: limit)
             return
         }
         suppressPaywallNagOnce = false
@@ -292,11 +353,18 @@ struct DiaryComposerView: View {
             try DiaryUploadUsageGuard.checkAndIncrement(kind: .text, tier: billingTier)
         } catch {
             if case let DiaryUploadUsageGuard.UploadError.rateLimited(_, limit, tier) = error {
-                quotaError = String(format: localization.text(exhaustedKey(for: tier)), limit)
-                showQuotaUpgrade = tier != .authorPro
+                hardGate = HardQuotaGate(
+                    tier: tier,
+                    limit: limit,
+                    showUpgrade: tier != .authorPro
+                )
                 return
             }
-            quotaError = error.localizedDescription
+            hardGate = HardQuotaGate(
+                tier: billingTier,
+                limit: DiaryUploadUsageGuard.effectiveLimit(kind: .text, tier: billingTier),
+                showUpgrade: billingTier != .authorPro
+            )
             return
         }
 
@@ -317,4 +385,17 @@ struct DiaryComposerView: View {
         diaryStore.update(updated)
         dismiss()
     }
+}
+
+// MARK: - Quota banner models
+
+private struct SoftQuotaNudge: Equatable {
+    let remaining: Int
+    let limit: Int
+}
+
+private struct HardQuotaGate: Equatable {
+    let tier: BillingConfig.Tier
+    let limit: Int
+    let showUpgrade: Bool
 }

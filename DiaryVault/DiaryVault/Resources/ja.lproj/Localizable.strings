@@ -137,9 +137,21 @@
 "diary.quota.exhausted.plus" = "本日のテキスト投稿は使い切りました（%d）。Author Pro（40回／日）へ、または明日またお試しください。";
 "diary.quota.exhausted.pro" = "本日のテキスト投稿は使い切りました（%d）。明日またお試しください。";
 "diary.quota.softReminder" = "本日のテキスト投稿残り %d／%d 回——Author Plus で1日の上限が上がります";
+"diary.quota.soft.title" = "もう少しゆとりを持って書く";
+"diary.quota.soft.benefit" = "Author Plus ならテキスト投稿 20回／日——続けたい習慣のための、静かなボールトを。";
+"diary.quota.soft.meta" = "本日の無料枠 残り %d／%d 回";
 "diary.quota.soft.continue" = "保存を続ける";
-"diary.quota.upgrade" = "Author Plus を見る";
-"diary.quota.upgrade.pro" = "Author Pro を見る";
+"diary.quota.hard.title.free" = "本日の無料ページがいっぱいになりました";
+"diary.quota.hard.title.plus" = "本日の Plus ページがいっぱいになりました";
+"diary.quota.hard.title.pro" = "本日の執筆ページがいっぱいになりました";
+"diary.quota.hard.benefit.free" = "Author Plus ならボールトが開いたまま——テキスト投稿 20回／日。言葉が来たらそのまま書けます。";
+"diary.quota.hard.benefit.plus" = "Author Pro ならテキスト投稿 40回／日。もっと広い机が必要なときに。";
+"diary.quota.hard.benefit.pro" = "いったん筆を休めましょう——ボールトは明日また開きます。";
+"diary.quota.hard.meta.free" = "無料の1日上限に達しました（%d）";
+"diary.quota.hard.meta.plus" = "Plus の1日上限に達しました（%d）";
+"diary.quota.hard.meta.pro" = "Pro の1日上限に達しました（%d）";
+"diary.quota.upgrade" = "Author Plus にアップグレード";
+"diary.quota.upgrade.pro" = "Author Pro にアップグレード";
 
 /* Mirror */
 "mirror.title" = "ミラー";
