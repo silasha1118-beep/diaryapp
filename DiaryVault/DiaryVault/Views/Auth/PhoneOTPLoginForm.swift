@@ -88,7 +88,7 @@ struct PhoneOTPLoginForm: View {
             }
         }
         .contentShape(Rectangle())
-        .resignKeyboardOnBackgroundTap()
+        // UIKit any-tap only — SwiftUI simultaneous TapGesture steals Button hits in Form rows.
         .resignKeyboardOnAnyTap()
         .animation(.easeInOut(duration: 0.3), value: session != nil)
         // phonePad / numberPad have no Return — Done toolbar lets users clear the pad and reach Mirror.

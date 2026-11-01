@@ -69,7 +69,7 @@ struct AuthGateView: View {
                 .padding(.horizontal, 28)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
-                .resignKeyboardOnBackgroundTap()
+                // UIKit any-tap only — SwiftUI simultaneous TapGesture can steal Button hits.
                 .resignKeyboardOnAnyTap()
             }
             .scrollDismissesKeyboard(.immediately)

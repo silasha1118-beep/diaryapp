@@ -247,7 +247,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "Entries on server";
 "settings.cloud.syncNow" = "Sync now";
-"settings.cloud.footer" = "When you’re signed in, text diaries sync to your account. Tap Sync now if something looks out of date.";
+"settings.cloud.footer" = "Signed-in text diaries sync to your account. Tap Sync now if content looks out of date.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";

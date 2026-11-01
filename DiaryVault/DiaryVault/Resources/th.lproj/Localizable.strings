@@ -246,7 +246,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "จำนวนบนเซิร์ฟเวอร์";
 "settings.cloud.syncNow" = "ซิงค์ตอนนี้";
-"settings.cloud.footer" = "เมื่อเข้าสู่ระบบ ไดอารี่ข้อความจะซิงค์ไปบัญชีของคุณ หากดูล้าสมัย ให้แตะ「ซิงค์ทันที」";
+"settings.cloud.footer" = "เมื่อเข้าสู่ระบบ ไดอารี่ข้อความจะซิงค์ หากดูล้าสมัย ให้แตะ「ซิงค์ตอนนี้」";
 "settings.section.billing" = "การสมัคร";
 "settings.billing.plan" = "แผน";
 "settings.billing.free" = "ฟรี";

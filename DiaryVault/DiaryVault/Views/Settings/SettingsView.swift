@@ -32,20 +32,26 @@ struct SettingsView: View {
                     cloudSection
                     billingSection
                     dataSection
-                    legalSection
                     languageSection
                     adviceSection
-                    mirrorSection
                     vaultSection
+                    // Legal last so Privacy / EULA clear the tab bar with bottom inset below.
+                    legalSection
                     #if DEBUG
                     developerSection
                     #endif
                 }
                 .scrollContentBackground(.hidden)
-                // numberPad has no Return — drag or any Form tap must resign first responder.
+                // numberPad has no Return — drag/scroll resigns; PhoneOTPLoginForm owns tap-to-dismiss.
+                // Do NOT attach SwiftUI simultaneousGesture TapGesture on this Form — it steals
+                // Button / Link hits (Sync / Export / Delete / Paywall / Legal all went dead).
                 .scrollDismissesKeyboard(.immediately)
-                .resignKeyboardOnBackgroundTap()
                 .resignKeyboardOnAnyTap()
+                .contentMargins(.bottom, 36, for: .scrollContent)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    Color.clear.frame(height: 12)
+                        .accessibilityHidden(true)
+                }
             }
             .navigationTitle(localization.text("settings.title"))
             .onDisappear {
@@ -117,10 +123,8 @@ struct SettingsView: View {
                         )
                     }
                 }
-                Button(role: .destructive) {
+                settingsActionButton(titleKey: "settings.account.signOut", role: .destructive) {
                     account.signOut()
-                } label: {
-                    Text(localization.text("settings.account.signOut"))
                 }
             } else {
                 Text(localization.text("settings.account.signedOut"))
@@ -202,11 +206,8 @@ struct SettingsView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(VaultTheme.seal)
             }
-            Button {
+            settingsActionButton(titleKey: "settings.cloud.syncNow") {
                 diaryStore.scheduleSynchronize()
-            } label: {
-                Text(localization.text("settings.cloud.syncNow"))
-                    .foregroundStyle(VaultTheme.seal)
             }
             .disabled(!account.hasLiveFirebaseAuth)
         } header: {
@@ -228,11 +229,8 @@ struct SettingsView: View {
                         .foregroundStyle(VaultTheme.inkMuted)
                 }
             }
-            Button {
+            settingsActionButton(titleKey: "settings.billing.manage") {
                 showPaywall = true
-            } label: {
-                Text(localization.text("settings.billing.manage"))
-                    .foregroundStyle(VaultTheme.seal)
             }
         } header: {
             Text(localization.text("settings.section.billing"))
@@ -243,11 +241,8 @@ struct SettingsView: View {
 
     private var dataSection: some View {
         Section {
-            Button {
+            settingsActionButton(titleKey: "settings.data.export") {
                 prepareExport()
-            } label: {
-                Text(localization.text("settings.data.export"))
-                    .foregroundStyle(VaultTheme.seal)
             }
             if let exportURL {
                 ShareLink(
@@ -257,7 +252,10 @@ struct SettingsView: View {
                 ) {
                     Text(localization.text("settings.data.export.share"))
                         .foregroundStyle(VaultTheme.seal)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.borderless)
             }
             if let exportError {
                 Text(exportError)
@@ -265,10 +263,8 @@ struct SettingsView: View {
                     .foregroundStyle(VaultTheme.seal)
             }
             if account.isSignedIn {
-                Button(role: .destructive) {
+                settingsActionButton(titleKey: "settings.data.deleteAccount", role: .destructive) {
                     showDeleteConfirm = true
-                } label: {
-                    Text(localization.text("settings.data.deleteAccount"))
                 }
                 .disabled(isDeleting)
             }
@@ -287,17 +283,17 @@ struct SettingsView: View {
     private var legalSection: some View {
         Section {
             if let privacy = LegalConfig.privacyPolicyURL {
-                Link(localization.text("settings.legal.privacy"), destination: privacy)
+                settingsLinkRow(
+                    titleKey: "settings.legal.privacy",
+                    destination: privacy
+                )
             } else {
-                Button {
+                settingsActionButton(titleKey: "settings.legal.privacy") {
                     showPrivacySheet = true
-                } label: {
-                    Text(localization.text("settings.legal.privacy"))
-                        .foregroundStyle(VaultTheme.seal)
                 }
             }
-            Link(
-                localization.text("settings.legal.terms"),
+            settingsLinkRow(
+                titleKey: "settings.legal.terms",
                 destination: LegalConfig.effectiveTermsURL
             )
         } header: {
@@ -334,48 +330,6 @@ struct SettingsView: View {
         }
     }
 
-    private var mirrorSection: some View {
-        Section {
-            if AIConfig.useCloudClient {
-                LabeledContent(localization.text("settings.ai.quota")) {
-                    Text(mirrorQuotaLabel)
-                        .foregroundStyle(
-                            MirrorUsageGuard.isExhausted(tier: subscriptions.tier)
-                                ? VaultTheme.seal
-                                : VaultTheme.inkMuted
-                        )
-                }
-                if MirrorUsageGuard.isExhausted(tier: subscriptions.tier) {
-                    Text(localization.text(settingsExhaustedKey))
-                        .font(.system(size: 13))
-                        .foregroundStyle(VaultTheme.seal)
-                    if subscriptions.tier != .authorPro {
-                        Button {
-                            showPaywall = true
-                        } label: {
-                            Text(
-                                localization.text(
-                                    subscriptions.tier == .authorPlus
-                                        ? "mirror.quota.upgrade.pro"
-                                        : "mirror.quota.upgrade"
-                                )
-                            )
-                            .foregroundStyle(VaultTheme.seal)
-                        }
-                    }
-                }
-            }
-            LabeledContent(localization.text("settings.ai.residency")) {
-                Text(localization.text("settings.ai.residency.value"))
-                    .foregroundStyle(VaultTheme.inkMuted)
-            }
-        } header: {
-            Text(localization.text("settings.section.ai"))
-        } footer: {
-            Text(localization.text("settings.ai.footer"))
-        }
-    }
-
     private var vaultSection: some View {
         Section {
             if !appState.displayName.isEmpty {
@@ -393,9 +347,15 @@ struct SettingsView: View {
 
     #if DEBUG
     /// Builder-only dumps — never compile into Release customer Settings.
+    private var developerCloudProjectID: String? {
+        diaryStore.lastCloudSyncProjectID
+            ?? DiaryCloudSync.firebaseProjectID
+            ?? AuthConfig.firebaseProjectID
+    }
+
     private var developerSection: some View {
         Section {
-            if let projectID = cloudProjectID {
+            if let projectID = developerCloudProjectID {
                 LabeledContent(localization.text("settings.cloud.project")) {
                     Text(projectID)
                         .font(.system(size: 12, design: .monospaced))
@@ -450,12 +410,6 @@ struct SettingsView: View {
         }
     }
 
-    private var cloudProjectID: String? {
-        diaryStore.lastCloudSyncProjectID
-            ?? DiaryCloudSync.firebaseProjectID
-            ?? AuthConfig.firebaseProjectID
-    }
-
     private var cloudSyncStatusLabel: String {
         if account.hasLiveFirebaseAuth {
             if diaryStore.lastCloudSyncError != nil {
@@ -483,21 +437,30 @@ struct SettingsView: View {
         }
     }
 
-    private var settingsExhaustedKey: String {
-        switch subscriptions.tier {
-        case .free: return "settings.ai.quota.exhausted.free"
-        case .authorPlus: return "settings.ai.quota.exhausted.plus"
-        case .authorPro: return "settings.ai.quota.exhausted.pro"
+    /// Full-row Form action — borderless + contentShape so seal-colored rows stay tappable.
+    private func settingsActionButton(
+        titleKey: String,
+        role: ButtonRole? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(role: role, action: action) {
+            Text(localization.text(titleKey))
+                .foregroundStyle(role == .destructive ? Color.red : VaultTheme.seal)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.borderless)
     }
 
-    private var mirrorQuotaLabel: String {
-        let used = MirrorUsageGuard.usageCountToday()
-        let limit = MirrorUsageGuard.effectiveLimit(tier: subscriptions.tier)
-        if limit <= 0 {
-            return localization.text("settings.ai.quota.unlimited")
+    /// Legal / external links with the same full-row hit target as action buttons.
+    private func settingsLinkRow(titleKey: String, destination: URL) -> some View {
+        Link(destination: destination) {
+            Text(localization.text(titleKey))
+                .foregroundStyle(VaultTheme.seal)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
         }
-        return String(format: localization.text("settings.ai.quota.value"), used, limit)
+        .buttonStyle(.borderless)
     }
 
     /// Avoid dumping raw Firestore / permission stack traces into Settings.
