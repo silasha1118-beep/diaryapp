@@ -168,6 +168,7 @@
 "diary.quota.hard.meta.pro" = "Pro の1日ボールト上限に達しました（%d）";
 "diary.quota.upgrade" = "Author Plus にアップグレード";
 "diary.quota.upgrade.pro" = "Author Pro にアップグレード";
+"diary.quota.viewPlans" = "すべてのプランを見る";
 
 /* Mirror */
 "mirror.title" = "ミラー";
@@ -186,8 +187,8 @@
 "mirror.quota.exhausted.free" = "無料ミラーを使い切りました（生涯 %d 回）。Author Plus にアップグレードしてください。";
 "mirror.quota.exhausted.plus" = "本日のミラーは使い切りました（%d）。Author Pro（16回／日）へ、または明日またお試しください。";
 "mirror.quota.exhausted.pro" = "本日のミラーは使い切りました（%d）。明日またお試しください。";
-"mirror.quota.upgrade" = "Author Plus を見る";
-"mirror.quota.upgrade.pro" = "Author Pro を見る";
+"mirror.quota.upgrade" = "Author Plus にアップグレード";
+"mirror.quota.upgrade.pro" = "Author Pro にアップグレード";
 /* Settings */
 "settings.title" = "設定";
 "settings.section.account" = "アカウント";

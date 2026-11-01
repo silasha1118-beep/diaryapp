@@ -146,11 +146,18 @@ struct DiaryComposerView: View {
             }
 
             if gate.showUpgrade {
-                Button {
-                    presentPaywall()
-                } label: {
-                    Text(localization.text(quotaUpgradeCTAKey))
-                        .font(.system(size: 15, weight: .semibold))
+                VStack(spacing: 8) {
+                    Button {
+                        startDirectUpgradePurchase()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if subscriptions.isLoading {
+                                ProgressView()
+                                    .tint(VaultTheme.paper)
+                            }
+                            Text(localization.text(quotaUpgradeCTAKey))
+                                .font(.system(size: 15, weight: .semibold))
+                        }
                         .foregroundStyle(VaultTheme.paper)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 13)
@@ -159,9 +166,33 @@ struct DiaryComposerView: View {
                                 .fill(VaultTheme.seal)
                         )
                         .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(subscriptions.isLoading)
+                    .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
+
+                    // Full Free / Plus / Pro picker — Settings「查看方案」equivalent.
+                    Button {
+                        presentPaywall()
+                    } label: {
+                        Text(localization.text("diary.quota.viewPlans"))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(VaultTheme.inkMuted)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(subscriptions.isLoading)
+                    .accessibilityLabel(localization.text("diary.quota.viewPlans"))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localization.text(quotaUpgradeCTAKey))
+            }
+
+            if let purchaseStatusText {
+                Text(purchaseStatusText)
+                    .font(.system(size: 12))
+                    .foregroundStyle(VaultTheme.inkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.horizontal, 20)
@@ -170,6 +201,21 @@ struct DiaryComposerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { quotaBannerChrome }
         .contentShape(Rectangle())
+    }
+
+    private var purchaseStatusText: String? {
+        guard let key = subscriptions.statusMessage else { return nil }
+        let map = [
+            "products.empty": "paywall.status.productsEmpty",
+            "products.error": "paywall.status.productsError",
+            "purchase.success": "paywall.status.purchaseSuccess",
+            "purchase.cancelled": "paywall.status.purchaseCancelled",
+            "purchase.pending": "paywall.status.purchasePending",
+            "purchase.unknown": "paywall.status.purchaseUnknown",
+            "purchase.error": "paywall.status.purchaseError",
+        ]
+        guard let loc = map[key] else { return nil }
+        return localization.text(loc)
     }
 
     private func quotaAccentIcon(systemName: String) -> some View {
@@ -253,15 +299,27 @@ struct DiaryComposerView: View {
         }
     }
 
-    /// Resign first responder, then present Plans from this sheet (prices + StoreKit).
+    /// Full Plans picker (same as Settings「查看方案」) — secondary path only.
     private func presentPaywall() {
         focusedField = nil
         KeyboardDismiss.resign()
-        // Let keyboard teardown finish — presenting a cover while TextEditor is first responder
-        // often yields a silent miss on device (matches “tap does nothing, keyboard stays”).
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 80_000_000)
             showPaywall = true
+        }
+    }
+
+    /// Primary upgrade CTA: Apple purchase sheet for default monthly Plus (or Pro if already Plus).
+    private func startDirectUpgradePurchase() {
+        focusedField = nil
+        KeyboardDismiss.resign()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            let started = await subscriptions.purchaseRecommendedUpgrade(from: billingTier)
+            // Catalog missing → fall back to Plans so the user is never stuck.
+            if !started {
+                showPaywall = true
+            }
         }
     }
 
@@ -272,13 +330,9 @@ struct DiaryComposerView: View {
             limit: limit,
             showUpgrade: showUpgrade
         )
-        // Hard-capped Free/Plus: jump straight into Plans. Banner CTA remains to reopen.
-        if showUpgrade {
-            presentPaywall()
-        } else {
-            focusedField = nil
-            KeyboardDismiss.resign()
-        }
+        // Show the purchase banner; do not auto-fire StoreKit (requires an explicit CTA tap).
+        focusedField = nil
+        KeyboardDismiss.resign()
     }
 
     private func attemptSave() {

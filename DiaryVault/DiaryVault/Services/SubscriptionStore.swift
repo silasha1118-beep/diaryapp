@@ -103,6 +103,34 @@ final class SubscriptionStore: ObservableObject {
         }
     }
 
+    /// Default monthly SKU for the next tier (Free → Plus monthly, Plus → Pro monthly).
+    /// Used by vault / Mirror hard-cap CTAs so Apple’s purchase sheet opens without the Plans picker.
+    /// - Returns `false` when the product catalog could not be loaded (caller may open PaywallView).
+    @discardableResult
+    func purchaseRecommendedUpgrade(from currentTier: BillingConfig.Tier) async -> Bool {
+        let productID: String?
+        switch currentTier {
+        case .free:
+            productID = BillingConfig.plusMonthlyProductID
+        case .authorPlus:
+            productID = BillingConfig.proMonthlyProductID
+        case .authorPro:
+            productID = nil
+        }
+        guard let productID else { return false }
+
+        if product(for: productID) == nil {
+            await refresh()
+        }
+        guard let product = product(for: productID) else {
+            statusMessage = "products.empty"
+            lastErrorDetail = "Missing recommended upgrade SKU: \(productID)"
+            return false
+        }
+        await purchase(product)
+        return true
+    }
+
     /// Sync with App Store (or local StoreKit config) and re-read entitlements.
     func restore() async {
         isLoading = true
