@@ -246,7 +246,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "服务器日记数";
 "settings.cloud.syncNow" = "立即同步";
-"settings.cloud.footer" = "登录后，文字日记会同步到你的账号。若内容看起来过时，请点「立即同步」。";
+"settings.cloud.footer" = "登录后文字日记会同步。内容过时时点「立即同步」。";
 "settings.section.billing" = "订阅";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免费";

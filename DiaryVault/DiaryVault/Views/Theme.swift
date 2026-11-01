@@ -14,7 +14,9 @@ enum KeyboardDismiss {
 }
 
 extension View {
-    /// SwiftUI simultaneous tap — often ignored inside `Form`/`List` (UIKit scroll host wins).
+    /// SwiftUI simultaneous tap for ScrollView chrome (AuthGate).
+    /// Do **not** put this on `Form`/`List` — parent `TapGesture` steals Button/Link hits.
+    /// Prefer `resignKeyboardOnAnyTap()` (or the phone OTP form’s own dismiss) instead.
     func resignKeyboardOnBackgroundTap() -> some View {
         simultaneousGesture(
             TapGesture().onEnded { KeyboardDismiss.resign() }
@@ -91,6 +93,21 @@ private struct KeyboardDismissTapInstaller: UIViewRepresentable {
             shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
             true
+        }
+
+        /// Never claim exclusive failure against control/button recognizers.
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            false
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            false
         }
 
         /// Prefer UITableView / UICollectionView / UIScrollView so Form row taps resign.

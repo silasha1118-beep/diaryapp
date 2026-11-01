@@ -246,7 +246,7 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "サーバー上の件数";
 "settings.cloud.syncNow" = "今すぐ同期";
-"settings.cloud.footer" = "サインイン後、テキスト日記はアカウントに同期されます。古く見えるときは「今すぐ同期」をタップしてください。";
+"settings.cloud.footer" = "サインイン後にテキスト日記を同期。古く見えるときは「今すぐ同期」。";
 "settings.section.billing" = "サブスクリプション";
 "settings.billing.plan" = "プラン";
 "settings.billing.free" = "無料";
