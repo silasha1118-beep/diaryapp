@@ -169,7 +169,7 @@ struct DiaryListView: View {
                 HStack(spacing: 10) {
                     ForEach(entry.mediaKindsPresent, id: \.self) { kind in
                         Label {
-                            Text(mediaKindLabel(kind))
+                            Text(localization.text(kind.localizationKey))
                                 .font(.system(size: 11, weight: .medium))
                         } icon: {
                             Image(systemName: kind.systemImage)
@@ -186,14 +186,6 @@ struct DiaryListView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 20)
         .contentShape(Rectangle())
-    }
-
-    private func mediaKindLabel(_ kind: DiaryMediaKind) -> String {
-        switch kind {
-        case .voice: return localization.text("diary.media.voice")
-        case .image: return localization.text("diary.media.photo")
-        case .video: return localization.text("diary.media.video")
-        }
     }
 
     private var emptyState: some View {

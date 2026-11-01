@@ -222,7 +222,7 @@ struct DiaryComposerMediaBar: View {
                     )
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(localization.text(labelKey(for: item.kind)))
+                Text(localization.text(item.kind.localizationKey))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(VaultTheme.ink)
                 if let duration = item.durationSeconds {
@@ -248,14 +248,6 @@ struct DiaryComposerMediaBar: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(VaultTheme.line.opacity(0.8), lineWidth: 1)
         )
-    }
-
-    private func labelKey(for kind: DiaryMediaKind) -> String {
-        switch kind {
-        case .voice: return "diary.media.voice"
-        case .image: return "diary.media.photo"
-        case .video: return "diary.media.video"
-        }
     }
 
     private func formatDuration(_ value: TimeInterval) -> String {

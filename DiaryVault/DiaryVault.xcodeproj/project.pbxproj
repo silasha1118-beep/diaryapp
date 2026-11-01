@@ -52,7 +52,6 @@
 		A1000000000000000000002E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = P10000000000000000000004 /* FirebaseFirestore */; };
 		A1000000000000000000002F /* DiaryCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002E /* DiaryCloudSync.swift */; };
 		A10000000000000000000030 /* DisplayNamePromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002F /* DisplayNamePromptSheet.swift */; };
-		A10000000000000000000035 /* DiaryMediaAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000035 /* DiaryMediaAttachment.swift */; };
 		A10000000000000000000036 /* DiaryMediaConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000036 /* DiaryMediaConfig.swift */; };
 		A10000000000000000000037 /* DiaryMediaFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000037 /* DiaryMediaFileStore.swift */; };
 		A10000000000000000000038 /* DiaryMediaCloudSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000038 /* DiaryMediaCloudSync.swift */; };
@@ -112,7 +111,6 @@
 		B1000000000000000000002E /* DiaryCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryCloudSync.swift; sourceTree = "<group>"; };
 		B1000000000000000000002F /* DisplayNamePromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayNamePromptSheet.swift; sourceTree = "<group>"; };
 		C10000000000000000000001 /* DiaryVault.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiaryVault.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B10000000000000000000035 /* DiaryMediaAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaAttachment.swift; sourceTree = "<group>"; };
 		B10000000000000000000036 /* DiaryMediaConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaConfig.swift; sourceTree = "<group>"; };
 		B10000000000000000000037 /* DiaryMediaFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaFileStore.swift; sourceTree = "<group>"; };
 		B10000000000000000000038 /* DiaryMediaCloudSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryMediaCloudSync.swift; sourceTree = "<group>"; };
@@ -179,7 +177,6 @@
 			children = (
 				B10000000000000000000002 /* AppState.swift */,
 				B10000000000000000000003 /* DiaryEntry.swift */,
-				B10000000000000000000035 /* DiaryMediaAttachment.swift */,
 				B10000000000000000000004 /* MirrorMessage.swift */,
 			);
 			path = Models;
@@ -426,7 +423,6 @@
 				A10000000000000000000001 /* DiaryVaultApp.swift in Sources */,
 				A10000000000000000000002 /* AppState.swift in Sources */,
 				A10000000000000000000003 /* DiaryEntry.swift in Sources */,
-				A10000000000000000000035 /* DiaryMediaAttachment.swift in Sources */,
 				A10000000000000000000004 /* MirrorMessage.swift in Sources */,
 				A10000000000000000000005 /* DiaryStore.swift in Sources */,
 				A1000000000000000000002F /* DiaryCloudSync.swift in Sources */,
