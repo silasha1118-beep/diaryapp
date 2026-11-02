@@ -64,11 +64,14 @@ struct DiaryComposerView: View {
                     .foregroundStyle(canSave ? VaultTheme.seal : VaultTheme.inkMuted)
                 }
             }
+            // Feed-style dock: chips + mic/photo/video above keyboard; hard-gate replaces it.
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let hardGate {
                     hardQuotaBanner(hardGate)
-                        // Keep the purchase chrome above the TextEditor hit target.
                         .zIndex(2)
+                } else {
+                    composerAttachDock
+                        .zIndex(1)
                 }
             }
             .onAppear {
@@ -94,7 +97,6 @@ struct DiaryComposerView: View {
                 Text(mediaAlertMessage ?? "")
             }
         }
-        // Owned by the composer sheet (parent cover while this sheet is up is a silent no-op).
         .sheet(isPresented: $showUpgradeCheckout) {
             UpgradeCheckoutSheet(
                 preferredTier: billingTier == .authorPlus ? .authorPro : .authorPlus
@@ -104,9 +106,8 @@ struct DiaryComposerView: View {
         }
     }
 
-    // MARK: - Split views (keeps the type checker happy)
+    // MARK: - Form (title → mood → body; media lives in the bottom dock)
 
-    /// Title → mood → compact media + tip → hairline → body fills the rest (no empty middle gap).
     private var formContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 10) {
@@ -119,26 +120,10 @@ struct DiaryComposerView: View {
                     .font(.system(size: 14))
                     .foregroundStyle(VaultTheme.inkMuted)
                     .focused($focusedField, equals: .mood)
-
-                DiaryComposerMediaBar(
-                    attachments: $attachments,
-                    entryID: draftEntryID,
-                    localization: localization,
-                    onPermissionDenied: { mediaAlertMessage = $0 },
-                    onError: { mediaAlertMessage = $0 }
-                )
-                .allowsHitTesting(hardGate == nil)
-                .padding(.top, 2)
-
-                Text(localization.text("diary.media.hint"))
-                    .font(.system(size: 11))
-                    .foregroundStyle(VaultTheme.inkMuted.opacity(0.8))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 2)
             }
             .padding(.horizontal, 20)
             .padding(.top, 16)
-            .padding(.bottom, 12)
+            .padding(.bottom, 10)
 
             Rectangle()
                 .fill(VaultTheme.line.opacity(0.85))
@@ -153,15 +138,33 @@ struct DiaryComposerView: View {
                 .focused($focusedField, equals: .body)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .padding(.bottom, 12)
+                .padding(.bottom, 8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                // TextEditor often extends its hit-testing under bottom insets and steals
-                // the upgrade CTA tap (keyboard stays up, Button never fires).
                 .allowsHitTesting(hardGate == nil)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        // When hard-gated, disable the form (banner owns taps via safeAreaInset).
         .disabled(hardGate != nil)
+    }
+
+    /// Selected thumbs + compact icon attach bar (Facebook/X-style composer dock).
+    private var composerAttachDock: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(VaultTheme.line.opacity(0.7))
+                .frame(height: 1)
+
+            DiaryComposerMediaBar(
+                attachments: $attachments,
+                entryID: draftEntryID,
+                localization: localization,
+                onPermissionDenied: { mediaAlertMessage = $0 },
+                onError: { mediaAlertMessage = $0 }
+            )
+            .padding(.horizontal, 14)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .background(VaultTheme.paper)
+        }
     }
 
     // MARK: - Hard gate (premium stop, still purchase-oriented)
@@ -242,7 +245,6 @@ struct DiaryComposerView: View {
                 .frame(height: 1)
             ZStack {
                 VaultTheme.paperDeep
-                // Quiet warm wash — purchase cue without glow / purple.
                 LinearGradient(
                     colors: [
                         VaultTheme.seal.opacity(0.07),
@@ -309,7 +311,6 @@ struct DiaryComposerView: View {
 
     private func cleanupDraftMediaIfNeeded() {
         guard !didSave, !isEditing else { return }
-        // New entry abandoned — drop draft media folder.
         DiaryMediaFileStore.deleteAll(for: draftEntryID)
     }
 
@@ -319,7 +320,6 @@ struct DiaryComposerView: View {
         }
     }
 
-    /// Compact sheet: Plus + Pro, each with 月／季／年, then 訂閱 → Apple sheet.
     private func presentUpgradeCheckout() {
         focusedField = nil
         KeyboardDismiss.resign()
@@ -336,7 +336,6 @@ struct DiaryComposerView: View {
             limit: limit,
             showUpgrade: showUpgrade
         )
-        // Show the purchase banner; do not auto-fire StoreKit (requires an explicit CTA tap).
         focusedField = nil
         KeyboardDismiss.resign()
     }
@@ -351,10 +350,8 @@ struct DiaryComposerView: View {
 
         hardGate = nil
 
-        // One vault upload per create (text and/or media share the same bucket).
         let quotaKind: UploadQuotaConfig.Kind = attachments.isEmpty ? .text : .multimedia
 
-        // Hard stop only — Free soft ladders removed (lifetime vault uploads incl. media).
         if DiaryUploadUsageGuard.isExhausted(kind: quotaKind, tier: billingTier) {
             applyHardGate(
                 tier: billingTier,
