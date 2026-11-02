@@ -204,6 +204,8 @@
 "diary.media.recordFailed" = "เริ่มอัดเสียงไม่ได้";
 "diary.media.saveFailed" = "บันทึกสื่อนี้ไม่ได้";
 "diary.media.videoTooLong" = "โปรดเก็บวิดีโอไว้ไม่เกินประมาณ 60 วินาที";
+"diary.media.limit.kind" = "รายการนี้มีไฟล์%@ครบเพดานแล้ว (%d) ลบออกอย่างน้อย 1 ไฟล์ก่อนเพิ่มใหม่";
+"diary.media.limit.total" = "รายการนี้มีไฟล์สื่อครบ %d แล้ว ลบออกอย่างน้อย 1 ไฟล์ก่อนเพิ่มใหม่";
 "diary.media.alertTitle" = "สื่อ";
 "diary.media.unavailable" = "เล่นสื่อบนอุปกรณ์นี้ไม่ได้";
 "diary.media.previewOnly" = "มีไฟล์สื่อแนบ";

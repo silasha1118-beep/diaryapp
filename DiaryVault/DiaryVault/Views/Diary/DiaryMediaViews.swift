@@ -27,8 +27,33 @@ struct DiaryComposerMediaBar: View {
     @State private var showLibraryVideoPicker = false
     @State private var isImporting = false
 
-    private var canAddMore: Bool {
-        attachments.count < DiaryMediaConfig.maxAttachmentsPerEntry
+    private func canAdd(_ kind: DiaryMediaKind) -> Bool {
+        DiaryMediaConfig.canAdd(kind: kind, to: attachments)
+    }
+
+    /// Explain the block instead of silently greying out forever with no feedback.
+    private func refuseIfAtCap(_ kind: DiaryMediaKind) -> Bool {
+        guard canAdd(kind) else {
+            let limit = DiaryMediaConfig.maxCount(for: kind)
+            onError(
+                String(
+                    format: localization.text("diary.media.limit.kind"),
+                    localization.text(kind.localizationKey),
+                    limit
+                )
+            )
+            return true
+        }
+        if attachments.count >= DiaryMediaConfig.maxAttachmentsPerEntry {
+            onError(
+                String(
+                    format: localization.text("diary.media.limit.total"),
+                    DiaryMediaConfig.maxAttachmentsPerEntry
+                )
+            )
+            return true
+        }
+        return false
     }
 
     var body: some View {
@@ -52,22 +77,25 @@ struct DiaryComposerMediaBar: View {
                     mediaToolButton(
                         systemName: "mic.fill",
                         labelKey: "diary.media.voice",
-                        disabled: !canAddMore
+                        disabled: false
                     ) {
+                        guard !refuseIfAtCap(.voice) else { return }
                         startVoiceRecording()
                     }
                     mediaToolButton(
                         systemName: "photo",
                         labelKey: "diary.media.photo",
-                        disabled: !canAddMore
+                        disabled: false
                     ) {
+                        guard !refuseIfAtCap(.image) else { return }
                         showPhotoSource = true
                     }
                     mediaToolButton(
                         systemName: "video",
                         labelKey: "diary.media.video",
-                        disabled: !canAddMore
+                        disabled: false
                     ) {
+                        guard !refuseIfAtCap(.video) else { return }
                         showVideoSource = true
                     }
                     Spacer(minLength: 0)
@@ -247,7 +275,7 @@ struct DiaryComposerMediaBar: View {
     // MARK: - Voice
 
     private func startVoiceRecording() {
-        guard canAddMore else { return }
+        guard canAdd(.voice) else { return }
         Task {
             let granted = await VoiceRecorderController.requestPermission()
             guard granted else {

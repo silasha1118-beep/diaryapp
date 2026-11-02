@@ -204,6 +204,8 @@
 "diary.media.recordFailed" = "无法开始录音。";
 "diary.media.saveFailed" = "无法保存此媒体。";
 "diary.media.videoTooLong" = "请将视频控制在约 60 秒以内。";
+"diary.media.limit.kind" = "这篇日记的%@附件已达上限（%d）。请先移除一个再新增。";
+"diary.media.limit.total" = "这篇日记的媒体附件已达 %d 个上限。请先移除一个再新增。";
 "diary.media.alertTitle" = "媒体";
 "diary.media.unavailable" = "此设备尚无法播放媒体";
 "diary.media.previewOnly" = "含媒体附件";
