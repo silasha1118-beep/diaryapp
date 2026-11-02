@@ -195,9 +195,9 @@
 "diary.media.photo.source" = "写真を追加";
 "diary.media.video.source" = "動画を追加";
 "diary.media.takePhoto" = "写真を撮る";
-"diary.media.choosePhoto" = "ライブラリから選ぶ";
+"diary.media.choosePhoto" = "ライブラリから写真を複数選択";
 "diary.media.recordVideo" = "動画を撮る";
-"diary.media.chooseVideo" = "ライブラリから選ぶ";
+"diary.media.chooseVideo" = "ライブラリから動画を複数選択";
 "diary.media.permission.mic" = "マイクがオフです。設定で許可すると音声メモを録音できます。";
 "diary.media.cameraUnavailable" = "この端末ではカメラを使えません。";
 "diary.media.permission.camera" = "カメラがオフです。設定で許可すると写真・動画を撮れます。";
@@ -205,6 +205,7 @@
 "diary.media.saveFailed" = "このメディアを保存できませんでした。";
 "diary.media.videoTooLong" = "動画は約60秒以内にしてください。";
 "diary.media.limit.kind" = "この記録の%@添付は上限（%d）に達しています。追加するには1つ削除してください。";
+"diary.media.limit.partial" = "%d 件追加。上限のため %d 件はスキップしました。";
 "diary.media.limit.total" = "この記録のメディア添付は %d 件の上限です。追加するには1つ削除してください。";
 "diary.media.alertTitle" = "メディア";
 "diary.media.unavailable" = "この端末ではメディアを再生できません";

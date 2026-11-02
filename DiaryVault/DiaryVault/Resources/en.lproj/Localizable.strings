@@ -195,9 +195,9 @@
 "diary.media.photo.source" = "Add a photo";
 "diary.media.video.source" = "Add a video";
 "diary.media.takePhoto" = "Take photo";
-"diary.media.choosePhoto" = "Choose from library";
+"diary.media.choosePhoto" = "Choose photos";
 "diary.media.recordVideo" = "Record video";
-"diary.media.chooseVideo" = "Choose from library";
+"diary.media.chooseVideo" = "Choose videos";
 "diary.media.permission.mic" = "Microphone access is off. Enable it in Settings to record voice notes.";
 "diary.media.cameraUnavailable" = "Camera is not available on this device.";
 "diary.media.permission.camera" = "Camera access is off. Enable it in Settings to take photos or video.";
@@ -205,6 +205,7 @@
 "diary.media.saveFailed" = "Could not save this media.";
 "diary.media.videoTooLong" = "Please keep video within about 60 seconds.";
 "diary.media.limit.kind" = "This entry already has the maximum %2$d %1$@ attachments. Remove one to add another.";
+"diary.media.limit.partial" = "Added %d. %d skipped because this entry is at the media limit.";
 "diary.media.limit.total" = "This entry already has %d media attachments. Remove one to add another.";
 "diary.media.alertTitle" = "Media";
 "diary.media.unavailable" = "Media unavailable on this device";
