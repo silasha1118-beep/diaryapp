@@ -181,6 +181,10 @@
 
 
 /* Diary media */
+"diary.section.text" = "ข้อความ";
+"diary.section.voice" = "เสียง";
+"diary.section.photo" = "รูปภาพ";
+"diary.section.video" = "วิดีโอ";
 "diary.media.voice" = "เสียง";
 "diary.media.photo" = "รูป";
 "diary.media.video" = "วิดีโอ";

@@ -181,6 +181,10 @@
 
 
 /* Diary media */
+"diary.section.text" = "Text";
+"diary.section.voice" = "Voice";
+"diary.section.photo" = "Photos";
+"diary.section.video" = "Video";
 "diary.media.voice" = "Voice";
 "diary.media.photo" = "Photo";
 "diary.media.video" = "Video";

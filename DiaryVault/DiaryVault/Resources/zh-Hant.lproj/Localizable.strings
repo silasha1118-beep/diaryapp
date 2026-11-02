@@ -181,6 +181,10 @@
 
 
 /* Diary media */
+"diary.section.text" = "文字";
+"diary.section.voice" = "語音";
+"diary.section.photo" = "照片";
+"diary.section.video" = "影片";
 "diary.media.voice" = "語音";
 "diary.media.photo" = "照片";
 "diary.media.video" = "影片";
