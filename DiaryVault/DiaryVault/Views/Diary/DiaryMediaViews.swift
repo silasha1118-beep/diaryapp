@@ -401,6 +401,8 @@ struct DiaryComposerMediaBar: View {
 
 // MARK: - Detail media gallery
 
+/// Legacy mixed gallery — detail now renders separated sections in `DiaryDetailView`.
+/// Kept for any call sites that still want a flat attachment stack.
 struct DiaryEntryMediaGallery: View {
     let entry: DiaryEntry
     let localization: LocalizationManager
