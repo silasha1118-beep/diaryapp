@@ -6,7 +6,7 @@ struct DiaryListView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var subscriptions: SubscriptionStore
 
-    /// Item-based sheet so Edit always receives the tapped entry (not a stale nil capture).
+    /// Item-based sheet so create/edit always receive a fresh session.
     @State private var composerSession: ComposerSession?
 
     private var vaultSubtitle: String {
@@ -58,9 +58,6 @@ struct DiaryListView: View {
                 }
             }
             .sheet(item: $composerSession) { session in
-                // Re-attach env objects — sheet inheritance is unreliable on some iOS builds.
-                // Paywall fullScreenCover lives *inside* DiaryComposerView: a list-level cover
-                // while this sheet is already presented is a silent no-op on device.
                 DiaryComposerView(editingEntry: session.editingEntry)
                     .environmentObject(diaryStore)
                     .environmentObject(localization)
@@ -70,14 +67,13 @@ struct DiaryListView: View {
     }
 
     private var entryList: some View {
-        // List (not ScrollView) so `.swipeActions` works on rows.
         List {
             Section {
                 VaultBrandHeader(
                     title: localization.text("brand.name"),
                     subtitle: vaultSubtitle
                 )
-                .listRowInsets(EdgeInsets(top: 14, leading: 24, bottom: 28, trailing: 24))
+                .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 14, trailing: 20))
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             }
@@ -91,22 +87,15 @@ struct DiaryListView: View {
                     .navigationLinkIndicatorVisibility(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     .listRowBackground(Color.clear)
-                    .listRowSeparatorTint(VaultTheme.line.opacity(0.6))
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        // Soft-delete immediately — no confirm dialog; entry stays archived forever.
+                    .listRowSeparatorTint(VaultTheme.line.opacity(0.55))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        // Soft-delete only on swipe — Edit lives on the detail screen.
                         Button(role: .destructive) {
                             diaryStore.delete(id: entry.id)
                         } label: {
                             Label(localization.text("common.delete"), systemImage: "trash")
                         }
                         .tint(VaultTheme.seal)
-
-                        Button {
-                            composerSession = .edit(entry)
-                        } label: {
-                            Label(localization.text("common.edit"), systemImage: "pencil")
-                        }
-                        .tint(VaultTheme.inkMuted)
                     }
                     .accessibilityHint(localization.text("diary.swipe.hint"))
                 }
@@ -115,76 +104,71 @@ struct DiaryListView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
-        .padding(.bottom, 40)
+        .padding(.bottom, 24)
     }
 
     private func formattedEntryDate(_ date: Date) -> String {
         let f = DateFormatter()
         f.locale = localization.locale
         f.dateStyle = .medium
-        // Show time so same-day entries read as chronological, not unordered.
         f.timeStyle = .short
         return f.string(from: date)
     }
 
+    /// Dense feed row: date·mood → title → preview → quiet media icons (no label clutter).
     private func entryRow(_ entry: DiaryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 5) {
                 Text(formattedEntryDate(entry.createdAt))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(VaultTheme.seal)
                 if let mood = entry.moodTag, !mood.isEmpty {
                     Text("·")
-                        .font(.system(size: 12))
-                        .foregroundStyle(VaultTheme.inkMuted.opacity(0.7))
+                        .font(.system(size: 11))
+                        .foregroundStyle(VaultTheme.inkMuted.opacity(0.65))
                     Text(mood)
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundStyle(VaultTheme.inkMuted)
+                        .lineLimit(1)
                 }
-                Spacer(minLength: 0)
+                if entry.hasMedia {
+                    Spacer(minLength: 8)
+                    HStack(spacing: 6) {
+                        ForEach(entry.mediaKindsPresent, id: \.self) { kind in
+                            Image(systemName: kind.systemImage)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(VaultTheme.inkMuted.opacity(0.85))
+                                .accessibilityLabel(localization.text(kind.localizationKey))
+                        }
+                    }
+                } else {
+                    Spacer(minLength: 0)
+                }
             }
 
             if !entry.title.isEmpty {
                 Text(entry.title)
-                    .font(.system(size: 19, weight: .semibold, design: .serif))
+                    .font(.system(size: 17, weight: .semibold, design: .serif))
                     .foregroundStyle(VaultTheme.ink)
                     .lineLimit(1)
             }
 
             if !entry.preview.isEmpty {
                 Text(entry.preview)
-                    .font(.system(size: 15))
+                    .font(.system(size: 14))
                     .foregroundStyle(VaultTheme.inkMuted)
-                    .lineLimit(3)
-                    .lineSpacing(3)
+                    .lineLimit(2)
+                    .lineSpacing(2)
                     .multilineTextAlignment(.leading)
-            } else if entry.hasMedia {
+            } else if entry.hasMedia && entry.title.isEmpty {
                 Text(localization.text("diary.media.previewOnly"))
-                    .font(.system(size: 15))
+                    .font(.system(size: 14))
                     .foregroundStyle(VaultTheme.inkMuted)
                     .lineLimit(1)
             }
-
-            if entry.hasMedia {
-                HStack(spacing: 10) {
-                    ForEach(entry.mediaKindsPresent, id: \.self) { kind in
-                        Label {
-                            Text(localization.text(kind.localizationKey))
-                                .font(.system(size: 11, weight: .medium))
-                        } icon: {
-                            Image(systemName: kind.systemImage)
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .labelStyle(.titleAndIcon)
-                        .foregroundStyle(VaultTheme.seal.opacity(0.9))
-                    }
-                    Spacer(minLength: 0)
-                }
-                .padding(.top, 2)
-            }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
         .contentShape(Rectangle())
     }
 
@@ -194,18 +178,18 @@ struct DiaryListView: View {
                 title: localization.text("brand.name"),
                 subtitle: vaultSubtitle
             )
-            .padding(.horizontal, 28)
-            .padding(.top, 20)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
 
-            Spacer(minLength: 24)
+            Spacer(minLength: 20)
 
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 Text(localization.text("diary.empty.title"))
-                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .font(.system(size: 20, weight: .semibold, design: .serif))
                     .foregroundStyle(VaultTheme.ink)
                     .multilineTextAlignment(.center)
                 Text(localization.text("diary.empty.body"))
-                    .font(.system(size: 15))
+                    .font(.system(size: 14))
                     .foregroundStyle(VaultTheme.inkMuted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
@@ -213,20 +197,20 @@ struct DiaryListView: View {
                     composerSession = .create
                 } label: {
                     Text(localization.text("diary.new"))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(VaultTheme.paper)
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                         .background(VaultTheme.ink)
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 4)
+                .padding(.top, 2)
             }
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, 36)
+            .padding(.horizontal, 32)
 
-            Spacer(minLength: 40)
+            Spacer(minLength: 32)
         }
     }
 }

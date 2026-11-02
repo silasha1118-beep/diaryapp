@@ -148,7 +148,7 @@
 "diary.subtitle.named" = "%@ 的金库";
 "diary.new" = "新日记";
 "diary.edit" = "编辑日记";
-"diary.swipe.hint" = "向左滑可编辑或删除";
+"diary.swipe.hint" = "向左滑可删除";
 "diary.empty.title" = "金库还很安静";
 "diary.empty.body" = "写下第一页——一句话就够。";
 "diary.emptyBody" = "尚未写下文字";

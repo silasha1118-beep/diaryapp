@@ -148,7 +148,7 @@
 "diary.subtitle.named" = "%@ のボールト";
 "diary.new" = "新しい記録";
 "diary.edit" = "記録を編集";
-"diary.swipe.hint" = "左にスワイプで編集・削除";
+"diary.swipe.hint" = "左にスワイプで削除";
 "diary.empty.title" = "ボールトは静かです";
 "diary.empty.body" = "最初のページを書いてみましょう——一文で十分です。";
 "diary.emptyBody" = "まだ文字がありません";

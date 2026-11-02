@@ -427,7 +427,7 @@ struct DiaryEntryMediaGallery: View {
                     }
                 }
             }
-            .padding(.top, 14)
+            .padding(.top, 12)
         }
     }
 }
