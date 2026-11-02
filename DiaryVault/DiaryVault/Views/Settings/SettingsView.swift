@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Internal Settings dumps (Firebase project / Auth UID / product IDs / reset onboarding).
+/// Keep `false` until brand launch — DEBUG alone must not surface this to testers or customers.
+private enum SettingsDeveloperTools {
+    static let isVisible = false
+}
+
 struct SettingsView: View {
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var appState: AppState
@@ -38,7 +44,9 @@ struct SettingsView: View {
                     // Legal last so Privacy / EULA clear the tab bar with bottom inset below.
                     legalSection
                     #if DEBUG
-                    developerSection
+                    if SettingsDeveloperTools.isVisible {
+                        developerSection
+                    }
                     #endif
                 }
                 .scrollContentBackground(.hidden)
@@ -346,7 +354,8 @@ struct SettingsView: View {
     }
 
     #if DEBUG
-    /// Builder-only dumps — never compile into Release customer Settings.
+    /// Builder-only dumps — gated by ``SettingsDeveloperTools/isVisible`` (off until brand launch).
+    /// Never compile into Release; never show in DEBUG until the flag is flipped.
     private var developerCloudProjectID: String? {
         diaryStore.lastCloudSyncProjectID
             ?? DiaryCloudSync.firebaseProjectID
