@@ -180,17 +180,18 @@ struct VaultBrandHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // ~80% of prior display size (Silas: 8/10) — still hero-level for the brand.
             Text(title)
-                .font(.system(size: compact ? 34 : 42, weight: .semibold, design: .serif))
+                .font(.system(size: compact ? 27 : 34, weight: .semibold, design: .serif))
                 .foregroundStyle(VaultTheme.ink)
-                .tracking(compact ? -0.4 : -0.8)
+                .tracking(compact ? -0.3 : -0.6)
                 .lineLimit(1)
                 .minimumScaleFactor(0.82)
 
             Capsule()
                 .fill(VaultTheme.seal.opacity(0.9))
-                .frame(width: compact ? 28 : 40, height: compact ? 2.5 : 3)
-                .padding(.top, compact ? 12 : 16)
+                .frame(width: compact ? 22 : 32, height: compact ? 2 : 2.5)
+                .padding(.top, compact ? 10 : 12)
                 .scaleEffect(x: appeared ? 1 : 0.35, anchor: .leading)
                 .opacity(appeared ? 1 : 0)
 
