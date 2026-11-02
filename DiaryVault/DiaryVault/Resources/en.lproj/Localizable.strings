@@ -204,6 +204,8 @@
 "diary.media.recordFailed" = "Could not start recording.";
 "diary.media.saveFailed" = "Could not save this media.";
 "diary.media.videoTooLong" = "Please keep video within about 60 seconds.";
+"diary.media.limit.kind" = "This entry already has the maximum %2$d %1$@ attachments. Remove one to add another.";
+"diary.media.limit.total" = "This entry already has %d media attachments. Remove one to add another.";
 "diary.media.alertTitle" = "Media";
 "diary.media.unavailable" = "Media unavailable on this device";
 "diary.media.previewOnly" = "Media attachment";

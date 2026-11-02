@@ -204,6 +204,8 @@
 "diary.media.recordFailed" = "録音を開始できませんでした。";
 "diary.media.saveFailed" = "このメディアを保存できませんでした。";
 "diary.media.videoTooLong" = "動画は約60秒以内にしてください。";
+"diary.media.limit.kind" = "この記録の%@添付は上限（%d）に達しています。追加するには1つ削除してください。";
+"diary.media.limit.total" = "この記録のメディア添付は %d 件の上限です。追加するには1つ削除してください。";
 "diary.media.alertTitle" = "メディア";
 "diary.media.unavailable" = "この端末ではメディアを再生できません";
 "diary.media.previewOnly" = "メディア添付あり";
