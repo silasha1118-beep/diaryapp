@@ -21,14 +21,19 @@ struct DiaryComposerMediaBar: View {
     @State private var showVideoSource = false
     @State private var showCameraPhoto = false
     @State private var showCameraVideo = false
-    @State private var photoPickerItem: PhotosPickerItem?
-    @State private var videoPickerItem: PhotosPickerItem?
+    /// Multi-select library picks (photos / videos). Voice stays one-at-a-time.
+    @State private var photoPickerItems: [PhotosPickerItem] = []
+    @State private var videoPickerItems: [PhotosPickerItem] = []
     @State private var showLibraryPhotoPicker = false
     @State private var showLibraryVideoPicker = false
     @State private var isImporting = false
 
     private func canAdd(_ kind: DiaryMediaKind) -> Bool {
         DiaryMediaConfig.canAdd(kind: kind, to: attachments)
+    }
+
+    private func remainingSlots(for kind: DiaryMediaKind) -> Int {
+        DiaryMediaConfig.remainingSlots(for: kind, in: attachments)
     }
 
     /// Explain the block instead of silently greying out forever with no feedback.
@@ -134,23 +139,25 @@ struct DiaryComposerMediaBar: View {
         }
         .photosPicker(
             isPresented: $showLibraryPhotoPicker,
-            selection: $photoPickerItem,
+            selection: $photoPickerItems,
+            maxSelectionCount: max(1, remainingSlots(for: .image)),
             matching: .images,
             photoLibrary: .shared()
         )
         .photosPicker(
             isPresented: $showLibraryVideoPicker,
-            selection: $videoPickerItem,
+            selection: $videoPickerItems,
+            maxSelectionCount: max(1, remainingSlots(for: .video)),
             matching: .videos,
             photoLibrary: .shared()
         )
-        .onChange(of: photoPickerItem) { _, item in
-            guard let item else { return }
-            Task { await importPickedPhoto(item) }
+        .onChange(of: photoPickerItems) { _, items in
+            guard !items.isEmpty else { return }
+            Task { await importPickedPhotos(items) }
         }
-        .onChange(of: videoPickerItem) { _, item in
-            guard let item else { return }
-            Task { await importPickedVideo(item) }
+        .onChange(of: videoPickerItems) { _, items in
+            guard !items.isEmpty else { return }
+            Task { await importPickedVideos(items) }
         }
         .fullScreenCover(isPresented: $showCameraPhoto) {
             CameraCaptureView(mode: .photo) { result in
@@ -380,43 +387,82 @@ struct DiaryComposerMediaBar: View {
         }
     }
 
-    private func importPickedPhoto(_ item: PhotosPickerItem) async {
+    private func importPickedPhotos(_ items: [PhotosPickerItem]) async {
         isImporting = true
         defer {
             isImporting = false
-            photoPickerItem = nil
+            photoPickerItems = []
         }
-        do {
-            guard let data = try await item.loadTransferable(type: Data.self),
-                  let image = UIImage(data: data)
-            else {
-                onError(localization.text("diary.media.saveFailed"))
-                return
+        var added = 0
+        var failed = 0
+        for item in items {
+            guard canAdd(.image) else { break }
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data)
+                else {
+                    failed += 1
+                    continue
+                }
+                let attachment = try DiaryMediaFileStore.saveImageJPEG(entryID: entryID, image: image)
+                attachments.append(attachment)
+                added += 1
+            } catch {
+                failed += 1
             }
-            let attachment = try DiaryMediaFileStore.saveImageJPEG(entryID: entryID, image: image)
-            attachments.append(attachment)
-        } catch {
+        }
+        let skipped = max(0, items.count - added - failed)
+        if skipped > 0 {
+            onError(
+                String(
+                    format: localization.text("diary.media.limit.partial"),
+                    added,
+                    skipped
+                )
+            )
+        } else if added == 0, failed > 0 {
             onError(localization.text("diary.media.saveFailed"))
         }
     }
 
-    private func importPickedVideo(_ item: PhotosPickerItem) async {
+    private func importPickedVideos(_ items: [PhotosPickerItem]) async {
         isImporting = true
         defer {
             isImporting = false
-            videoPickerItem = nil
+            videoPickerItems = []
         }
-        do {
-            guard let movie = try await item.loadTransferable(type: PickedMovie.self) else {
-                onError(localization.text("diary.media.saveFailed"))
-                return
+        var added = 0
+        var failed = 0
+        var tooLong = 0
+        for item in items {
+            guard canAdd(.video) else { break }
+            do {
+                guard let movie = try await item.loadTransferable(type: PickedMovie.self) else {
+                    failed += 1
+                    continue
+                }
+                defer { try? FileManager.default.removeItem(at: movie.url) }
+                let attachment = try await DiaryMediaFileStore.importVideo(entryID: entryID, from: movie.url)
+                attachments.append(attachment)
+                added += 1
+            } catch MediaFileError.videoTooLong {
+                tooLong += 1
+            } catch {
+                failed += 1
             }
-            let attachment = try await DiaryMediaFileStore.importVideo(entryID: entryID, from: movie.url)
-            attachments.append(attachment)
-            try? FileManager.default.removeItem(at: movie.url)
-        } catch MediaFileError.videoTooLong {
+        }
+        let skipped = max(0, items.count - added - failed - tooLong)
+        if tooLong > 0 {
             onError(localization.text("diary.media.videoTooLong"))
-        } catch {
+        } else if skipped > 0 {
+            onError(
+                String(
+                    format: localization.text("diary.media.limit.partial"),
+                    added,
+                    skipped
+                )
+            )
+        } else if added == 0, failed > 0 {
             onError(localization.text("diary.media.saveFailed"))
         }
     }

@@ -195,9 +195,9 @@
 "diary.media.photo.source" = "添加照片";
 "diary.media.video.source" = "添加视频";
 "diary.media.takePhoto" = "拍照";
-"diary.media.choosePhoto" = "从相册选择";
+"diary.media.choosePhoto" = "从相册多选照片";
 "diary.media.recordVideo" = "录像";
-"diary.media.chooseVideo" = "从相册选择";
+"diary.media.chooseVideo" = "从相册多选视频";
 "diary.media.permission.mic" = "尚未允许麦克风。请到设置开启，才能录制语音日记。";
 "diary.media.cameraUnavailable" = "此设备无法使用相机。";
 "diary.media.permission.camera" = "尚未允许相机。请到设置开启，才能拍照或录像。";
@@ -205,6 +205,7 @@
 "diary.media.saveFailed" = "无法保存此媒体。";
 "diary.media.videoTooLong" = "请将视频控制在约 60 秒以内。";
 "diary.media.limit.kind" = "这篇日记的%@附件已达上限（%d）。请先移除一个再新增。";
+"diary.media.limit.partial" = "已加入 %d 个；另有 %d 个因达上限未加入。";
 "diary.media.limit.total" = "这篇日记的媒体附件已达 %d 个上限。请先移除一个再新增。";
 "diary.media.alertTitle" = "媒体";
 "diary.media.unavailable" = "此设备尚无法播放媒体";

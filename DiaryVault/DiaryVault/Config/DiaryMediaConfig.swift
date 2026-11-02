@@ -36,9 +36,14 @@ enum DiaryMediaConfig {
 
     /// Whether another attachment of `kind` may be added to `attachments`.
     static func canAdd(kind: DiaryMediaKind, to attachments: [DiaryMediaAttachment]) -> Bool {
-        guard attachments.count < maxAttachmentsPerEntry else { return false }
-        let kindCount = attachments.filter { $0.kind == kind }.count
-        return kindCount < maxCount(for: kind)
+        remainingSlots(for: kind, in: attachments) > 0
+    }
+
+    /// How many more of `kind` can still be added (respects kind + total ceilings).
+    static func remainingSlots(for kind: DiaryMediaKind, in attachments: [DiaryMediaAttachment]) -> Int {
+        let kindRemaining = maxCount(for: kind) - attachments.filter { $0.kind == kind }.count
+        let totalRemaining = maxAttachmentsPerEntry - attachments.count
+        return max(0, min(kindRemaining, totalRemaining))
     }
 
     /// JPEG compression quality for still photos.
