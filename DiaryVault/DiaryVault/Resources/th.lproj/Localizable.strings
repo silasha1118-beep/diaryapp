@@ -148,7 +148,7 @@
 "diary.subtitle.named" = "ห้องเก็บของ %@";
 "diary.new" = "บันทึกใหม่";
 "diary.edit" = "แก้ไขบันทึก";
-"diary.swipe.hint" = "ปัดซ้ายเพื่อแก้ไขหรือลบ";
+"diary.swipe.hint" = "ปัดซ้ายเพื่อลบ";
 "diary.empty.title" = "ห้องเก็บยังเงียบ";
 "diary.empty.body" = "เขียนหน้าแรก — ประโยคเดียวก็พอ";
 "diary.emptyBody" = "ยังไม่มีข้อความ";

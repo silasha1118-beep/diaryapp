@@ -148,7 +148,7 @@
 "diary.subtitle.named" = "%@’s vault";
 "diary.new" = "New entry";
 "diary.edit" = "Edit entry";
-"diary.swipe.hint" = "Swipe left for Edit and Delete";
+"diary.swipe.hint" = "Swipe left to delete";
 "diary.empty.title" = "The vault is quiet";
 "diary.empty.body" = "Write a first page — one sentence is enough.";
 "diary.emptyBody" = "No words yet";
