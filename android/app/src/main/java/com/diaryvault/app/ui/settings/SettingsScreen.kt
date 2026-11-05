@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.AppLanguage
+import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
 
@@ -78,7 +79,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     var exportReady by remember { mutableStateOf(false) }
     var langExpanded by remember { mutableStateOf(false) }
 
-    val dialOptions = listOf(
+    val dialOptionRes = listOf(
         R.string.auth_dial_tw,
         R.string.auth_dial_hk,
         R.string.auth_dial_cn,
@@ -87,6 +88,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
         R.string.auth_dial_th,
         R.string.auth_dial_jp,
     )
+    val dialLabels = dialOptionRes.map { res -> res to localizedString(res) }
     val dialCode = localizedString(dialRes)
     val syncStatusText = when {
         hasLiveFirebase && lastSyncError != null ->
@@ -191,69 +193,22 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                         color = VaultColors.inkMuted,
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
                     )
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        ExposedDropdownMenuBox(
-                            expanded = dialExpanded,
-                            onExpandedChange = { dialExpanded = it },
-                            modifier = Modifier.weight(0.42f),
-                        ) {
-                            OutlinedTextField(
-                                value = dialCode,
-                                onValueChange = {},
-                                readOnly = true,
-                                singleLine = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dialExpanded) },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth(),
-                                colors = creamFieldColors(),
-                                shape = RoundedCornerShape(4.dp),
-                                textStyle = MaterialTheme.typography.labelLarge.copy(color = VaultColors.ink),
-                            )
-                            ExposedDropdownMenu(
-                                expanded = dialExpanded,
-                                onDismissRequest = { dialExpanded = false },
-                            ) {
-                                dialOptions.forEach { res ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                localizedString(res),
-                                                color = VaultColors.ink,
-                                            )
-                                        },
-                                        onClick = {
-                                            dialRes = res
-                                            dialExpanded = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                        OutlinedTextField(
-                            value = phoneNational,
-                            onValueChange = { phoneNational = it.filter { ch -> ch.isDigit() || ch == ' ' } },
-                            modifier = Modifier.weight(0.58f),
-                            placeholder = {
-                                Text(
-                                    localizedString(R.string.auth_phone_placeholder),
-                                    color = VaultColors.inkMuted,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            },
-                            singleLine = true,
-                            colors = creamFieldColors(),
-                            shape = RoundedCornerShape(4.dp),
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(color = VaultColors.ink),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                        )
-                    }
+                    AuthDialPhoneRow(
+                        dialLabel = dialCode,
+                        dialExpanded = dialExpanded,
+                        onDialExpandedChange = { dialExpanded = it },
+                        dialOptions = dialLabels.map { it.second },
+                        onDialSelected = { label ->
+                            dialRes = dialLabels.firstOrNull { it.second == label }?.first
+                                ?: R.string.auth_dial_tw
+                        },
+                        phone = phoneNational,
+                        onPhoneChange = { phoneNational = it.filter { ch -> ch.isDigit() || ch == ' ' } },
+                        phonePlaceholder = localizedString(R.string.auth_phone_placeholder),
+                        enabled = true,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        corner = 4.dp,
+                    )
                     // iOS: Color.white on VaultTheme.seal — cream paper as contentColor washed out on burgundy.
                     Button(
                         onClick = { /* UI stub — SMS link wiring later */ },

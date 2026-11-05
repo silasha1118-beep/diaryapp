@@ -3,7 +3,6 @@ package com.diaryvault.app.ui.auth
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,18 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -44,6 +35,8 @@ import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.config.AuthConfig
+import com.diaryvault.app.ui.components.AuthDialPhoneRow
+import com.diaryvault.app.ui.components.AuthOutlinedField
 import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultBackground
@@ -53,7 +46,6 @@ import com.diaryvault.app.ui.theme.VaultColors
  * Phone SMS OTP gate — Firebase when `google-services.json` is present, else local stub.
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val activity = LocalContext.current as ComponentActivity
@@ -67,7 +59,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val error by viewModel.authError.collectAsState()
     val sent = session != null
 
-    val dialOptions = listOf(
+    val dialOptionRes = listOf(
         R.string.auth_dial_tw,
         R.string.auth_dial_hk,
         R.string.auth_dial_cn,
@@ -76,15 +68,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
         R.string.auth_dial_th,
         R.string.auth_dial_jp,
     )
-
-    val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = VaultColors.seal,
-        unfocusedBorderColor = VaultColors.line,
-        focusedTextColor = VaultColors.ink,
-        cursorColor = VaultColors.seal,
-        focusedContainerColor = VaultColors.paper.copy(alpha = 0.6f),
-        unfocusedContainerColor = VaultColors.paper.copy(alpha = 0.45f),
-    )
+    val dialOptions = dialOptionRes.map { localizedString(it) }
 
     VaultBackground {
         Column(
@@ -112,17 +96,15 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 color = VaultColors.inkMuted,
             )
 
-            if (BuildConfig.DEBUG) {
+            // Production-looking gate: hide Firebase 「真實發送」 banner.
+            // DEBUG stub-only — so a missing google-services.json stays obvious.
+            if (BuildConfig.DEBUG &&
+                viewModel.smsProviderKind == AuthConfig.SMSProviderKind.STUB
+            ) {
                 Text(
-                    localizedString(
-                        if (viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
-                            R.string.auth_sms_provider_firebase
-                        } else {
-                            R.string.auth_sms_provider_stub
-                        },
-                    ),
+                    localizedString(R.string.auth_sms_provider_stub),
                     style = MaterialTheme.typography.labelLarge,
-                    color = VaultColors.inkMuted,
+                    color = VaultColors.seal,
                 )
             }
 
@@ -131,79 +113,43 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = VaultColors.inkMuted,
             )
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ExposedDropdownMenuBox(
-                    expanded = dialExpanded,
-                    onExpandedChange = { dialExpanded = it },
-                    modifier = Modifier.weight(0.45f),
-                ) {
-                    OutlinedTextField(
-                        value = dialCode,
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
-                        enabled = !sent && !busy,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dialExpanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        colors = fieldColors,
-                        shape = RoundedCornerShape(12.dp),
-                        textStyle = MaterialTheme.typography.labelLarge,
-                    )
-                    ExposedDropdownMenu(
-                        expanded = dialExpanded,
-                        onDismissRequest = { dialExpanded = false },
-                    ) {
-                        dialOptions.forEach { res ->
-                            val label = localizedString(res)
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                onClick = {
-                                    dialCode = label
-                                    dialExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = {
-                        phone = it.filter { ch -> ch.isDigit() || ch == '+' }
-                        viewModel.clearAuthError()
-                    },
-                    modifier = Modifier.weight(0.55f),
-                    enabled = !sent && !busy,
-                    placeholder = { Text(localizedString(R.string.auth_phone_placeholder)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    colors = fieldColors,
-                    shape = RoundedCornerShape(12.dp),
-                )
-            }
+            AuthDialPhoneRow(
+                dialLabel = dialCode,
+                dialExpanded = dialExpanded,
+                onDialExpandedChange = { dialExpanded = it },
+                dialOptions = dialOptions,
+                onDialSelected = { dialCode = it },
+                phone = phone,
+                onPhoneChange = {
+                    phone = it.filter { ch -> ch.isDigit() || ch == '+' }
+                    viewModel.clearAuthError()
+                },
+                phonePlaceholder = localizedString(R.string.auth_phone_placeholder),
+                enabled = !sent && !busy,
+            )
 
             if (sent) {
-                OutlinedTextField(
+                AuthOutlinedField(
                     value = code,
                     onValueChange = {
                         code = it.filter { ch -> ch.isDigit() }.take(6)
                         viewModel.clearAuthError()
                     },
-                    modifier = Modifier.fillMaxWidth(),
                     enabled = !busy,
-                    label = { Text(localizedString(R.string.auth_otp_label)) },
-                    placeholder = { Text(localizedString(R.string.auth_otp_placeholder)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = fieldColors,
-                    shape = RoundedCornerShape(12.dp),
+                    label = localizedString(R.string.auth_otp_label),
+                    placeholder = localizedString(R.string.auth_otp_placeholder),
+                    keyboardType = KeyboardType.Number,
                 )
                 session?.stubDebugHint?.let { hint ->
                     Text(
                         localizedString(R.string.auth_stub_hint, hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = VaultColors.inkMuted,
+                    )
+                }
+                if (viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+                    Text(
+                        localizedString(R.string.auth_sms_sent_hint),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
                     )
@@ -217,10 +163,6 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             Button(
                 onClick = {
                     if (!sent) {
-                        if (phone.trim().length < 6) {
-                            viewModel.clearAuthError()
-                            // Surface via local validation through sendPhoneCode path
-                        }
                         viewModel.sendPhoneCode(activity, phone.trim(), dialCode)
                     } else {
                         viewModel.verifyPhoneCode(code)

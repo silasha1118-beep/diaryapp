@@ -34,26 +34,28 @@ android/app/google-services.json
 
 5. Leave `DIARY_SMS_PROVIDER` empty (default). Empty + JSON present → Firebase. Set `stub` only to force local OTP.
 
-### 2. Register SHA-1 for Phone Auth
+### 2. Register SHA-1 **and SHA-256** for Phone Auth (required for live SMS)
 
-Phone Auth app verification needs the signing certificate fingerprint:
+Android Phone Auth completes Play Integrity / reCAPTCHA using the **signing certificate** of the APK you install. iOS SHA does **not** cover Android.
 
 ```bash
-# Debug keystore (default Android Studio debug key)
+# Debug keystore (default Android Studio / Gradle debug key)
 keytool -list -v -alias androiddebugkey \
   -keystore ~/.android/debug.keystore \
   -storepass android -keypass android
 ```
 
-Copy the **SHA-1** (and ideally SHA-256) → Firebase Console → Project settings → Your apps → Android `com.diaryvault.app` → **Add fingerprint**.
+If you install via a different machine or CI keystore, fingerprint **that** key — not only the Mac default.
 
-Without SHA-1, SMS send often fails with app-verification / reCAPTCHA errors.
+Copy **SHA-1** and **SHA-256** → Firebase Console → Project settings → Your apps → Android `com.diaryvault.app` → **Add fingerprint**. Then **reinstall** the debug APK (Firebase config is baked at build time; fingerprints are checked at runtime after Console save, but a clean reinstall avoids stale builds).
 
-### 3. Enable Phone Auth + regions
+Without matching SHA fingerprints, send fails with app-verification / reCAPTCHA / `invalid-app-credential` — the UI now surfaces that as the app-verification error string.
 
-1. Authentication → Sign-in method → **Phone** → Enable.
-2. Allow SMS regions for launch markets: **TW / HK / CN / MY / SG / TH / JP** (same checklist as iOS README).
-3. Optional: add test phone numbers under Phone → Phone numbers for testing (skips real SMS while iterating).
+### 3. Enable Phone Auth + SMS region allowlist
+
+1. Authentication → Sign-in method → **Phone** → Enable (already on for `diaryappsilas`).
+2. Authentication → Settings → **SMS region policy** — allow **TW / HK / CN / MY / SG / TH / JP**. HK (`+852`) and TW (`+886`) must be allowed for live OTP to those numbers.
+3. **App Check**: if App Check is **enforced** on Auth and Android is not registered / attested, Phone Auth fails. For debug while wiring SMS, leave App Check unenforced on Authentication, or register the Android debug token.
 
 ### 4. Firestore (same as iOS)
 
@@ -75,13 +77,21 @@ cd android
 ./gradlew :app:installDebug
 ```
 
-## How to test (Silas checklist)
+## How to test live SMS (Silas checklist)
 
-1. Confirm Settings → Sync shows **Local session only** / **Signed out** before login.
-2. Sign in with phone OTP (DEBUG banner: “SMS backend: Firebase” when JSON is present).
-3. Create a diary entry → Settings → **Sync now** → status becomes **Synced**.
-4. In Console → Firestore → `users/{your Auth UID}/entries` — docs appear; delete in-app soft-sets `deleted: true` (no hard delete).
-5. If SMS fails: re-check SHA-1, package name, Phone provider enabled, region policy.
+Use a **physical device with Google Play** (or an emulator **with** Play Store). Prefer real `+852` / `+886` numbers — the project already has successful Phone Auth users historically; Android must complete its own Play Integrity / reCAPTCHA path.
+
+1. Confirm `android/app/google-services.json` is present and package is `com.diaryvault.app`.
+2. Confirm **SHA-1 + SHA-256** of **this** debug keystore are on the Android app in Console (step 2 above).
+3. Rebuild + install: `./gradlew :app:installDebug`.
+4. Open the login gate → pick **+852** → enter national number (e.g. `84028001`) → **Send**.
+5. Watch for:
+   - A reCAPTCHA / browser sheet (complete it) **or** silent Play Integrity
+   - OTP field appears → Logcat `FirebasePhoneSMS` shows `onCodeSent` (success) or `onVerificationFailed` (error text also on screen)
+6. Enter the SMS code → continue. Settings → Sync should show a live Firebase session.
+7. If OTP UI never appears and an error shows: fix that Console item (SHA, region, App Check). If OTP UI appears but SMS never arrives after `onCodeSent`: carrier / Firebase SMS delivery for that region — not a missing Activity callback.
+
+> DA-42 note: mainland `+86` delivery has been flaky historically; **HK `+852` / TW `+886` should work** when regions are allowlisted and Android app verification succeeds.
 
 ## Optional: cloud Mirror AI
 

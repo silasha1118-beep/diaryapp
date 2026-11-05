@@ -132,7 +132,9 @@
     <string name="auth_phone_change_number">改用其他号码</string>
     <string name="auth_sms_rate_limited">尝试次数过多，请稍后再试。</string>
     <string name="auth_sms_region_blocked">此电话地区尚未在 Firebase Console 允许短信。</string>
-    <string name="auth_sms_app_verification">App 验证失败。请在 Firebase Console → 项目设置 → 你的应用 加入此 App 的 SHA-1 指纹。</string>
+    <string name="auth_sms_app_verification">App 验证失败。请在 Firebase Console → 项目设置 → 你的应用 → Android 加入此 App 的 SHA-1（与 SHA-256）指纹，然后重新安装 debug 版。</string>
+    <string name="auth_sms_timed_out">短信请求超时。如出现 reCAPTCHA 请完成验证，检查网络后再试一次。</string>
+    <string name="auth_sms_sent_hint">若 1–2 分钟仍未收到短信，请稍候再重试一次；可在 Logcat 搜索 FirebasePhoneSMS 查看发送结果。</string>
     <string name="mirror_today_label">今日一问</string>
     <string name="mirror_today_question">今天有哪一刻，值得留给未来的自己？</string>
     <string name="mirror_start_chat">开始对话</string>

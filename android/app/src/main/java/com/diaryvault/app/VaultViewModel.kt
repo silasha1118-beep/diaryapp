@@ -138,8 +138,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Send SMS OTP (Firebase when google-services.json present; otherwise stub).
-     * Requires a live Activity for Firebase Phone Auth reCAPTCHA / Play Integrity.
+     * Send live SMS OTP (Firebase when google-services.json present; otherwise stub).
+     * Must keep [activity] on the main path — Phone Auth needs it for Play Integrity / reCAPTCHA.
      */
     fun sendPhoneCode(activity: Activity, phoneRaw: String, dialLabel: String? = null) {
         viewModelScope.launch {
@@ -147,9 +147,9 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             _authError.value = null
             try {
                 val e164 = resolveE164(phoneRaw, dialLabel)
-                val session = withContext(Dispatchers.IO) {
-                    smsProvider.sendCode(activity, e164)
-                }
+                // Do NOT hop to Dispatchers.IO: Firebase PhoneAuthClient launches
+                // Play Integrity / reCAPTCHA via the Activity and must stay on Main.
+                val session = smsProvider.sendCode(activity, e164)
                 _otpSession.value = session
             } catch (e: Exception) {
                 _authError.value = mapAuthError(e)
@@ -169,9 +169,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             _authBusy.value = true
             _authError.value = null
             try {
-                val user = withContext(Dispatchers.IO) {
-                    smsProvider.verify(code, session)
-                }
+                val user = smsProvider.verify(code, session)
                 accountSession.signInWithPhone(
                     userId = user.userID,
                     phoneE164 = user.phoneE164,
@@ -234,6 +232,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         is SMSAuthError.RateLimited -> string(R.string.auth_sms_rate_limited)
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)
         is SMSAuthError.AppVerificationFailed -> string(R.string.auth_sms_app_verification)
+        is SMSAuthError.TimedOut -> string(R.string.auth_sms_timed_out)
         is SMSAuthError.NotConfigured -> e.detail
         is SMSAuthError.Underlying -> e.detail
         is SMSAuthError -> e.message ?: e.toString()

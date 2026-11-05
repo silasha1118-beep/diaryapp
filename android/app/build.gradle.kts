@@ -88,6 +88,9 @@ dependencies {
     implementation(firebaseBom)
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    // Phone Auth app verification: Play Integrity (+ SafetyNet fallback) and SMS Retriever.
+    implementation("com.google.android.play:integrity:1.4.0")
+    implementation("com.google.android.gms:play-services-auth-api-phone:18.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
