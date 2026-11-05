@@ -12,10 +12,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -38,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -48,6 +55,7 @@ import androidx.navigation.navArgument
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.DiaryEntry
+import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
 import java.text.DateFormat
@@ -98,7 +106,6 @@ fun DiaryNavHost(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DiaryListScreen(
     viewModel: VaultViewModel,
@@ -115,22 +122,12 @@ private fun DiaryListScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(localizedString(R.string.brand_name), style = MaterialTheme.typography.titleLarge)
-                        Text(subtitle, style = MaterialTheme.typography.bodyMedium)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreate,
                 containerColor = VaultColors.seal,
                 contentColor = VaultColors.paper,
+                shape = CircleShape,
             ) {
                 Icon(Icons.Default.Add, contentDescription = localizedString(R.string.diary_new))
             }
@@ -141,27 +138,60 @@ private fun DiaryListScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(32.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
             ) {
-                Text(localizedString(R.string.diary_empty_title), style = MaterialTheme.typography.headlineMedium)
-                Spacer(Modifier.height(8.dp))
-                Text(localizedString(R.string.diary_empty_body), style = MaterialTheme.typography.bodyLarge)
+                VaultBrandHeader(
+                    title = localizedString(R.string.brand_name),
+                    subtitle = subtitle,
+                )
+                Spacer(Modifier.weight(1f))
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        localizedString(R.string.diary_empty_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    Text(
+                        localizedString(R.string.diary_empty_body),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = onCreate,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = VaultColors.ink,
+                            contentColor = VaultColors.paper,
+                        ),
+                        shape = RoundedCornerShape(6.dp),
+                    ) {
+                        Text(localizedString(R.string.diary_new))
+                    }
+                }
+                Spacer(Modifier.weight(1f))
             }
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    start = 20.dp,
+                    start = 24.dp,
                     end = 20.dp,
-                    top = padding.calculateTopPadding(),
+                    top = padding.calculateTopPadding() + 12.dp,
                     bottom = padding.calculateBottomPadding() + 88.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
+                item {
+                    VaultBrandHeader(
+                        title = localizedString(R.string.brand_name),
+                        subtitle = subtitle,
+                        modifier = Modifier.padding(bottom = 20.dp),
+                    )
+                }
                 items(entries, key = { it.id }) { item ->
                     DiaryRow(item, onClick = { onOpen(item.id) })
-                    HorizontalDivider(color = VaultColors.line.copy(alpha = 0.5f))
+                    HorizontalDivider(color = VaultColors.line.copy(alpha = 0.55f))
                 }
             }
         }
@@ -170,34 +200,42 @@ private fun DiaryListScreen(
 
 @Composable
 private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
-    val date = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(entry.createdAt))
+    val date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+        .format(Date(entry.createdAt))
     Column(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = entry.title.ifBlank { date },
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                text = date,
+                style = MaterialTheme.typography.labelLarge,
+                color = VaultColors.seal,
             )
             entry.moodTag?.let {
+                Text("·", color = VaultColors.inkMuted.copy(alpha = 0.7f))
                 Text(it, style = MaterialTheme.typography.labelLarge, color = VaultColors.seal)
             }
         }
-        if (entry.title.isNotBlank()) {
-            Text(date, style = MaterialTheme.typography.bodyMedium)
-        }
-        Spacer(Modifier.height(4.dp))
+        Text(
+            text = entry.title.ifBlank { localizedString(R.string.diary_empty_body_placeholder) },
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Text(
             text = entry.preview.ifBlank { localizedString(R.string.diary_empty_body_placeholder) },
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            color = VaultColors.inkMuted,
         )
     }
 }
@@ -342,6 +380,28 @@ private fun DiaryComposerScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             )
         },
+        bottomBar = {
+            // Media icon row stubs — UI only (iOS composerAttachDock parity).
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MediaStubIcon(Icons.Default.Mic, localizedString(R.string.diary_media_voice))
+                MediaStubIcon(Icons.Default.Image, localizedString(R.string.diary_media_photo))
+                MediaStubIcon(Icons.Default.Videocam, localizedString(R.string.diary_media_video))
+                Spacer(Modifier.weight(1f))
+                Text(
+                    localizedString(R.string.diary_media_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = VaultColors.inkMuted,
+                    maxLines = 2,
+                    modifier = Modifier.weight(2.5f),
+                )
+            }
+        },
     ) { padding ->
         Column(
             Modifier
@@ -383,20 +443,20 @@ private fun DiaryComposerScreen(
                     Text(
                         titleText,
                         color = VaultColors.ink,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                     hardBenefit?.let { benefit ->
                         Text(
                             benefit,
                             color = VaultColors.inkMuted,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                     hardMeta?.let { meta ->
                         Text(
                             meta,
                             color = VaultColors.inkMuted,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
                     if (hardShowUpgrade) {
@@ -415,5 +475,12 @@ private fun DiaryComposerScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MediaStubIcon(icon: ImageVector, label: String) {
+    IconButton(onClick = { /* stub — media pickers deferred */ }) {
+        Icon(icon, contentDescription = label, tint = VaultColors.seal)
     }
 }

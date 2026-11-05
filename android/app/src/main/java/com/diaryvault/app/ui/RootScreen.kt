@@ -6,8 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -24,9 +24,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.ui.auth.PhoneOTPLoginScreen
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.diary.DiaryNavHost
-import com.diaryvault.app.ui.mirror.MirrorChatScreen
+import com.diaryvault.app.ui.mirror.MirrorTabScreen
 import com.diaryvault.app.ui.onboarding.OnboardingScreen
 import com.diaryvault.app.ui.settings.SettingsScreen
 import com.diaryvault.app.ui.theme.VaultBackground
@@ -35,16 +36,21 @@ import com.diaryvault.app.ui.theme.VaultColors
 @Composable
 fun RootScreen(viewModel: VaultViewModel) {
     val done by viewModel.didCompleteOnboarding.collectAsState()
+    val signedIn by viewModel.accountSignedIn.collectAsState()
 
     AnimatedContent(
-        targetState = done,
+        targetState = when {
+            !done -> "onboarding"
+            !signedIn -> "auth"
+            else -> "main"
+        },
         transitionSpec = { fadeIn() togetherWith fadeOut() },
         label = "root",
-    ) { onboarded ->
-        if (onboarded) {
-            MainTabs(viewModel)
-        } else {
-            OnboardingScreen(viewModel)
+    ) { stage ->
+        when (stage) {
+            "onboarding" -> OnboardingScreen(viewModel)
+            "auth" -> PhoneOTPLoginScreen(viewModel)
+            else -> MainTabs(viewModel)
         }
     }
 }
@@ -57,7 +63,7 @@ private fun MainTabs(viewModel: VaultViewModel) {
         Scaffold(
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
             bottomBar = {
-                NavigationBar(containerColor = VaultColors.paper.copy(alpha = 0.92f)) {
+                NavigationBar(containerColor = VaultColors.paper.copy(alpha = 0.94f)) {
                     NavigationBarItem(
                         selected = tab == 0,
                         onClick = { tab = 0 },
@@ -84,7 +90,7 @@ private fun MainTabs(viewModel: VaultViewModel) {
         ) { padding ->
             when (tab) {
                 0 -> DiaryNavHost(viewModel, Modifier.padding(padding))
-                1 -> MirrorChatScreen(viewModel, Modifier.padding(padding))
+                1 -> MirrorTabScreen(viewModel, Modifier.padding(padding))
                 else -> SettingsScreen(viewModel, Modifier.padding(padding))
             }
         }

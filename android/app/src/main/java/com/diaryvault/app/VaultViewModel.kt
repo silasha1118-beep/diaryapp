@@ -84,8 +84,18 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     /** Stub only — creates a local session; not Google Sign-In. */
     fun signInLocalStub() {
         accountSession.signInLocally(_displayName.value.ifBlank { null })
-        _accountSignedIn.value = accountSession.isSignedIn
-        _accountLabel.value = accountSession.displayName.orEmpty()
+        refreshAccountState()
+    }
+
+    /**
+     * Fake phone OTP success — mirrors HarmonyOS Index / iOS stub SMS.
+     * No real SMS SDK; any verified code from the gate creates a phone session.
+     */
+    fun signInWithPhoneStub(phoneRaw: String) {
+        val digits = phoneRaw.filter { it.isDigit() }
+        val e164 = if (phoneRaw.trim().startsWith("+")) phoneRaw.trim() else "+$digits"
+        accountSession.signInWithPhone(e164, _displayName.value.ifBlank { null })
+        refreshAccountState()
     }
 
     fun signOutAccount() {
@@ -95,6 +105,22 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         _accountLabel.value = ""
         _billingActive.value = false
     }
+
+    private fun refreshAccountState() {
+        _accountSignedIn.value = accountSession.isSignedIn
+        _accountLabel.value = accountSession.displayName
+            ?: accountSession.phoneE164
+            ?: ""
+    }
+
+    val accountPhone: String? get() = accountSession.phoneE164
+    val accountProviderLabel: String
+        get() = when (accountSession.provider) {
+            AccountSession.Provider.PHONE -> string(R.string.settings_account_provider_phone)
+            AccountSession.Provider.LOCAL -> string(R.string.settings_account_provider_local)
+            AccountSession.Provider.GOOGLE -> string(R.string.settings_account_provider_local)
+            null -> "—"
+        }
 
     fun setLanguage(lang: AppLanguage) {
         prefs.languageTag = lang.tag

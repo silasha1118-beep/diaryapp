@@ -26,13 +26,16 @@ import androidx.compose.ui.unit.sp
 import com.diaryvault.app.model.AppLanguage
 import java.util.Locale
 
-/** Visual language: personal vault — warm paper, ink, soft depth. Not generic notes chrome. */
+/**
+ * Visual language aligned with iOS `VaultTheme` + HarmonyOS Main cream/burgundy.
+ * Cream #F3EEE6, burgundy seal #6B3A2E, ink #1A1410, muted #8A7F74.
+ */
 object VaultColors {
-    val paper = Color(0xFFF5F1E8)
+    val paper = Color(0xFFF3EEE6)
     val paperDeep = Color(0xFFE6DED0)
-    val ink = Color(0xFF29241F)
-    val inkMuted = Color(0xFF665C52)
-    val seal = Color(0xFF8C382E)
+    val ink = Color(0xFF1A1410)
+    val inkMuted = Color(0xFF8A7F74)
+    val seal = Color(0xFF6B3A2E)
     val line = Color(0xFFC7BDAE)
     val mirrorBubble = Color(0xFFEDE6D9)
     val userBubble = Color(0xFFE0D1BC)
@@ -116,8 +119,8 @@ fun VaultBackground(content: @Composable BoxScope.() -> Unit) {
                 Brush.linearGradient(
                     colors = listOf(
                         Color(0xFFF7F3E8),
-                        Color(0xFFEBE4D6),
-                        Color(0xFFE0DBCC),
+                        Color(0xFFF3EEE6),
+                        Color(0xFFE6DED0),
                     ),
                     start = Offset.Zero,
                     end = Offset.Infinite,
