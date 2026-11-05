@@ -175,13 +175,13 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     localizedString(R.string.auth_sms_provider_firebase),
                     style = MaterialTheme.typography.labelLarge,
                     color = VaultColors.ink,
-                    modifier = Modifier.padding(horizontal = 16.dp, bottom = 10.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
                 )
                 Text(
                     localizedString(R.string.auth_phone_label),
                     style = MaterialTheme.typography.bodyMedium,
                     color = VaultColors.inkMuted,
-                    modifier = Modifier.padding(horizontal = 16.dp, bottom = 6.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
                 )
                 Row(
                     Modifier
@@ -418,7 +418,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
             }
 
             // Collapsed 開發 — AI gradle notes + reset onboarding (not customer-facing)
-            Column(Modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
                     text = localizedString(R.string.settings_section_developer) +
                         if (developerExpanded) " ▾" else " ▸",
