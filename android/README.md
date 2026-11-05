@@ -70,7 +70,7 @@ These are the only project settings that commonly produce **OTP UI with no real 
 | **App Check enforced** | App Check → Authentication | Enforce without an Android debug token → send fails (red error). Leave unenforced while wiring. |
 | **API key HTTP referrer** | Google Cloud → Credentials → Browser key | reCAPTCHA needs `https://PROJECT_ID.firebaseapp.com` allowed (or unrestricted) for the Auth API key. |
 
-App code (this branch): debug builds **force the visible reCAPTCHA browser flow**, Custom Tabs package visibility is declared, blank `verificationId` fails closed, and Play instant-verify auto-signs-in instead of waiting for an SMS.
+App code: blank `verificationId` fails closed; Play instant-verify auto-signs-in. **Emulator / no-browser** debug builds **disable app verification** (use Console **test phone numbers** — real SMS needs Chrome). Debug builds **with** a browser force visible reCAPTCHA and warm Custom Tabs. Missing browser fails fast with a clear UI error instead of hanging until timeout.
 
 ### 4. Firestore (same as iOS)
 
@@ -100,9 +100,9 @@ Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number
 2. Confirm `android/app/google-services.json` is present (`com.diaryvault.app`) and `DIARY_SMS_PROVIDER` is empty.
 3. Rebuild + install: `./gradlew :app:installDebug`.
 4. Login → **+852** → national number → **Send**.
-5. **Complete the browser reCAPTCHA** if shown (debug builds force this path). Dismissing it should show a **red** error — not a silent OTP screen.
-6. OTP field = Firebase returned a verification id. Enter the live SMS code (or tap **Resend** after 60s).
-7. If OTP appears but no SMS: check the Console table in §3b (especially **test numbers** and **Blaze**), not Activity wiring.
+5. **Emulator without Chrome:** add the number under Console **Phone numbers for testing**, Send, enter the fixed test code (app disables Integrity/reCAPTCHA on no-browser debug so it does not hang). **Real SMS:** use a Play Store AVD with Chrome (or a physical device) and complete the browser reCAPTCHA sheet.
+6. OTP field = Firebase returned a verification id. Enter the SMS / test code (or tap **Resend** after 60s).
+7. If Send shows a red “needs a browser” error: install Chrome on the AVD or switch to a real device — do not wait for a sheet that will never open.
 
 > DA-42 note: mainland `+86` delivery has been flaky historically; **HK `+852` / TW `+886` should work** when regions are allowlisted, billing is Blaze, and the number is not a Console test number.
 

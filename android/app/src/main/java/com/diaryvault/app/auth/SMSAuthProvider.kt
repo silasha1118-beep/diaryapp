@@ -57,6 +57,10 @@ sealed class SMSAuthError(message: String) : Exception(message) {
     data object AppVerificationFailed : SMSAuthError(
         "App verification failed (Play Integrity / reCAPTCHA).",
     )
+    /** Emulator / device has no browser so reCAPTCHA Custom Tabs cannot open. */
+    data object RecaptchaUnavailable : SMSAuthError(
+        "Security check needs a browser. Use a Play Store emulator with Chrome, or a real device.",
+    )
     data object TimedOut : SMSAuthError("SMS request timed out. Check network, then try again.")
     data object EmptyVerificationId : SMSAuthError(
         "Verification did not complete — no verification id from Firebase.",
@@ -192,42 +196,94 @@ class FirebasePhoneSMSAuthProvider(
         }
 
         applySMSLanguageCode()
-        applyDebugRecaptchaPreference()
+        val mode = prepareAppVerification(activity)
 
         Log.i(
             TAG,
-            "verifyPhoneNumber start e164=$normalized resend=$resend " +
+            "verifyPhoneNumber start e164=$normalized resend=$resend mode=$mode " +
                 "pkg=${appContext.packageName} activity=${activity.javaClass.simpleName} " +
-                "project=${FirebaseBootstrap.projectId}",
+                "project=${FirebaseBootstrap.projectId} env=${PhoneAuthEnvironment.describe(activity)}",
         )
 
         // Phone Auth + reCAPTCHA / Play Integrity must start on the main thread with a live Activity.
+        val timeoutMs = when (mode) {
+            AppVerificationMode.FORCE_RECAPTCHA -> SEND_TIMEOUT_RECAPTCHA_MS
+            AppVerificationMode.DISABLED_FOR_TESTING -> SEND_TIMEOUT_TEST_MS
+            AppVerificationMode.DEFAULT -> SEND_TIMEOUT_DEFAULT_MS
+        }
         return try {
-            withTimeout(SEND_TIMEOUT_MS) {
+            withTimeout(timeoutMs) {
                 withContext(Dispatchers.Main.immediate) {
                     awaitVerification(activity, normalized, resend)
                 }
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            Log.e(TAG, "verifyPhoneNumber timed out for $normalized (reCAPTCHA may have been dismissed)")
+            Log.e(
+                TAG,
+                "verifyPhoneNumber timed out for $normalized mode=$mode " +
+                    "(reCAPTCHA not completed or Integrity hung)",
+            )
+            // Prefer actionable copy when Integrity/reCAPTCHA never completed (common on AVD).
+            if (mode != AppVerificationMode.DEFAULT) {
+                throw SMSAuthError.RecaptchaUnavailable
+            }
             throw SMSAuthError.TimedOut
         }
     }
 
+    private enum class AppVerificationMode {
+        /** Production-like: Play Integrity, then reCAPTCHA fallback. */
+        DEFAULT,
+        /** DEBUG + browser: force visible Custom Tab reCAPTCHA. */
+        FORCE_RECAPTCHA,
+        /**
+         * DEBUG emulator / no browser: skip Integrity + reCAPTCHA so Console **test**
+         * phone numbers can complete. Real numbers still need a device with Chrome.
+         */
+        DISABLED_FOR_TESTING,
+    }
+
     /**
-     * Sideloaded debug APKs are not Play-recognized — Play Integrity fails and Firebase must
-     * fall back to the browser reCAPTCHA. Forcing that flow in DEBUG makes the sheet visible
-     * so a silent Integrity miss cannot look like a successful send.
+     * Choose Integrity / reCAPTCHA strategy so emulator never hangs 2 minutes on a
+     * missing browser sheet.
      */
-    private fun applyDebugRecaptchaPreference() {
-        if (!BuildConfig.DEBUG) return
-        try {
-            FirebaseAuth.getInstance().firebaseAuthSettings
-                .forceRecaptchaFlowForTesting(true)
-            Log.i(TAG, "DEBUG: forceRecaptchaFlowForTesting(true) — complete the browser check if shown")
-        } catch (e: Exception) {
-            Log.w(TAG, "forceRecaptchaFlowForTesting unavailable", e)
+    private fun prepareAppVerification(activity: Activity): AppVerificationMode {
+        val settings = FirebaseAuth.getInstance().firebaseAuthSettings
+        val hasBrowser = PhoneAuthEnvironment.hasHttpsBrowser(activity)
+        val emulator = PhoneAuthEnvironment.isEmulator()
+
+        if (!BuildConfig.DEBUG) {
+            // Release: never disable verification. Fail fast if reCAPTCHA cannot open.
+            settings.forceRecaptchaFlowForTesting(false)
+            settings.setAppVerificationDisabledForTesting(false)
+            if (!hasBrowser) {
+                Log.e(TAG, "No https browser — reCAPTCHA Custom Tabs cannot launch")
+                throw SMSAuthError.RecaptchaUnavailable
+            }
+            PhoneAuthEnvironment.warmCustomTabs(activity)
+            return AppVerificationMode.DEFAULT
         }
+
+        // DEBUG --------------------------------------------------------------
+        if (!hasBrowser || (emulator && !PhoneAuthEnvironment.hasCustomTabs(activity))) {
+            // Forcing reCAPTCHA here hangs until timeout (Firebase never fires a callback).
+            settings.forceRecaptchaFlowForTesting(false)
+            settings.setAppVerificationDisabledForTesting(true)
+            Log.w(
+                TAG,
+                "DEBUG: no browser/Custom Tabs (emulator=$emulator) — " +
+                    "setAppVerificationDisabledForTesting(true). " +
+                    "Use Firebase Console test phone numbers, or a Play Store AVD with Chrome.",
+            )
+            return AppVerificationMode.DISABLED_FOR_TESTING
+        }
+
+        // Browser present: force the visible reCAPTCHA sheet and warm Custom Tabs so it launches.
+        settings.setAppVerificationDisabledForTesting(false)
+        settings.forceRecaptchaFlowForTesting(true)
+        PhoneAuthEnvironment.warmCustomTabs(activity)
+        Log.i(TAG, "DEBUG: forceRecaptchaFlowForTesting(true) — complete the browser check")
+        return AppVerificationMode.FORCE_RECAPTCHA
     }
 
     private suspend fun awaitVerification(
@@ -449,6 +505,12 @@ class FirebasePhoneSMSAuthProvider(
                     "Phone sign-in is disabled. Enable Authentication → Sign-in method → Phone.",
                 )
             }
+            code.contains("MISSING_ACTIVITY", ignoreCase = true) ||
+                lowered.contains("missing activity") ||
+                lowered.contains("recaptchaactivity") ||
+                lowered.contains("no browser") ||
+                lowered.contains("custom tab") ->
+                return SMSAuthError.RecaptchaUnavailable
             code.contains("APP_NOT_AUTHORIZED", ignoreCase = true) ||
                 code.contains("INVALID_APP_CREDENTIAL", ignoreCase = true) ||
                 code.contains("CAPTCHA", ignoreCase = true) ||
@@ -483,8 +545,12 @@ class FirebasePhoneSMSAuthProvider(
     companion object {
         private const val TAG = "FirebasePhoneSMS"
         private const val KEY_VERIFICATION_ID = "diary.firebase.authVerificationID"
-        /** Wall-clock wait for callbacks (includes browser reCAPTCHA UI). */
-        private const val SEND_TIMEOUT_MS = 120_000L
+        /** Wall-clock wait when forcing browser reCAPTCHA (user must complete the sheet). */
+        private const val SEND_TIMEOUT_RECAPTCHA_MS = 180_000L
+        /** Default Integrity → reCAPTCHA fallback. */
+        private const val SEND_TIMEOUT_DEFAULT_MS = 120_000L
+        /** Test-number path with app verification disabled — should return quickly. */
+        private const val SEND_TIMEOUT_TEST_MS = 45_000L
         private val pendingAutoCredential = AtomicReference<PhoneAuthCredential?>(null)
     }
 }

@@ -176,6 +176,14 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 Text(it, color = VaultColors.seal, style = MaterialTheme.typography.bodyMedium)
             }
 
+            if (busy && !sent && viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+                Text(
+                    localizedString(R.string.auth_sms_sending_security),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = VaultColors.inkMuted,
+                )
+            }
+
             Button(
                 onClick = {
                     if (!sent) {

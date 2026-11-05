@@ -135,10 +135,12 @@
     <string name="auth_sms_rate_limited">尝试次数过多，请稍后再试。</string>
     <string name="auth_sms_region_blocked">此号码所在地区暂时无法发送短信，请稍后再试或改用其他号码。</string>
     <string name="auth_sms_app_verification">无法完成安全验证。若出现浏览器页面请先完成，然后再试一次。</string>
-    <string name="auth_sms_timed_out">请求超时。若出现验证画面请先完成，检查网络后再试一次。</string>
+    <string name="auth_sms_recaptcha_unavailable">安全验证需要浏览器。模拟器请改用含 Play 商店与 Chrome 的系统镜像，或改用实体手机。若只在模拟器测试：到 Firebase Console → Authentication → Phone → Phone numbers for testing 加入此号码，再输入 Console 上的测试码。</string>
+    <string name="auth_sms_timed_out">请求超时。若有验证页面请先完成；若完全没有出现，请安装 Chrome／改用实体手机后再试。</string>
     <string name="auth_sms_sent_hint">若未收到可稍后再试</string>
     <string name="auth_sms_empty_verification">验证尚未完成，请再发送一次验证码。</string>
     <string name="auth_sms_generic_failure">发送验证码时出现问题，请稍后再试。</string>
+    <string name="auth_sms_sending_security">正在打开安全验证…</string>
     <string name="mirror_today_label">今日一问</string>
     <string name="mirror_today_question">今天有哪一刻，值得留给未来的自己？</string>
     <string name="mirror_start_chat">开始对话</string>
