@@ -248,6 +248,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)
         is SMSAuthError.AppVerificationFailed -> string(R.string.auth_sms_app_verification)
         is SMSAuthError.RecaptchaUnavailable -> string(R.string.auth_sms_recaptcha_unavailable)
+        is SMSAuthError.RecaptchaBrowserFailed -> string(R.string.auth_sms_recaptcha_browser_failed)
         is SMSAuthError.TimedOut -> string(R.string.auth_sms_timed_out)
         is SMSAuthError.EmptyVerificationId -> string(R.string.auth_sms_empty_verification)
         is SMSAuthError.NotConfigured -> e.detail.ifBlank { string(R.string.auth_sms_generic_failure) }

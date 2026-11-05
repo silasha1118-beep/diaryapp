@@ -92,8 +92,11 @@ dependencies {
     implementation("com.google.firebase:firebase-functions-ktx")
     // Phone Auth app verification: Play Integrity (+ SafetyNet fallback) and SMS Retriever.
     implementation("com.google.android.play:integrity:1.4.0")
+    implementation("com.google.android.gms:play-services-base:18.5.0")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.1.0")
     // reCAPTCHA fallback opens a Chrome Custom Tab when Play Integrity cannot attest (sideloaded debug).
+    // Prefer Custom Tabs (Chrome) so the Auth redirect returns to the app instead of a dead
+    // *.firebaseapp.com page (sessionStorage / "Chrome isn't responding" on emulator).
     implementation("androidx.browser:browser:1.8.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
