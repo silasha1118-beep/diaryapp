@@ -68,7 +68,6 @@
     <string name="settings_account_signed_out">Not signed in</string>
     <string name="settings_account_identity">Identity</string>
     <string name="settings_account_sign_out">Sign out</string>
-    <string name="settings_account_dev_sign_in">Dev: local session stub</string>
     <string name="settings_account_footer">Session stays on this device. Sign-in is phone SMS OTP.</string>
     <string name="settings_section_billing">Subscription</string>
     <string name="settings_billing_plan">Plan</string>
@@ -108,7 +107,7 @@
     <string name="lang_en_full">English</string>
     <string name="auth_tagline">Write today for your future self</string>
     <string name="auth_headline">Sign in to keep your vault yours.</string>
-    <string name="auth_body">Use your phone number and a one-time SMS code (primary). Signed-in text diaries sync to your account (Free included).</string>
+    <string name="auth_body">Use your phone number and a one-time SMS code. Signed-in text diaries sync to your account.</string>
     <string name="auth_phone_label">Phone number</string>
     <string name="auth_phone_placeholder">Mobile number (without country code)</string>
     <string name="auth_phone_send">Send verification code</string>
@@ -119,16 +118,11 @@
     <string name="auth_dial_sg">+65 Singapore</string>
     <string name="auth_dial_th">+66 Thailand</string>
     <string name="auth_dial_jp">+81 Japan</string>
-    <string name="auth_sms_provider_firebase">SMS backend: Firebase (live send)</string>
-    <string name="auth_sms_provider_stub">SMS backend: Stub (local, no live send)</string>
     <string name="auth_phone_invalid">Enter a valid mobile number.</string>
     <string name="auth_otp_label">Verification code</string>
     <string name="auth_otp_placeholder">6-digit code</string>
     <string name="auth_otp_verify">Verify and continue</string>
     <string name="auth_otp_error">That code did not match. Try again.</string>
-    <string name="auth_stub_hint">Stub SMS (no real text): use code %1$s</string>
-    <string name="auth_preview_note">Stub mode: any plausible number → send → use the hinted code (or any 6-digit). Add google-services.json for live Firebase SMS.</string>
-    <string name="auth_dev_local">Dev: continue with local session</string>
     <string name="auth_phone_change_number">Use a different number</string>
     <string name="auth_phone_resend">Resend code</string>
     <string name="auth_phone_resend_in">Resend in %1$d s</string>

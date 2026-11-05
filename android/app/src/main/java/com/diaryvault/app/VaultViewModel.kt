@@ -133,11 +133,6 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun signInLocalStub() {
-        accountSession.signInLocally(_displayName.value.ifBlank { null })
-        refreshAccountState()
-    }
-
     /**
      * Send live SMS OTP (Firebase when google-services.json present; otherwise stub).
      * Must keep [activity] on the main path — Phone Auth needs it for Play Integrity / reCAPTCHA.

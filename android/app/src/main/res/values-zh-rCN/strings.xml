@@ -68,7 +68,6 @@
     <string name="settings_account_signed_out">尚未登录</string>
     <string name="settings_account_identity">身份</string>
     <string name="settings_account_sign_out">退出登录</string>
-    <string name="settings_account_dev_sign_in">开发：本机会话 stub</string>
     <string name="settings_account_footer">会话仅存于此设备。登录为手机 SMS OTP。</string>
     <string name="settings_section_billing">订阅</string>
     <string name="settings_billing_plan">方案</string>
@@ -108,7 +107,7 @@
     <string name="lang_en_full">English</string>
     <string name="auth_tagline">写下今日，留给未来的自己</string>
     <string name="auth_headline">登录，让金库真正属于你。</string>
-    <string name="auth_body">使用手机号码与短信验证码登录（主路径）。登录后文字日记会同步到账号（Free 含同步）。</string>
+    <string name="auth_body">使用手机号码与短信验证码登录。登录后文字日记会同步到账号。</string>
     <string name="auth_phone_label">手机号码</string>
     <string name="auth_phone_placeholder">手机号码（不含区号）</string>
     <string name="auth_phone_send">发送验证码</string>
@@ -119,16 +118,11 @@
     <string name="auth_dial_sg">+65 新加坡</string>
     <string name="auth_dial_th">+66 泰国</string>
     <string name="auth_dial_jp">+81 日本</string>
-    <string name="auth_sms_provider_firebase">短信后端：Firebase（真实发送）</string>
-    <string name="auth_sms_provider_stub">短信后端：Stub（本地，未真实发送）</string>
     <string name="auth_phone_invalid">请输入有效的手机号码。</string>
     <string name="auth_otp_label">验证码</string>
     <string name="auth_otp_placeholder">六位数字</string>
     <string name="auth_otp_verify">验证并继续</string>
     <string name="auth_otp_error">验证码不符，请再试一次。</string>
-    <string name="auth_stub_hint">Stub 短信（未真实发送）：请使用 %1$s</string>
-    <string name="auth_preview_note">Stub 模式：合理号码 → 发送 → 使用提示码（或任意 6 码）。加入 google-services.json 即可真实 Firebase 短信。</string>
-    <string name="auth_dev_local">开发：以本机会话继续</string>
     <string name="auth_phone_change_number">改用其他号码</string>
     <string name="auth_phone_resend">重新发送验证码</string>
     <string name="auth_phone_resend_in">%1$d 秒后可重发</string>
