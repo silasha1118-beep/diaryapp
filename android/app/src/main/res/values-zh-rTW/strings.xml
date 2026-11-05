@@ -135,7 +135,7 @@
     <string name="diary_media_voice">語音</string>
     <string name="diary_media_photo">照片</string>
     <string name="diary_media_video">影片</string>
-    <string name="diary_media_hint">語音約 90 秒、影片約 60 秒。僅圖示 stub——挑選器稍後接。</string>
+    <string name="diary_media_hint">語音約 90 秒、影片約 60 秒。文字與多媒體共用一次金庫上傳。</string>
     <string name="settings_account_provider">登入方式</string>
     <string name="settings_account_provider_phone">手機（SMS 驗證碼）</string>
     <string name="settings_account_provider_apple">透過 Apple 登入</string>
