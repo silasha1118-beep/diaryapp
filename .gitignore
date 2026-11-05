@@ -48,3 +48,10 @@ android/local.properties
 *.apk
 *.aab
 .cxx/
+
+# Firebase Cloud Functions
+firebase/functions/node_modules/
+firebase/functions/lib/
+firebase/functions/.env
+firebase/functions/.env.*
+

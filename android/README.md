@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Firebase Phone Auth + Firestore text sync** match iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
+Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA); other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
@@ -104,7 +104,7 @@ Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number
 6. OTP field = Firebase returned a verification id. Enter the SMS / test code (or tap **Resend** after 60s).
 7. If Send shows a red “needs a browser” error: install Chrome on the AVD or switch to a real device — do not wait for a sheet that will never open.
 
-> DA-42 note: mainland `+86` delivery has been flaky historically; **HK `+852` / TW `+886` should work** when regions are allowlisted, billing is Blaze, and the number is not a Console test number.
+> DA-42 / dual SMS: mainland **`+86` uses Aliyun** (not Firebase Phone Auth). Deploy Cloud Functions + set Aliyun secrets — see [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md). **HK `+852` / TW `+886`** stay on Firebase when regions are allowlisted, billing is Blaze, and the number is not a Console test number.
 
 ## Optional: cloud Mirror AI
 
@@ -121,7 +121,7 @@ android/
   app/google-services.json.example
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
-    auth/        # SMS OTP (Firebase + stub)
+    auth/        # SMS OTP (routing: +86 Aliyun CF, else Firebase + stub)
     config/      # AuthConfig, FirebaseBootstrap, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
     sync/        # DiaryCloudSync (Firestore schema parity with iOS)

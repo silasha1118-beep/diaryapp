@@ -134,8 +134,9 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Send live SMS OTP (Firebase when google-services.json present; otherwise stub).
-     * Must keep [activity] on the main path — Phone Auth needs it for Play Integrity / reCAPTCHA.
+     * Send live SMS OTP. With google-services.json: **+86 → Aliyun** (Cloud Functions),
+     * other dials → Firebase Phone Auth; otherwise local stub.
+     * Must keep [activity] on the main path — Firebase Phone Auth needs it for Play Integrity / reCAPTCHA.
      *
      * When Firebase auto-verifies (no SMS), signs in immediately instead of showing an OTP field
      * that would wait forever for a text that never arrives.
