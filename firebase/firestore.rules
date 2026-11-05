@@ -33,7 +33,8 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       // Diary entries. entryId MUST stay the DiaryEntry UUID (not phone+datetime).
-      // Optional: label, bodyPreview, moodTag, deleted, deletedAt, attachments[].
+      // Optional: label, bodyPreview, moodTag, deleted, deletedAt, attachments[],
+      // sourcePlatform ("ios" | "android").
       // contentType is "text" or "multimedia". Soft-delete only — no hard delete.
       // Media bytes live in Storage at users/{uid}/entries/{entryId}/{fileName}.
       match /entries/{entryId} {

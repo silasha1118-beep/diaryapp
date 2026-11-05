@@ -77,7 +77,7 @@ App code: blank `verificationId` fails closed; Play instant-verify auto-signs-in
 ### 4. Firestore (same as iOS)
 
 1. Firestore Database **`(default)`** — paste / publish [`firebase/firestore.rules`](../firebase/firestore.rules).
-2. Sync path: `users/{uid}/entries/{entryId}` with soft-delete (`deleted` / `deletedAt`). Free includes sync.
+2. Sync path: `users/{uid}/entries/{entryId}` with soft-delete (`deleted` / `deletedAt`) and `sourcePlatform` (`ios` | `android`). Free includes sync.
 
 ## Open in Android Studio
 

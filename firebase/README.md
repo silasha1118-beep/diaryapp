@@ -48,6 +48,7 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   ownerUid: string              // enables Admin SDK collection-group queries later
   schemaVersion: number         // 1
   contentType: string           // "text" | "multimedia"
+  sourcePlatform?: string       // "ios" | "android" — which client first wrote the entry
   attachments?: array           // [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }]
 ```
 

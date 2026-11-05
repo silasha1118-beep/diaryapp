@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Videocam
@@ -34,10 +35,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +53,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -199,10 +205,71 @@ private fun DiaryListScreen(
                     )
                 }
                 items(entries, key = { it.id }) { item ->
-                    DiaryRow(item, onClick = { onOpen(item.id) })
-                    HorizontalDivider(color = VaultColors.line.copy(alpha = 0.55f))
+                    // Soft-delete via end-to-start swipe (Material); same forever-retention path as iOS.
+                    DiarySwipeRow(
+                        entry = item,
+                        onOpen = { onOpen(item.id) },
+                        onDelete = { viewModel.deleteEntry(item.id) },
+                    )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DiarySwipeRow(
+    entry: DiaryEntry,
+    onOpen: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val swipeHint = localizedString(R.string.diary_swipe_hint)
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        },
+    )
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        enableDismissFromEndToStart = true,
+        backgroundContent = {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(VaultColors.seal)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = VaultColors.paper,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        localizedString(R.string.common_delete),
+                        color = VaultColors.paper,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
+            }
+        },
+        modifier = Modifier.semantics { contentDescription = swipeHint },
+    ) {
+        Column(Modifier.background(VaultColors.paper)) {
+            DiaryRow(entry, onClick = onOpen)
+            HorizontalDivider(color = VaultColors.line.copy(alpha = 0.55f))
         }
     }
 }

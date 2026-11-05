@@ -79,6 +79,7 @@ class DiaryStore(
             moodTag = moodTag?.trim()?.takeIf { it.isNotEmpty() },
             createdAt = now,
             updatedAt = now,
+            sourcePlatform = DiaryCloudSync.SOURCE_PLATFORM,
         )
         _entries.value = listOf(entry) + _entries.value
         save()
@@ -87,10 +88,15 @@ class DiaryStore(
     }
 
     fun update(entry: DiaryEntry) {
+        val existing = storedEntry(entry.id)
         val updated = entry.copy(
             deleted = false,
             deletedAt = null,
             updatedAt = System.currentTimeMillis(),
+            // Keep origin platform; fill Android only for pre-field legacy rows.
+            sourcePlatform = entry.sourcePlatform?.takeIf { it.isNotBlank() }
+                ?: existing?.sourcePlatform?.takeIf { it.isNotBlank() }
+                ?: DiaryCloudSync.SOURCE_PLATFORM,
         )
         _entries.value = _entries.value.map { if (it.id == entry.id) updated else it }
         save()
@@ -339,6 +345,7 @@ class DiaryStore(
             moodTag = "平靜",
             createdAt = System.currentTimeMillis() - 86_400_000L,
             updatedAt = System.currentTimeMillis() - 86_400_000L,
+            sourcePlatform = DiaryCloudSync.SOURCE_PLATFORM,
         )
         _entries.value = listOf(sample)
         save()

@@ -12,6 +12,11 @@ data class DiaryEntry(
     /** Soft-delete — keep forever in local JSON + Firestore; Vault hides when true. */
     val deleted: Boolean = false,
     val deletedAt: Long? = null,
+    /**
+     * Which client first wrote this entry (`"ios"` / `"android"`).
+     * Shared Firestore field `sourcePlatform` — preserved across edits/sync.
+     */
+    val sourcePlatform: String? = null,
 ) {
     val preview: String
         get() {
