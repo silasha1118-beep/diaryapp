@@ -101,7 +101,6 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
             localizedString(R.string.settings_cloud_status_signed_out)
     }
     val linkedPhone = viewModel.accountPhone != null
-    val linkedApple = false // Android stub — Apple Sign-In not wired
     val identity = accountLabel.ifBlank { name }.ifBlank { "Silas" }
     val planName = if (billingActive) {
         viewModel.billingPlanName
@@ -158,15 +157,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     ),
                     valueColor = if (linkedPhone) VaultColors.inkMuted else VaultColors.seal,
                 )
-                SettingsDivider()
-                SettingsRow(
-                    localizedString(R.string.settings_account_linked_apple),
-                    localizedString(
-                        if (linkedApple) R.string.settings_account_linked_yes
-                        else R.string.settings_account_linked_no,
-                    ),
-                    valueColor = if (linkedApple) VaultColors.inkMuted else VaultColors.seal,
-                )
+                // Android: no 「已連結 Apple」 — Sign in with Apple is iOS-only backup.
                 if (accountSignedIn) {
                     SettingsDivider()
                     SettingsActionRow(
@@ -177,113 +168,115 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 }
             }
 
-            // 2. 連結手機 — mirrors iOS linkSections + PhoneOTPLoginForm(.settings, .link)
-            // No Firebase/Stub provider caption (iOS hides that outside DEBUG).
-            SettingsCard(
-                header = localizedString(R.string.settings_section_link_phone),
-                footer = localizedString(R.string.settings_link_phone_note),
-            ) {
-                Text(
-                    localizedString(R.string.settings_link_phone_banner),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
-                    ),
-                    color = VaultColors.seal,
-                    modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 10.dp),
-                )
-                Text(
-                    localizedString(R.string.auth_phone_label),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = VaultColors.inkMuted,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
-                )
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ExposedDropdownMenuBox(
-                        expanded = dialExpanded,
-                        onExpandedChange = { dialExpanded = it },
-                        modifier = Modifier.weight(0.42f),
-                    ) {
-                        OutlinedTextField(
-                            value = dialCode,
-                            onValueChange = {},
-                            readOnly = true,
-                            singleLine = true,
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dialExpanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            colors = creamFieldColors(),
-                            shape = RoundedCornerShape(4.dp),
-                            textStyle = MaterialTheme.typography.labelLarge.copy(color = VaultColors.ink),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = dialExpanded,
-                            onDismissRequest = { dialExpanded = false },
-                        ) {
-                            dialOptions.forEach { res ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            localizedString(res),
-                                            color = VaultColors.ink,
-                                        )
-                                    },
-                                    onClick = {
-                                        dialRes = res
-                                        dialExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    OutlinedTextField(
-                        value = phoneNational,
-                        onValueChange = { phoneNational = it.filter { ch -> ch.isDigit() || ch == ' ' } },
-                        modifier = Modifier.weight(0.58f),
-                        placeholder = {
-                            Text(
-                                localizedString(R.string.auth_phone_placeholder),
-                                color = VaultColors.inkMuted,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        },
-                        singleLine = true,
-                        colors = creamFieldColors(),
-                        shape = RoundedCornerShape(4.dp),
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = VaultColors.ink),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    )
-                }
-                // iOS: Color.white on VaultTheme.seal — cream paper as contentColor washed out on burgundy.
-                Button(
-                    onClick = { /* UI stub — SMS link wiring later */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
-                        .height(44.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = VaultColors.seal,
-                        contentColor = Color.White,
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp,
-                    ),
-                    shape = RoundedCornerShape(4.dp),
+            // 2. 連結手機 — Android is SMS/phone primary; hide when already phone-linked.
+            // Banner is phone-appropriate (not Apple-login copy). No Apple link section here.
+            if (!linkedPhone) {
+                SettingsCard(
+                    header = localizedString(R.string.settings_section_link_phone),
+                    footer = localizedString(R.string.settings_link_phone_note),
                 ) {
                     Text(
-                        localizedString(R.string.settings_link_phone_send),
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
+                        localizedString(R.string.settings_link_phone_banner),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
+                        ),
+                        color = VaultColors.seal,
+                        modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 10.dp),
                     )
+                    Text(
+                        localizedString(R.string.auth_phone_label),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = VaultColors.inkMuted,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
+                    )
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ExposedDropdownMenuBox(
+                            expanded = dialExpanded,
+                            onExpandedChange = { dialExpanded = it },
+                            modifier = Modifier.weight(0.42f),
+                        ) {
+                            OutlinedTextField(
+                                value = dialCode,
+                                onValueChange = {},
+                                readOnly = true,
+                                singleLine = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dialExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth(),
+                                colors = creamFieldColors(),
+                                shape = RoundedCornerShape(4.dp),
+                                textStyle = MaterialTheme.typography.labelLarge.copy(color = VaultColors.ink),
+                            )
+                            ExposedDropdownMenu(
+                                expanded = dialExpanded,
+                                onDismissRequest = { dialExpanded = false },
+                            ) {
+                                dialOptions.forEach { res ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                localizedString(res),
+                                                color = VaultColors.ink,
+                                            )
+                                        },
+                                        onClick = {
+                                            dialRes = res
+                                            dialExpanded = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = phoneNational,
+                            onValueChange = { phoneNational = it.filter { ch -> ch.isDigit() || ch == ' ' } },
+                            modifier = Modifier.weight(0.58f),
+                            placeholder = {
+                                Text(
+                                    localizedString(R.string.auth_phone_placeholder),
+                                    color = VaultColors.inkMuted,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            },
+                            singleLine = true,
+                            colors = creamFieldColors(),
+                            shape = RoundedCornerShape(4.dp),
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(color = VaultColors.ink),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        )
+                    }
+                    // iOS: Color.white on VaultTheme.seal — cream paper as contentColor washed out on burgundy.
+                    Button(
+                        onClick = { /* UI stub — SMS link wiring later */ },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                            .height(44.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = VaultColors.seal,
+                            contentColor = Color.White,
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                        ),
+                        shape = RoundedCornerShape(4.dp),
+                    ) {
+                        Text(
+                            localizedString(R.string.settings_link_phone_send),
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                        )
+                    }
                 }
             }
 

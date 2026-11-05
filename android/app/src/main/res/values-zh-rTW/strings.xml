@@ -69,7 +69,7 @@
     <string name="settings_account_identity">身分</string>
     <string name="settings_account_sign_out">登出</string>
     <string name="settings_account_dev_sign_in">開發：本機會話 stub</string>
-    <string name="settings_account_footer">會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」可用時會顯示。</string>
+    <string name="settings_account_footer">會話僅存於此裝置。登入為手機 SMS OTP。</string>
     <string name="settings_section_billing">訂閱</string>
     <string name="settings_billing_plan">方案</string>
     <string name="settings_billing_free">免費</string>
@@ -149,7 +149,7 @@
     <string name="settings_account_linked_yes">是</string>
     <string name="settings_account_linked_no">否</string>
     <string name="settings_section_link_phone">連結手機</string>
-    <string name="settings_link_phone_banner">你目前以 Apple 登入。連結手機號碼後，可用任一方式開啟同一金庫。</string>
+    <string name="settings_link_phone_banner">連結手機號碼後，可用簡訊驗證碼在任一裝置開啟同一金庫。</string>
     <string name="settings_link_phone_send">傳送連結驗證碼</string>
     <string name="settings_link_phone_note">我們會驗證手機號碼，並保留在同一個帳號上。</string>
     <string name="settings_section_cloud">同步</string>

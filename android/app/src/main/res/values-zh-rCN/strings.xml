@@ -69,7 +69,7 @@
     <string name="settings_account_identity">身份</string>
     <string name="settings_account_sign_out">退出登录</string>
     <string name="settings_account_dev_sign_in">开发：本机会话 stub</string>
-    <string name="settings_account_footer">会话仅存于此设备。全区主登录为手机 SMS OTP；「通过 Apple 登录」可用时会显示。</string>
+    <string name="settings_account_footer">会话仅存于此设备。登录为手机 SMS OTP。</string>
     <string name="settings_section_billing">订阅</string>
     <string name="settings_billing_plan">方案</string>
     <string name="settings_billing_free">免费</string>
@@ -149,7 +149,7 @@
     <string name="settings_account_linked_yes">是</string>
     <string name="settings_account_linked_no">否</string>
     <string name="settings_section_link_phone">链接手机</string>
-    <string name="settings_link_phone_banner">你目前以 Apple 登录。链接手机号码后，可用任一方式打开同一金库。</string>
+    <string name="settings_link_phone_banner">链接手机号码后，可用短信验证码在任一设备打开同一金库。</string>
     <string name="settings_link_phone_send">发送链接验证码</string>
     <string name="settings_link_phone_note">我们会验证手机号码，并保留在同一个账号上。</string>
     <string name="settings_section_cloud">同步</string>
