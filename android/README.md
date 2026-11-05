@@ -69,8 +69,10 @@ These are the only project settings that commonly produce **OTP UI with no real 
 | **SHA-1 + SHA-256** | Project settings → Android `com.diaryvault.app` | Must match the **keystore that signed the installed APK** (this Mac’s `~/.android/debug.keystore` for `installDebug`). |
 | **App Check enforced** | App Check → Authentication | Enforce without an Android debug token → send fails (red error). Leave unenforced while wiring. |
 | **API key HTTP referrer** | Google Cloud → Credentials → Browser key | reCAPTCHA needs `https://PROJECT_ID.firebaseapp.com` allowed (or unrestricted) for the Auth API key. |
+| **Authorized domains** | Auth → Settings → Authorized domains | Keep default `diaryappsilas.firebaseapp.com` (and `diaryappsilas.web.app`). Removing it breaks the reCAPTCHA fallback handler. |
+| **SHA-256** | Project settings → Android app fingerprints | Required for **Play Integrity** so Phone Auth stays in-app and skips the flaky Chrome Custom Tabs / `sessionStorage` path. |
 
-App code: blank `verificationId` fails closed; Play instant-verify auto-signs-in. **Emulator / no-browser** debug builds **disable app verification** (use Console **test phone numbers** — real SMS needs Chrome). Debug builds **with** a browser force visible reCAPTCHA and warm Custom Tabs. Missing browser fails fast with a clear UI error instead of hanging until timeout.
+App code: blank `verificationId` fails closed; Play instant-verify auto-signs-in. **Prefer Play Integrity** (never force reCAPTCHA). **Emulator debug** disables app verification so Console **test phone numbers** work without Chrome (AVD Chrome often ANRs / “missing initial state”). Real SMS: use a **physical device with Google Play** + matching SHA-1/SHA-256. If a browser page still opens and fails, the app fails back to an in-app error (close that page and retry) instead of stranding you on `*.firebaseapp.com`.
 
 ### 4. Firestore (same as iOS)
 
@@ -100,9 +102,9 @@ Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number
 2. Confirm `android/app/google-services.json` is present (`com.diaryvault.app`) and `DIARY_SMS_PROVIDER` is empty.
 3. Rebuild + install: `./gradlew :app:installDebug`.
 4. Login → **+852** → national number → **Send**.
-5. **Emulator without Chrome:** add the number under Console **Phone numbers for testing**, Send, enter the fixed test code (app disables Integrity/reCAPTCHA on no-browser debug so it does not hang). **Real SMS:** use a Play Store AVD with Chrome (or a physical device) and complete the browser reCAPTCHA sheet.
+5. **Emulator:** add the number under Console **Phone numbers for testing**, Send, enter the fixed test code (debug builds on emulator skip Integrity/reCAPTCHA so Chrome cannot ANR). **Real SMS:** use a **physical device with Google Play** (preferred) — emulator Chrome Custom Tabs often show “Chrome isn't responding” or a dead `firebaseapp.com` page.
 6. OTP field = Firebase returned a verification id. Enter the SMS / test code (or tap **Resend** after 60s).
-7. If Send shows a red “needs a browser” error: install Chrome on the AVD or switch to a real device — do not wait for a sheet that will never open.
+7. If Send shows a red browser-security error: close any Chrome / Custom Tab page, return to the app, and retry — or switch to a real device. Do not stay on the blank Firebase web error.
 
 > DA-42 / dual SMS: mainland **`+86` uses Aliyun** (not Firebase Phone Auth). Deploy Cloud Functions + set Aliyun secrets — see [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md). **HK `+852` / TW `+886`** stay on Firebase when regions are allowlisted, billing is Blaze, and the number is not a Console test number.
 
