@@ -17,6 +17,7 @@ import FirebaseFirestore
 ///   id, title, body, moodTag?, createdAt, updatedAt,
 ///   deleted, deletedAt?,                 // soft-delete; docs retained forever
 ///   ownerUid, schemaVersion, contentType ("text" | "multimedia"),
+///   sourcePlatform? ("ios" | "android"), // which client first wrote the entry
 ///   attachments?: [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }],
 ///   label?, bodyPreview?               // Console browsing aids — not path keys
 /// ```
@@ -28,6 +29,9 @@ enum DiaryFirestoreSchema {
     static let schemaVersion = 1
     static let contentTypeText = "text"
     static let contentTypeMultimedia = "multimedia"
+    /// Shared with Android — which client first wrote the entry.
+    static let sourcePlatformIOS = "ios"
+    static let sourcePlatformAndroid = "android"
     /// Always the Firebase `(default)` database — never a named DB.
     static let databaseID = "(default)"
 
@@ -342,6 +346,14 @@ enum DiaryCloudSync {
         } else if entry.deleted {
             data["deletedAt"] = Timestamp(date: entry.updatedAt)
         }
+        // Origin platform — preserve if known; stamp iOS for legacy locals missing the field.
+        let platform = entry.sourcePlatform?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let platform, !platform.isEmpty {
+            data["sourcePlatform"] = platform
+        } else {
+            data["sourcePlatform"] = DiaryFirestoreSchema.sourcePlatformIOS
+        }
         if entry.hasMedia {
             data["attachments"] = entry.attachments.map { encodeAttachment($0) }
         } else {
@@ -423,6 +435,13 @@ enum DiaryCloudSync {
         }
         let deletedAt = dateValue(data["deletedAt"])
         let attachments = decodeAttachments(data["attachments"])
+        let sourcePlatform: String?
+        if let raw = data["sourcePlatform"] as? String {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            sourcePlatform = trimmed.isEmpty ? nil : trimmed
+        } else {
+            sourcePlatform = nil
+        }
         return DiaryEntry(
             id: id,
             title: title,
@@ -432,7 +451,8 @@ enum DiaryCloudSync {
             updatedAt: updatedAt,
             deleted: deleted,
             deletedAt: deletedAt,
-            attachments: attachments
+            attachments: attachments,
+            sourcePlatform: sourcePlatform
         )
     }
 

@@ -6,6 +6,8 @@
     <string name="common_cancel">取消</string>
     <string name="common_save">儲存</string>
     <string name="common_edit">編輯</string>
+    <string name="common_delete">刪除</string>
+    <string name="diary_swipe_hint">向左滑可刪除</string>
     <string name="tab_vault">金庫</string>
     <string name="tab_mirror">鏡子</string>
     <string name="tab_settings">設定</string>

@@ -105,6 +105,8 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
     var deletedAt: Date?
     /// Voice / image / video attachments (local filenames + optional Storage paths).
     var attachments: [DiaryMediaAttachment]
+    /// Which client first wrote this entry (`"ios"` / `"android"`). Firestore `sourcePlatform`.
+    var sourcePlatform: String?
 
     init(
         id: UUID = UUID(),
@@ -115,7 +117,8 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         updatedAt: Date = Date(),
         deleted: Bool = false,
         deletedAt: Date? = nil,
-        attachments: [DiaryMediaAttachment] = []
+        attachments: [DiaryMediaAttachment] = [],
+        sourcePlatform: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -126,6 +129,7 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         self.deleted = deleted
         self.deletedAt = deletedAt
         self.attachments = attachments
+        self.sourcePlatform = sourcePlatform
     }
 
     init(from decoder: Decoder) throws {
@@ -141,6 +145,8 @@ struct DiaryEntry: Identifiable, Codable, Equatable, Hashable {
         deletedAt = try c.decodeIfPresent(Date.self, forKey: .deletedAt)
         // Pre-media local JSON omits attachments.
         attachments = try c.decodeIfPresent([DiaryMediaAttachment].self, forKey: .attachments) ?? []
+        // Pre-platform local JSON omits sourcePlatform.
+        sourcePlatform = try c.decodeIfPresent(String.self, forKey: .sourcePlatform)
     }
 
     var hasMedia: Bool { !attachments.isEmpty }

@@ -96,7 +96,8 @@ final class DiaryStore: ObservableObject {
             moodTag: moodTag?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
             createdAt: now,
             updatedAt: now,
-            attachments: attachments
+            attachments: attachments,
+            sourcePlatform: DiaryFirestoreSchema.sourcePlatformIOS
         )
         entries.insert(entry, at: 0)
         resortEntries()
@@ -121,6 +122,16 @@ final class DiaryStore: ObservableObject {
         updated.deleted = false
         updated.deletedAt = nil
         updated.updatedAt = Date()
+        // Keep origin platform; fill iOS only for pre-field legacy rows.
+        let incoming = updated.sourcePlatform?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existing = entries[index].sourcePlatform?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let incoming, !incoming.isEmpty {
+            updated.sourcePlatform = incoming
+        } else if let existing, !existing.isEmpty {
+            updated.sourcePlatform = existing
+        } else {
+            updated.sourcePlatform = DiaryFirestoreSchema.sourcePlatformIOS
+        }
         entries[index] = updated
         resortEntries()
         save()
@@ -475,7 +486,8 @@ final class DiaryStore: ObservableObject {
             body: "今天把舊筆記本翻出來，發現幾年前寫過的一句話還在。想把這裡當成自己的金庫，慢慢寫，慢慢被理解。",
             moodTag: "平靜",
             createdAt: Date().addingTimeInterval(-86_400),
-            updatedAt: Date().addingTimeInterval(-86_400)
+            updatedAt: Date().addingTimeInterval(-86_400),
+            sourcePlatform: DiaryFirestoreSchema.sourcePlatformIOS
         )
         entries = [sample]
         save()

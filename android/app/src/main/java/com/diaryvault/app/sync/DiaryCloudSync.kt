@@ -22,6 +22,7 @@ import kotlinx.coroutines.tasks.await
  * users/{uid}/entries/{entryId}
  *   id, title, body, moodTag?, createdAt, updatedAt,
  *   deleted, deletedAt?, ownerUid, schemaVersion, contentType ("text"),
+ *   sourcePlatform? ("ios" | "android"),
  *   label?, bodyPreview?
  * ```
  * Soft-delete only — never hard-delete entry docs.
@@ -30,6 +31,9 @@ object DiaryFirestoreSchema {
     const val SCHEMA_VERSION = 1
     const val CONTENT_TYPE_TEXT = "text"
     const val DATABASE_ID = "(default)"
+    /** Shared with iOS — which client first wrote the entry. */
+    const val SOURCE_PLATFORM_ANDROID = "android"
+    const val SOURCE_PLATFORM_IOS = "ios"
 
     fun userDocument(uid: String) =
         FirebaseFirestore.getInstance().collection("users").document(uid)
@@ -54,6 +58,9 @@ sealed class CloudSyncFailure(message: String) : Exception(message) {
 }
 
 object DiaryCloudSync {
+    /** This client’s `sourcePlatform` stamp for newly created entries. */
+    const val SOURCE_PLATFORM = DiaryFirestoreSchema.SOURCE_PLATFORM_ANDROID
+
     /** True only for real Firebase Auth sessions (not stub / local synthetic ids). */
     val activeFirebaseUID: String?
         get() {
@@ -180,6 +187,11 @@ object DiaryCloudSync {
             "bodyPreview" to bodyPreview(entry),
             "deleted" to entry.deleted,
             "attachments" to emptyList<Any>(),
+            // Origin platform — preserve if known; stamp Android for legacy locals missing the field.
+            "sourcePlatform" to (
+                entry.sourcePlatform?.takeIf { it.isNotBlank() }
+                    ?: DiaryFirestoreSchema.SOURCE_PLATFORM_ANDROID
+                ),
         )
         entry.moodTag?.let { data["moodTag"] = it }
         if (entry.deleted) {
@@ -241,6 +253,7 @@ object DiaryCloudSync {
             else -> false
         }
         val deletedAt = dateMillis(data["deletedAt"])
+        val sourcePlatform = (data["sourcePlatform"] as? String)?.trim()?.takeIf { it.isNotEmpty() }
         return DiaryEntry(
             id = idString,
             title = title,
@@ -250,6 +263,7 @@ object DiaryCloudSync {
             updatedAt = updatedAt,
             deleted = deleted,
             deletedAt = deletedAt,
+            sourcePlatform = sourcePlatform,
         )
     }
 
