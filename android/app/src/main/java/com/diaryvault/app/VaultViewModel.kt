@@ -9,6 +9,7 @@ import com.diaryvault.app.auth.PhoneNumberNormalizer
 import com.diaryvault.app.auth.SMSAuthError
 import com.diaryvault.app.auth.SMSAuthProviderFactory
 import com.diaryvault.app.auth.SMSAuthProviding
+import com.diaryvault.app.auth.SMSAuthUser
 import com.diaryvault.app.auth.SMSCodeSession
 import com.diaryvault.app.billing.BillingConfig
 import com.diaryvault.app.billing.BillingStub
@@ -140,8 +141,16 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Send live SMS OTP (Firebase when google-services.json present; otherwise stub).
      * Must keep [activity] on the main path — Phone Auth needs it for Play Integrity / reCAPTCHA.
+     *
+     * When Firebase auto-verifies (no SMS), signs in immediately instead of showing an OTP field
+     * that would wait forever for a text that never arrives.
      */
-    fun sendPhoneCode(activity: Activity, phoneRaw: String, dialLabel: String? = null) {
+    fun sendPhoneCode(
+        activity: Activity,
+        phoneRaw: String,
+        dialLabel: String? = null,
+        resend: Boolean = false,
+    ) {
         viewModelScope.launch {
             _authBusy.value = true
             _authError.value = null
@@ -149,8 +158,14 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                 val e164 = resolveE164(phoneRaw, dialLabel)
                 // Do NOT hop to Dispatchers.IO: Firebase PhoneAuthClient launches
                 // Play Integrity / reCAPTCHA via the Activity and must stay on Main.
-                val session = smsProvider.sendCode(activity, e164)
-                _otpSession.value = session
+                val session = smsProvider.sendCode(activity, e164, resend = resend)
+                if (session.autoVerified) {
+                    completePhoneSignIn(smsProvider.verify("", session))
+                } else if (session.verificationID.isBlank()) {
+                    _authError.value = string(R.string.auth_sms_empty_verification)
+                } else {
+                    _otpSession.value = session
+                }
             } catch (e: Exception) {
                 _authError.value = mapAuthError(e)
             } finally {
@@ -169,15 +184,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             _authBusy.value = true
             _authError.value = null
             try {
-                val user = smsProvider.verify(code, session)
-                accountSession.signInWithPhone(
-                    userId = user.userID,
-                    phoneE164 = user.phoneE164,
-                    displayName = _displayName.value.ifBlank { null },
-                )
-                _otpSession.value = null
-                refreshAccountState()
-                store.scheduleSynchronize()
+                completePhoneSignIn(smsProvider.verify(code, session))
             } catch (e: Exception) {
                 _authError.value = mapAuthError(e)
             } finally {
@@ -186,11 +193,23 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun completePhoneSignIn(user: SMSAuthUser) {
+        accountSession.signInWithPhone(
+            userId = user.userID,
+            phoneE164 = user.phoneE164,
+            displayName = _displayName.value.ifBlank { null },
+        )
+        _otpSession.value = null
+        refreshAccountState()
+        store.scheduleSynchronize()
+    }
+
     fun clearAuthError() {
         _authError.value = null
     }
 
     fun resetOtpSession() {
+        smsProvider.clearSendState()
         _otpSession.value = null
         _authError.value = null
     }
@@ -233,10 +252,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)
         is SMSAuthError.AppVerificationFailed -> string(R.string.auth_sms_app_verification)
         is SMSAuthError.TimedOut -> string(R.string.auth_sms_timed_out)
-        is SMSAuthError.NotConfigured -> e.detail
-        is SMSAuthError.Underlying -> e.detail
-        is SMSAuthError -> e.message ?: e.toString()
-        else -> e.message ?: e.toString()
+        is SMSAuthError.EmptyVerificationId -> string(R.string.auth_sms_empty_verification)
+        is SMSAuthError.NotConfigured -> e.detail.ifBlank { string(R.string.auth_sms_generic_failure) }
+        // Prefer Firebase’s own message when present — never Logcat tips.
+        is SMSAuthError.Underlying -> e.detail.ifBlank { string(R.string.auth_sms_generic_failure) }
+        is SMSAuthError -> e.message?.takeIf { it.isNotBlank() } ?: string(R.string.auth_sms_generic_failure)
+        else -> e.message?.takeIf { it.isNotBlank() } ?: string(R.string.auth_sms_generic_failure)
     }
 
     val accountPhone: String? get() = accountSession.phoneE164

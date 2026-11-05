@@ -91,6 +91,8 @@ dependencies {
     // Phone Auth app verification: Play Integrity (+ SafetyNet fallback) and SMS Retriever.
     implementation("com.google.android.play:integrity:1.4.0")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.1.0")
+    // reCAPTCHA fallback opens a Chrome Custom Tab when Play Integrity cannot attest (sideloaded debug).
+    implementation("androidx.browser:browser:1.8.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

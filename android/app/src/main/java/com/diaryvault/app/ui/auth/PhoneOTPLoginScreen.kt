@@ -19,8 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,6 +43,7 @@ import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultBackground
 import com.diaryvault.app.ui.theme.VaultColors
+import kotlinx.coroutines.delay
 
 /**
  * Phone SMS OTP gate — Firebase when `google-services.json` is present, else local stub.
@@ -58,6 +61,19 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val busy by viewModel.authBusy.collectAsState()
     val error by viewModel.authError.collectAsState()
     val sent = session != null
+
+    var resendCooldown by remember { mutableIntStateOf(0) }
+    LaunchedEffect(session?.verificationID) {
+        if (session != null) {
+            resendCooldown = 60
+            while (resendCooldown > 0) {
+                delay(1000)
+                resendCooldown--
+            }
+        } else {
+            resendCooldown = 0
+        }
+    }
 
     val dialOptionRes = listOf(
         R.string.auth_dial_tw,
@@ -96,7 +112,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 color = VaultColors.inkMuted,
             )
 
-            // Production-looking gate: hide Firebase 「真實發送」 banner.
+            // Production-looking gate: hide Firebase live-send banner.
             // DEBUG stub-only — so a missing google-services.json stays obvious.
             if (BuildConfig.DEBUG &&
                 viewModel.smsProviderKind == AuthConfig.SMSProviderKind.STUB
@@ -194,6 +210,23 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             }
 
             if (sent) {
+                TextButton(
+                    onClick = {
+                        code = ""
+                        viewModel.sendPhoneCode(activity, phone.trim(), dialCode, resend = true)
+                    },
+                    enabled = !busy && resendCooldown == 0,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        if (resendCooldown > 0) {
+                            localizedString(R.string.auth_phone_resend_in, resendCooldown)
+                        } else {
+                            localizedString(R.string.auth_phone_resend)
+                        },
+                        color = VaultColors.inkMuted,
+                    )
+                }
                 TextButton(
                     onClick = {
                         code = ""

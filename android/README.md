@@ -57,6 +57,21 @@ Without matching SHA fingerprints, send fails with app-verification / reCAPTCHA 
 2. Authentication → Settings → **SMS region policy** — allow **TW / HK / CN / MY / SG / TH / JP**. HK (`+852`) and TW (`+886`) must be allowed for live OTP to those numbers.
 3. **App Check**: if App Check is **enforced** on Auth and Android is not registered / attested, Phone Auth fails. For debug while wiring SMS, leave App Check unenforced on Authentication, or register the Android debug token.
 
+### 3b. Console knobs that still block live SMS **after** the app code is solid
+
+These are the only project settings that commonly produce **OTP UI with no real text**:
+
+| Knob | Where | What goes wrong |
+|------|--------|-----------------|
+| **Blaze billing** | Firebase pricing / upgrade | Since 2024-09, **Spark cannot send Phone Auth SMS**. Upgrade `diaryappsilas` to Blaze (pay-as-you-go). |
+| **SMS region policy** | Auth → Settings → SMS region policy | Default allowlist can be empty — `+852` / `+886` must be allowed. |
+| **Phone numbers for testing** | Auth → Sign-in method → Phone → Phone numbers for testing | Numbers on this list get **`onCodeSent` with no carrier SMS**. Use the fixed test code from Console, or **remove** the number to receive a real text. |
+| **SHA-1 + SHA-256** | Project settings → Android `com.diaryvault.app` | Must match the **keystore that signed the installed APK** (this Mac’s `~/.android/debug.keystore` for `installDebug`). |
+| **App Check enforced** | App Check → Authentication | Enforce without an Android debug token → send fails (red error). Leave unenforced while wiring. |
+| **API key HTTP referrer** | Google Cloud → Credentials → Browser key | reCAPTCHA needs `https://PROJECT_ID.firebaseapp.com` allowed (or unrestricted) for the Auth API key. |
+
+App code (this branch): debug builds **force the visible reCAPTCHA browser flow**, Custom Tabs package visibility is declared, blank `verificationId` fails closed, and Play instant-verify auto-signs-in instead of waiting for an SMS.
+
 ### 4. Firestore (same as iOS)
 
 1. Firestore Database **`(default)`** — paste / publish [`firebase/firestore.rules`](../firebase/firestore.rules).
@@ -79,19 +94,17 @@ cd android
 
 ## How to test live SMS (Silas checklist)
 
-Use a **physical device with Google Play** (or an emulator **with** Play Store). Prefer real `+852` / `+886` numbers — the project already has successful Phone Auth users historically; Android must complete its own Play Integrity / reCAPTCHA path.
+Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number that is **not** on the Console “Phone numbers for testing” list.
 
-1. Confirm `android/app/google-services.json` is present and package is `com.diaryvault.app`.
-2. Confirm **SHA-1 + SHA-256** of **this** debug keystore are on the Android app in Console (step 2 above).
+1. Confirm Blaze + region allowlist + SHA fingerprints (tables above).
+2. Confirm `android/app/google-services.json` is present (`com.diaryvault.app`) and `DIARY_SMS_PROVIDER` is empty.
 3. Rebuild + install: `./gradlew :app:installDebug`.
-4. Open the login gate → pick **+852** → enter national number (e.g. `84028001`) → **Send**.
-5. Watch for:
-   - A reCAPTCHA / browser sheet (complete it) **or** silent Play Integrity
-   - OTP field appears → Logcat `FirebasePhoneSMS` shows `onCodeSent` (success) or `onVerificationFailed` (error text also on screen)
-6. Enter the SMS code → continue. Settings → Sync should show a live Firebase session.
-7. If OTP UI never appears and an error shows: fix that Console item (SHA, region, App Check). If OTP UI appears but SMS never arrives after `onCodeSent`: carrier / Firebase SMS delivery for that region — not a missing Activity callback.
+4. Login → **+852** → national number → **Send**.
+5. **Complete the browser reCAPTCHA** if shown (debug builds force this path). Dismissing it should show a **red** error — not a silent OTP screen.
+6. OTP field = Firebase returned a verification id. Enter the live SMS code (or tap **Resend** after 60s).
+7. If OTP appears but no SMS: check the Console table in §3b (especially **test numbers** and **Blaze**), not Activity wiring.
 
-> DA-42 note: mainland `+86` delivery has been flaky historically; **HK `+852` / TW `+886` should work** when regions are allowlisted and Android app verification succeeds.
+> DA-42 note: mainland `+86` delivery has been flaky historically; **HK `+852` / TW `+886` should work** when regions are allowlisted, billing is Blaze, and the number is not a Console test number.
 
 ## Optional: cloud Mirror AI
 

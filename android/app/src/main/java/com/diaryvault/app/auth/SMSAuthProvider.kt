@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.config.AuthConfig
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.google.firebase.FirebaseException
@@ -34,6 +35,11 @@ data class SMSCodeSession(
     val phoneE164: String,
     /** Stub-only hint for DEBUG UI; always null for Firebase. */
     val stubDebugHint: String? = null,
+    /**
+     * True when Firebase completed verification without an SMS (Play instant / auto-retrieval).
+     * UI must sign in immediately — do **not** wait for an SMS that will never arrive.
+     */
+    val autoVerified: Boolean = false,
 )
 
 /** Signed-in identity after a successful OTP verify. */
@@ -47,11 +53,14 @@ sealed class SMSAuthError(message: String) : Exception(message) {
     data object InvalidCode : SMSAuthError("Invalid verification code")
     data class NotConfigured(val detail: String) : SMSAuthError(detail)
     data object RateLimited : SMSAuthError("Too many attempts; try again later")
-    data object RegionNotAllowed : SMSAuthError("SMS is not allowed for this phone region in Firebase Console")
+    data object RegionNotAllowed : SMSAuthError("SMS is not allowed for this phone region")
     data object AppVerificationFailed : SMSAuthError(
-        "App verification failed. Add the debug SHA-1 fingerprint in Firebase Console → Project settings → Your apps.",
+        "App verification failed (Play Integrity / reCAPTCHA).",
     )
     data object TimedOut : SMSAuthError("SMS request timed out. Check network, then try again.")
+    data object EmptyVerificationId : SMSAuthError(
+        "Verification did not complete — no verification id from Firebase.",
+    )
     data class Underlying(val detail: String) : SMSAuthError(detail)
 }
 
@@ -59,15 +68,43 @@ interface SMSAuthProviding {
     /**
      * Request a live SMS OTP. [activity] must be a foreground Activity so Firebase can
      * complete Play Integrity / reCAPTCHA (do **not** call from a background-only context).
+     *
+     * @param resend when true, uses the stored [ForceResendingToken] for the same E.164 only.
      */
-    suspend fun sendCode(activity: Activity, phoneE164: String): SMSCodeSession
+    suspend fun sendCode(
+        activity: Activity,
+        phoneE164: String,
+        resend: Boolean = false,
+    ): SMSCodeSession
+
     suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser
+
+    /** Drop force-resend token / pending auto credential (e.g. user changed number). */
+    fun clearSendState() {}
 }
 
 object SMSAuthProviderFactory {
     fun make(context: Context): SMSAuthProviding {
         FirebaseBootstrap.configureIfNeeded(context)
-        return when (AuthConfig.smsProvider) {
+        val resolution = AuthConfig.smsProviderResolution
+        val kind = resolution.kind
+        // Never silently stay on stub when google-services was baked into this APK.
+        if (kind == AuthConfig.SMSProviderKind.STUB && FirebaseBootstrap.hasGoogleServicesJson) {
+            val explicitStub = resolution is AuthConfig.SMSProviderResolution.Explicit &&
+                resolution.provider == AuthConfig.SMSProviderKind.STUB
+            if (!explicitStub) {
+                Log.e(
+                    "SMSAuthFactory",
+                    "google-services.json present but resolution chose stub — forcing Firebase",
+                )
+                return FirebasePhoneSMSAuthProvider(context.applicationContext)
+            }
+            Log.w(
+                "SMSAuthFactory",
+                "DIARY_SMS_PROVIDER=stub with google-services.json present — local OTP only, no live SMS",
+            )
+        }
+        return when (kind) {
             AuthConfig.SMSProviderKind.FIREBASE -> FirebasePhoneSMSAuthProvider(context.applicationContext)
             AuthConfig.SMSProviderKind.TWILIO -> TwilioReadySMSAuthProvider()
             AuthConfig.SMSProviderKind.STUB -> StubSMSAuthProvider()
@@ -79,7 +116,11 @@ object SMSAuthProviderFactory {
 class StubSMSAuthProvider : SMSAuthProviding {
     private val issued = mutableMapOf<String, String>()
 
-    override suspend fun sendCode(activity: Activity, phoneE164: String): SMSCodeSession {
+    override suspend fun sendCode(
+        activity: Activity,
+        phoneE164: String,
+        resend: Boolean,
+    ): SMSCodeSession {
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
         if (!PhoneNumberNormalizer.isPlausibleE164(normalized)) throw SMSAuthError.InvalidPhone
         val verificationID = "stub-" + UUID.randomUUID()
@@ -114,17 +155,28 @@ class StubSMSAuthProvider : SMSAuthProviding {
  *
  * Requires:
  * - `android/app/google-services.json` (gitignored)
- * - Phone provider enabled
- * - SHA-1 / SHA-256 of the signing key on the Android app in Console (Play Integrity / reCAPTCHA)
- * - Activity passed so Firebase can present the verification UI when needed
+ * - Phone provider enabled + SMS region allowlist
+ * - SHA-1 / SHA-256 of the signing key (Play Integrity / reCAPTCHA)
+ * - Foreground Activity (Custom Tabs for reCAPTCHA when Integrity cannot attest a sideloaded APK)
  */
 class FirebasePhoneSMSAuthProvider(
     private val appContext: Context,
 ) : SMSAuthProviding {
     private val forceResendToken = AtomicReference<ForceResendingToken?>(null)
+    private val lastPhoneE164 = AtomicReference<String?>(null)
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    override suspend fun sendCode(activity: Activity, phoneE164: String): SMSCodeSession {
+    override fun clearSendState() {
+        forceResendToken.set(null)
+        lastPhoneE164.set(null)
+        pendingAutoCredential.set(null)
+    }
+
+    override suspend fun sendCode(
+        activity: Activity,
+        phoneE164: String,
+        resend: Boolean,
+    ): SMSCodeSession {
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
         if (!PhoneNumberNormalizer.isPlausibleE164(normalized)) throw SMSAuthError.InvalidPhone
 
@@ -140,52 +192,99 @@ class FirebasePhoneSMSAuthProvider(
         }
 
         applySMSLanguageCode()
-        Log.i(TAG, "verifyPhoneNumber start e164=$normalized activity=${activity.javaClass.simpleName}")
+        applyDebugRecaptchaPreference()
+
+        Log.i(
+            TAG,
+            "verifyPhoneNumber start e164=$normalized resend=$resend " +
+                "pkg=${appContext.packageName} activity=${activity.javaClass.simpleName} " +
+                "project=${FirebaseBootstrap.projectId}",
+        )
 
         // Phone Auth + reCAPTCHA / Play Integrity must start on the main thread with a live Activity.
         return try {
             withTimeout(SEND_TIMEOUT_MS) {
                 withContext(Dispatchers.Main.immediate) {
-                    awaitCodeSent(activity, normalized)
+                    awaitVerification(activity, normalized, resend)
                 }
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            Log.e(TAG, "verifyPhoneNumber timed out for $normalized")
+            Log.e(TAG, "verifyPhoneNumber timed out for $normalized (reCAPTCHA may have been dismissed)")
             throw SMSAuthError.TimedOut
         }
     }
 
-    private suspend fun awaitCodeSent(activity: Activity, normalized: String): SMSCodeSession =
+    /**
+     * Sideloaded debug APKs are not Play-recognized — Play Integrity fails and Firebase must
+     * fall back to the browser reCAPTCHA. Forcing that flow in DEBUG makes the sheet visible
+     * so a silent Integrity miss cannot look like a successful send.
+     */
+    private fun applyDebugRecaptchaPreference() {
+        if (!BuildConfig.DEBUG) return
+        try {
+            FirebaseAuth.getInstance().firebaseAuthSettings
+                .forceRecaptchaFlowForTesting(true)
+            Log.i(TAG, "DEBUG: forceRecaptchaFlowForTesting(true) — complete the browser check if shown")
+        } catch (e: Exception) {
+            Log.w(TAG, "forceRecaptchaFlowForTesting unavailable", e)
+        }
+    }
+
+    private suspend fun awaitVerification(
+        activity: Activity,
+        normalized: String,
+        resend: Boolean,
+    ): SMSCodeSession =
         suspendCancellableCoroutine { cont ->
             val resumed = AtomicBoolean(false)
             fun resumeOnce(block: () -> Unit) {
-                if (resumed.compareAndSet(false, true)) block()
+                if (resumed.compareAndSet(false, true) && cont.isActive) block()
             }
 
             val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    // Instant verification / SMS Retriever auto-retrieval.
-                    Log.i(TAG, "onVerificationCompleted (auto) smsCodePresent=${credential.smsCode != null}")
+                    // Instant verification / SMS Retriever — no SMS for the user to type.
+                    val smsPresent = credential.smsCode != null
+                    Log.i(TAG, "onVerificationCompleted auto smsCodePresent=$smsPresent")
                     pendingAutoCredential.set(credential)
+                    lastPhoneE164.set(normalized)
                     resumeOnce {
                         cont.resume(
                             SMSCodeSession(
                                 verificationID = "auto",
                                 phoneE164 = normalized,
                                 stubDebugHint = null,
+                                autoVerified = true,
                             ),
                         )
                     }
                 }
 
                 override fun onVerificationFailed(e: FirebaseException) {
-                    Log.e(TAG, "onVerificationFailed code=${(e as? FirebaseAuthException)?.errorCode} msg=${e.message}", e)
+                    Log.e(
+                        TAG,
+                        "onVerificationFailed code=${(e as? FirebaseAuthException)?.errorCode} msg=${e.message}",
+                        e,
+                    )
                     resumeOnce { cont.resumeWithException(mapFirebaseError(e)) }
                 }
 
                 override fun onCodeSent(verificationId: String, token: ForceResendingToken) {
-                    Log.i(TAG, "onCodeSent verificationIdLen=${verificationId.length}")
+                    // Treat blank id as failure — never advance OTP UI on an empty session.
+                    if (verificationId.isBlank()) {
+                        Log.e(TAG, "onCodeSent with blank verificationId — failing closed")
+                        resumeOnce {
+                            cont.resumeWithException(SMSAuthError.EmptyVerificationId)
+                        }
+                        return
+                    }
+                    Log.i(
+                        TAG,
+                        "onCodeSent verificationIdLen=${verificationId.length} " +
+                            "prefix=${verificationId.take(6)}…",
+                    )
                     forceResendToken.set(token)
+                    lastPhoneE164.set(normalized)
                     prefs().edit().putString(KEY_VERIFICATION_ID, verificationId).apply()
                     resumeOnce {
                         cont.resume(
@@ -193,13 +292,14 @@ class FirebasePhoneSMSAuthProvider(
                                 verificationID = verificationId,
                                 phoneE164 = normalized,
                                 stubDebugHint = null,
+                                autoVerified = false,
                             ),
                         )
                     }
                 }
 
                 override fun onCodeAutoRetrievalTimeOut(verificationId: String) {
-                    // SMS may still arrive; session already resumed via onCodeSent in the normal path.
+                    // SMS may still arrive; session already resumed via onCodeSent when applicable.
                     Log.d(TAG, "onCodeAutoRetrievalTimeOut verificationIdLen=${verificationId.length}")
                     if (verificationId.isNotBlank()) {
                         prefs().edit().putString(KEY_VERIFICATION_ID, verificationId).apply()
@@ -209,17 +309,43 @@ class FirebasePhoneSMSAuthProvider(
 
             val builder = PhoneAuthOptions.newBuilder(FirebaseAuth.getInstance())
                 .setPhoneNumber(normalized)
+                // Auto-retrieval window (not the coroutine wall-clock timeout).
                 .setTimeout(60L, TimeUnit.SECONDS)
                 .setActivity(activity)
                 .setCallbacks(callbacks)
-            forceResendToken.get()?.let { builder.setForceResendingToken(it) }
+
+            val storedToken = forceResendToken.get()
+            val samePhone = lastPhoneE164.get() == normalized
+            when {
+                resend && storedToken != null && samePhone -> {
+                    builder.setForceResendingToken(storedToken)
+                    Log.i(TAG, "applying forceResendingToken for resend")
+                }
+                resend && (storedToken == null || !samePhone) -> {
+                    // Fall through as a fresh send rather than failing closed.
+                    Log.w(TAG, "resend requested without usable token — fresh verifyPhoneNumber")
+                    forceResendToken.set(null)
+                }
+                !resend -> {
+                    // Never reuse a stale token on a fresh Send (or after “change number”).
+                    if (!samePhone) forceResendToken.set(null)
+                    // Explicit fresh send: do not attach forceResendingToken.
+                }
+            }
 
             val options = builder.build()
-            // Ensure verifyPhoneNumber is posted on the main looper even if called off-main.
+            val start: () -> Unit = {
+                try {
+                    PhoneAuthProvider.verifyPhoneNumber(options)
+                } catch (e: Exception) {
+                    Log.e(TAG, "verifyPhoneNumber threw", e)
+                    resumeOnce { cont.resumeWithException(mapFirebaseError(e)) }
+                }
+            }
             if (Looper.myLooper() == Looper.getMainLooper()) {
-                PhoneAuthProvider.verifyPhoneNumber(options)
+                start()
             } else {
-                mainHandler.post { PhoneAuthProvider.verifyPhoneNumber(options) }
+                mainHandler.post { start() }
             }
 
             cont.invokeOnCancellation {
@@ -228,9 +354,6 @@ class FirebasePhoneSMSAuthProvider(
         }
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
-        val trimmed = code.trim()
-        if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
-
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.isConfigured) {
             throw SMSAuthError.NotConfigured(
@@ -240,13 +363,15 @@ class FirebasePhoneSMSAuthProvider(
 
         pendingAutoCredential.getAndSet(null)?.let { auto ->
             Log.i(TAG, "verify via pending auto credential")
-            val result = FirebaseAuth.getInstance().signInWithCredential(auto).await()
-            val user = result.user ?: throw SMSAuthError.Underlying("Firebase Auth returned no user")
-            return SMSAuthUser(
-                userID = user.uid,
-                phoneE164 = user.phoneNumber ?: session.phoneE164,
-            )
+            return signIn(auto, session.phoneE164)
         }
+
+        if (session.autoVerified) {
+            throw SMSAuthError.Underlying("Auto-verification expired. Request a new code.")
+        }
+
+        val trimmed = code.trim()
+        if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
 
         val verificationID = session.verificationID.ifEmpty {
             prefs().getString(KEY_VERIFICATION_ID, "").orEmpty()
@@ -257,17 +382,22 @@ class FirebasePhoneSMSAuthProvider(
 
         val credential = PhoneAuthProvider.getCredential(verificationID, trimmed)
         return try {
-            val result = FirebaseAuth.getInstance().signInWithCredential(credential).await()
+            val user = signIn(credential, session.phoneE164)
             prefs().edit().remove(KEY_VERIFICATION_ID).apply()
-            val user = result.user ?: throw SMSAuthError.Underlying("Firebase Auth returned no user")
-            SMSAuthUser(
-                userID = user.uid,
-                phoneE164 = user.phoneNumber ?: session.phoneE164,
-            )
+            user
         } catch (e: Exception) {
             Log.e(TAG, "signInWithCredential failed: ${e.message}", e)
             throw mapFirebaseError(e)
         }
+    }
+
+    private suspend fun signIn(credential: PhoneAuthCredential, fallbackPhone: String): SMSAuthUser {
+        val result = FirebaseAuth.getInstance().signInWithCredential(credential).await()
+        val user = result.user ?: throw SMSAuthError.Underlying("Firebase Auth returned no user")
+        return SMSAuthUser(
+            userID = user.uid,
+            phoneE164 = user.phoneNumber ?: fallbackPhone,
+        )
     }
 
     private fun applySMSLanguageCode() {
@@ -311,11 +441,12 @@ class FirebasePhoneSMSAuthProvider(
             code.contains("TOO_MANY", ignoreCase = true) ||
                 code.contains("QUOTA", ignoreCase = true) ||
                 lowered.contains("too many") ||
-                lowered.contains("quota") -> return SMSAuthError.RateLimited
+                lowered.contains("quota") ||
+                lowered.contains("billing") -> return SMSAuthError.RateLimited
             code.contains("OPERATION_NOT_ALLOWED", ignoreCase = true) -> {
                 if (looksLikeRegionBlock(lowered)) return SMSAuthError.RegionNotAllowed
                 return SMSAuthError.NotConfigured(
-                    "Phone sign-in is disabled in Firebase Console. Enable Authentication → Sign-in method → Phone.",
+                    "Phone sign-in is disabled. Enable Authentication → Sign-in method → Phone.",
                 )
             }
             code.contains("APP_NOT_AUTHORIZED", ignoreCase = true) ||
@@ -352,7 +483,7 @@ class FirebasePhoneSMSAuthProvider(
     companion object {
         private const val TAG = "FirebasePhoneSMS"
         private const val KEY_VERIFICATION_ID = "diary.firebase.authVerificationID"
-        /** Wall-clock wait for onCodeSent / onVerificationFailed (includes reCAPTCHA UI). */
+        /** Wall-clock wait for callbacks (includes browser reCAPTCHA UI). */
         private const val SEND_TIMEOUT_MS = 120_000L
         private val pendingAutoCredential = AtomicReference<PhoneAuthCredential?>(null)
     }
@@ -360,7 +491,11 @@ class FirebasePhoneSMSAuthProvider(
 
 /** Placeholder for Twilio Verify — fail closed. */
 class TwilioReadySMSAuthProvider : SMSAuthProviding {
-    override suspend fun sendCode(activity: Activity, phoneE164: String): SMSCodeSession {
+    override suspend fun sendCode(
+        activity: Activity,
+        phoneE164: String,
+        resend: Boolean,
+    ): SMSCodeSession {
         throw SMSAuthError.NotConfigured(
             "Twilio Verify client is not linked. Keep DIARY_SMS_PROVIDER empty/firebase.",
         )
