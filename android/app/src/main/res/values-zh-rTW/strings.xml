@@ -132,7 +132,9 @@
     <string name="auth_phone_change_number">改用其他號碼</string>
     <string name="auth_sms_rate_limited">嘗試次數過多，請稍後再試。</string>
     <string name="auth_sms_region_blocked">此電話地區尚未在 Firebase Console 允許簡訊。</string>
-    <string name="auth_sms_app_verification">App 驗證失敗。請在 Firebase Console → 專案設定 → 你的應用程式 加入此 App 的 SHA-1 指紋。</string>
+    <string name="auth_sms_app_verification">App 驗證失敗。請在 Firebase Console → 專案設定 → 你的應用程式 → Android 加入此 App 的 SHA-1（與 SHA-256）指紋，然後重新安裝 debug 版。</string>
+    <string name="auth_sms_timed_out">簡訊請求逾時。若出現 reCAPTCHA 請完成驗證，檢查網路後再試一次。</string>
+    <string name="auth_sms_sent_hint">若 1–2 分鐘仍未收到簡訊，請稍候再重試一次；可在 Logcat 搜尋 FirebasePhoneSMS 查看發送結果。</string>
     <string name="mirror_today_label">今日一問</string>
     <string name="mirror_today_question">今天有哪一刻，值得留給未來的自己？</string>
     <string name="mirror_start_chat">開始對話</string>
