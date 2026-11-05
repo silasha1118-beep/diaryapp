@@ -176,7 +176,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                         lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
                     ),
                     color = VaultColors.seal,
-                    modifier = Modifier.padding(horizontal = 16.dp, top = 14.dp, bottom = 10.dp),
+                    modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 10.dp),
                 )
                 Text(
                     localizedString(R.string.auth_phone_label),
