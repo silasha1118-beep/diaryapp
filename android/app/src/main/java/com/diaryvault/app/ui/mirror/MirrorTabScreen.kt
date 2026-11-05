@@ -16,9 +16,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -32,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +46,86 @@ import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
+import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
 
+/**
+ * Mirror tab: home (今日一問) ↔ in-tab chat with mock reply — HarmonyOS Main MirrorTab parity.
+ */
+@Composable
+fun MirrorTabScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
+    var inChat by rememberSaveable { mutableStateOf(false) }
+    if (inChat) {
+        MirrorChatPane(
+            viewModel = viewModel,
+            modifier = modifier,
+            onBack = { inChat = false },
+        )
+    } else {
+        MirrorHomePane(
+            modifier = modifier,
+            onStartChat = { inChat = true },
+        )
+    }
+}
+
+@Composable
+private fun MirrorHomePane(
+    modifier: Modifier = Modifier,
+    onStartChat: () -> Unit,
+) {
+    Column(
+        modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        VaultBrandHeader(
+            title = localizedString(R.string.mirror_title),
+            subtitle = localizedString(R.string.mirror_intro),
+        )
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(Color.White.copy(alpha = 0.72f), RoundedCornerShape(14.dp))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                localizedString(R.string.mirror_today_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = VaultColors.seal,
+            )
+            Text(
+                localizedString(R.string.mirror_today_question),
+                style = MaterialTheme.typography.titleLarge,
+                color = VaultColors.ink,
+            )
+        }
+        Button(
+            onClick = onStartChat,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = VaultColors.seal,
+                contentColor = VaultColors.paper,
+            ),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Text(localizedString(R.string.mirror_start_chat))
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MirrorChatScreen(viewModel: VaultViewModel, rootModifier: Modifier = Modifier) {
+private fun MirrorChatPane(
+    viewModel: VaultViewModel,
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
+) {
     val messages by viewModel.mirrorMessages.collectAsState()
     val thinking by viewModel.mirrorThinking.collectAsState()
     var draft by remember { mutableStateOf("") }
@@ -58,7 +137,7 @@ fun MirrorChatScreen(viewModel: VaultViewModel, rootModifier: Modifier = Modifie
     }
 
     Scaffold(
-        modifier = rootModifier,
+        modifier = modifier,
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
@@ -71,6 +150,14 @@ fun MirrorChatScreen(viewModel: VaultViewModel, rootModifier: Modifier = Modifie
                                 else R.string.mirror_mode_mock,
                             ) + " · " + localizedString(R.string.mirror_style_hint),
                             style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = localizedString(R.string.common_back),
                         )
                     }
                 },

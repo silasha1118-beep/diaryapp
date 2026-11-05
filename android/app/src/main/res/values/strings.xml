@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="brand_name">Diary Vault</string>
+    <string name="brand_name">日記金庫</string>
     <string name="common_back">Back</string>
     <string name="common_continue">Continue</string>
     <string name="common_cancel">Cancel</string>
@@ -64,7 +64,7 @@
     <string name="settings_title">Settings</string>
     <string name="settings_section_account">Account</string>
     <string name="settings_account_status">Status</string>
-    <string name="settings_account_signed_in">Signed in (local stub)</string>
+    <string name="settings_account_signed_in">Signed in</string>
     <string name="settings_account_signed_out">Signed out</string>
     <string name="settings_account_identity">Identity</string>
     <string name="settings_account_sign_out">Sign out</string>
@@ -99,4 +99,49 @@
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">簡中</string>
     <string name="lang_en">EN</string>
+    <string name="auth_tagline">Write today for your future self</string>
+    <string name="auth_headline">Sign in to keep your vault yours.</string>
+    <string name="auth_body">Use your phone number and a one-time SMS code (primary). Preview stub — no real SMS. Cloud sync is not in this scaffold.</string>
+    <string name="auth_phone_label">Phone number</string>
+    <string name="auth_phone_placeholder">Mobile number (with country code, e.g. +852…)</string>
+    <string name="auth_phone_send">Send verification code</string>
+    <string name="auth_phone_invalid">Enter a valid mobile number.</string>
+    <string name="auth_otp_label">Verification code</string>
+    <string name="auth_otp_placeholder">6-digit code</string>
+    <string name="auth_otp_verify">Verify and continue</string>
+    <string name="auth_otp_error">That code did not match. Try again.</string>
+    <string name="auth_stub_hint">Stub SMS (no real text): use code %1$s</string>
+    <string name="auth_preview_note">Preview: any number → send → any code (or 000000) to enter</string>
+    <string name="auth_dev_local">Dev: continue with local session</string>
+    <string name="mirror_today_label">Today’s question</string>
+    <string name="mirror_today_question">What moment today is worth keeping for your future self?</string>
+    <string name="mirror_start_chat">Start conversation</string>
+    <string name="diary_media_voice">Voice</string>
+    <string name="diary_media_photo">Photo</string>
+    <string name="diary_media_video">Video</string>
+    <string name="diary_media_hint">Voice ~90s, video ~60s. Stubs only — pickers deferred.</string>
+    <string name="settings_account_provider">Provider</string>
+    <string name="settings_account_provider_phone">Phone</string>
+    <string name="settings_account_provider_local">Local session</string>
+    <string name="settings_account_linked_phone">Linked phone</string>
+    <string name="settings_section_link_phone">Link phone</string>
+    <string name="settings_link_phone_banner">Link a phone number so you can open the same vault with SMS (stub).</string>
+    <string name="settings_link_phone_send">Send link verification code</string>
+    <string name="settings_link_phone_note">We would verify the number and keep it on this account. UI stub only.</string>
+    <string name="settings_section_cloud">Sync</string>
+    <string name="settings_cloud_status">Status</string>
+    <string name="settings_cloud_status_synced">Synced</string>
+    <string name="settings_cloud_status_local">On this device only</string>
+    <string name="settings_cloud_sync_now">Sync now</string>
+    <string name="settings_cloud_footer">Text diaries sync after sign-in. Tap Sync now if content looks stale. Stub on Android.</string>
+    <string name="settings_billing_manage">View plans / restore</string>
+    <string name="settings_section_data">Privacy &amp; data</string>
+    <string name="settings_data_export">Prepare vault export (JSON)</string>
+    <string name="settings_data_export_ready">Export ready (stub — file share deferred).</string>
+    <string name="settings_data_delete">Delete account</string>
+    <string name="settings_data_footer">Export before delete. Soft-delete keeps cloud archives forever when wired.</string>
+    <string name="settings_section_legal">Legal</string>
+    <string name="settings_legal_privacy">Privacy policy</string>
+    <string name="settings_legal_terms">Terms of use (EULA)</string>
+    <string name="settings_legal_footer">Please read the privacy policy and terms before continuing to write.</string>
 </resources>

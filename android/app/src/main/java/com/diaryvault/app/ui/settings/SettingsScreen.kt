@@ -2,6 +2,7 @@ package com.diaryvault.app.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -34,6 +38,10 @@ import com.diaryvault.app.ui.components.LanguageStrip
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
 
+/**
+ * Settings sections aligned with iOS SettingsView (UI-only stubs where backend is missing):
+ * account, link phone, sync, billing, privacy/data, language, reminders, vault name, legal.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
@@ -43,6 +51,9 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val accountSignedIn by viewModel.accountSignedIn.collectAsState()
     val accountLabel by viewModel.accountLabel.collectAsState()
     val billingActive by viewModel.billingActive.collectAsState()
+    var linkPhone by remember { mutableStateOf("") }
+    var syncStatus by remember { mutableStateOf(R.string.settings_cloud_status_local) }
+    var exportReady by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -62,57 +73,110 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // Account
             SectionTitle(localizedString(R.string.settings_section_account))
-            Text(
-                localizedString(R.string.settings_account_status) + ": " +
-                    localizedString(
-                        if (accountSignedIn) R.string.settings_account_signed_in
-                        else R.string.settings_account_signed_out,
-                    ),
-                style = MaterialTheme.typography.bodyLarge,
+            LabeledRow(
+                localizedString(R.string.settings_account_status),
+                localizedString(
+                    if (accountSignedIn) R.string.settings_account_signed_in
+                    else R.string.settings_account_signed_out,
+                ),
             )
             if (accountLabel.isNotBlank()) {
-                Text(
-                    localizedString(R.string.settings_account_identity) + ": " + accountLabel,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                LabeledRow(localizedString(R.string.settings_account_identity), accountLabel)
             }
             if (accountSignedIn) {
-                TextButton(onClick = viewModel::signOutAccount) {
-                    Text(localizedString(R.string.settings_account_sign_out), color = VaultColors.seal)
+                LabeledRow(
+                    localizedString(R.string.settings_account_provider),
+                    viewModel.accountProviderLabel,
+                )
+                viewModel.accountPhone?.let { phone ->
+                    LabeledRow(localizedString(R.string.settings_account_linked_phone), phone)
                 }
-            } else {
-                TextButton(onClick = viewModel::signInLocalStub) {
-                    Text(localizedString(R.string.settings_account_dev_sign_in), color = VaultColors.seal)
+                TextButton(onClick = viewModel::signOutAccount) {
+                    Text(localizedString(R.string.settings_account_sign_out), color = Color(0xFFB3261E))
                 }
             }
             Footer(localizedString(R.string.settings_account_footer))
-
             Divider()
 
-            SectionTitle(localizedString(R.string.settings_section_billing))
+            // Link phone stub
+            SectionTitle(localizedString(R.string.settings_section_link_phone))
             Text(
-                localizedString(R.string.settings_billing_plan) + ": " +
-                    if (billingActive) viewModel.billingPlanName
-                    else localizedString(R.string.settings_billing_free),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                localizedString(R.string.settings_billing_products) + ": " +
-                    viewModel.billingProductIds.joinToString(", "),
+                localizedString(R.string.settings_link_phone_banner),
                 style = MaterialTheme.typography.bodyMedium,
+                color = VaultColors.seal,
             )
-            Footer(localizedString(R.string.settings_billing_footer))
-
+            OutlinedTextField(
+                value = linkPhone,
+                onValueChange = { linkPhone = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(localizedString(R.string.auth_phone_placeholder)) },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = VaultColors.seal,
+                    unfocusedBorderColor = VaultColors.line,
+                    cursorColor = VaultColors.seal,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            )
+            TextButton(onClick = { /* stub */ }) {
+                Text(localizedString(R.string.settings_link_phone_send), color = VaultColors.seal)
+            }
+            Footer(localizedString(R.string.settings_link_phone_note))
             Divider()
 
+            // Sync
+            SectionTitle(localizedString(R.string.settings_section_cloud))
+            LabeledRow(
+                localizedString(R.string.settings_cloud_status),
+                localizedString(syncStatus),
+            )
+            TextButton(onClick = { syncStatus = R.string.settings_cloud_status_synced }) {
+                Text(localizedString(R.string.settings_cloud_sync_now), color = VaultColors.seal)
+            }
+            Footer(localizedString(R.string.settings_cloud_footer))
+            Divider()
+
+            // Billing
+            SectionTitle(localizedString(R.string.settings_section_billing))
+            LabeledRow(
+                localizedString(R.string.settings_billing_plan),
+                if (billingActive) viewModel.billingPlanName
+                else localizedString(R.string.settings_billing_free),
+            )
+            TextButton(onClick = { /* stub paywall */ }) {
+                Text(localizedString(R.string.settings_billing_manage), color = VaultColors.seal)
+            }
+            Footer(localizedString(R.string.settings_billing_footer))
+            Divider()
+
+            // Privacy / data
+            SectionTitle(localizedString(R.string.settings_section_data))
+            TextButton(onClick = { exportReady = true }) {
+                Text(localizedString(R.string.settings_data_export), color = VaultColors.seal)
+            }
+            if (exportReady) {
+                Text(
+                    localizedString(R.string.settings_data_export_ready),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = VaultColors.inkMuted,
+                )
+            }
+            TextButton(onClick = { /* stub */ }) {
+                Text(localizedString(R.string.settings_data_delete), color = Color(0xFFB3261E))
+            }
+            Footer(localizedString(R.string.settings_data_footer))
+            Divider()
+
+            // Language
             SectionTitle(localizedString(R.string.settings_section_language))
             Text(localizedString(R.string.settings_language), style = MaterialTheme.typography.bodyLarge)
             LanguageStrip(selected = language, onSelect = viewModel::setLanguage)
             Footer(localizedString(R.string.settings_language_footer))
-
             Divider()
 
+            // Reminders
             SectionTitle(localizedString(R.string.settings_section_advice))
             RowSwitch(
                 title = localizedString(R.string.settings_reminders),
@@ -120,42 +184,9 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 onCheckedChange = viewModel::setGentleReminders,
             )
             Footer(localizedString(R.string.settings_reminders_footer))
-
             Divider()
 
-            SectionTitle(localizedString(R.string.settings_section_ai))
-            Text(
-                localizedString(R.string.settings_ai_mode) + ": " +
-                    localizedString(if (viewModel.useCloudClient) R.string.settings_ai_cloud else R.string.settings_ai_mock),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            if (viewModel.useCloudClient) {
-                Text(
-                    localizedString(R.string.settings_ai_provider) + ": " +
-                        localizedString(
-                            if (viewModel.isAnthropicProvider) {
-                                R.string.settings_ai_provider_anthropic
-                            } else {
-                                R.string.settings_ai_provider_openai
-                            },
-                        ),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
-            Text(
-                localizedString(R.string.settings_ai_residency) + ": " + viewModel.dataResidency,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Footer(localizedString(R.string.settings_ai_footer))
-
-            Divider()
-
-            SectionTitle(localizedString(R.string.settings_section_legacy))
-            Text(localizedString(R.string.settings_legacy_stub), style = MaterialTheme.typography.bodyLarge)
-            Footer(localizedString(R.string.settings_legacy_footer))
-
-            Divider()
-
+            // Vault name
             SectionTitle(localizedString(R.string.settings_section_vault))
             Text(localizedString(R.string.settings_name), style = MaterialTheme.typography.bodyLarge)
             OutlinedTextField(
@@ -170,7 +201,24 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 ),
                 shape = RoundedCornerShape(12.dp),
             )
-            Spacer(Modifier.height(4.dp))
+            Text(
+                localizedString(R.string.settings_legacy_stub),
+                style = MaterialTheme.typography.bodyMedium,
+                color = VaultColors.inkMuted,
+            )
+            Divider()
+
+            // Legal
+            SectionTitle(localizedString(R.string.settings_section_legal))
+            TextButton(onClick = { /* stub */ }) {
+                Text(localizedString(R.string.settings_legal_privacy), color = VaultColors.seal)
+            }
+            TextButton(onClick = { /* stub */ }) {
+                Text(localizedString(R.string.settings_legal_terms), color = VaultColors.seal)
+            }
+            Footer(localizedString(R.string.settings_legal_footer))
+
+            Spacer(Modifier.height(8.dp))
             TextButton(onClick = viewModel::resetOnboarding) {
                 Text(localizedString(R.string.settings_reset_onboarding), color = VaultColors.seal)
             }
@@ -190,6 +238,17 @@ private fun Footer(text: String) {
 }
 
 @Composable
+private fun LabeledRow(label: String, value: String) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = VaultColors.inkMuted)
+    }
+}
+
+@Composable
 private fun Divider() {
     Spacer(Modifier.height(8.dp))
     HorizontalDivider(color = VaultColors.line.copy(alpha = 0.6f))
@@ -198,7 +257,7 @@ private fun Divider() {
 
 @Composable
 private fun RowSwitch(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
