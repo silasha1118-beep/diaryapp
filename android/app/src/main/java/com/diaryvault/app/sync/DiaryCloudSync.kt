@@ -2,6 +2,8 @@ package com.diaryvault.app.sync
 
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.diaryvault.app.model.DiaryEntry
+import com.diaryvault.app.model.DiaryMediaAttachment
+import com.diaryvault.app.model.DiaryMediaKind
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -21,15 +23,21 @@ import kotlinx.coroutines.tasks.await
  * ```
  * users/{uid}/entries/{entryId}
  *   id, title, body, moodTag?, createdAt, updatedAt,
- *   deleted, deletedAt?, ownerUid, schemaVersion, contentType ("text"),
+ *   deleted, deletedAt?, status ("active" | "deleted"),
+ *   hasMedia, ownerUid, schemaVersion, contentType ("text" | "multimedia"),
  *   sourcePlatform? ("ios" | "android"),
+ *   attachments?: [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }],
  *   label?, bodyPreview?
  * ```
  * Soft-delete only — never hard-delete entry docs.
+ * Media bytes: Storage `users/{uid}/entries/{entryId}/{fileName}`; metadata on this same entry doc.
  */
 object DiaryFirestoreSchema {
     const val SCHEMA_VERSION = 1
     const val CONTENT_TYPE_TEXT = "text"
+    const val CONTENT_TYPE_MULTIMEDIA = "multimedia"
+    const val STATUS_ACTIVE = "active"
+    const val STATUS_DELETED = "deleted"
     const val DATABASE_ID = "(default)"
     /** Shared with iOS — which client first wrote the entry. */
     const val SOURCE_PLATFORM_ANDROID = "android"
@@ -89,6 +97,7 @@ object DiaryCloudSync {
                 mapOf(
                     "deleted" to true,
                     "deletedAt" to Timestamp(at),
+                    "status" to DiaryFirestoreSchema.STATUS_DELETED,
                     "updatedAt" to Timestamp(at),
                 ),
                 SetOptions.merge(),
@@ -156,6 +165,7 @@ object DiaryCloudSync {
                         mapOf(
                             "deleted" to true,
                             "deletedAt" to Timestamp(now),
+                            "status" to DiaryFirestoreSchema.STATUS_DELETED,
                             "updatedAt" to Timestamp(now),
                         ),
                         SetOptions.merge(),
@@ -174,6 +184,17 @@ object DiaryCloudSync {
         .thenByDescending { it.id }
 
     fun encode(entry: DiaryEntry, ownerUid: String): Map<String, Any> {
+        val hasMedia = entry.hasMedia
+        val contentType = if (hasMedia) {
+            DiaryFirestoreSchema.CONTENT_TYPE_MULTIMEDIA
+        } else {
+            DiaryFirestoreSchema.CONTENT_TYPE_TEXT
+        }
+        val status = if (entry.deleted) {
+            DiaryFirestoreSchema.STATUS_DELETED
+        } else {
+            DiaryFirestoreSchema.STATUS_ACTIVE
+        }
         val data = mutableMapOf<String, Any>(
             "id" to entry.id,
             "title" to entry.title,
@@ -182,11 +203,13 @@ object DiaryCloudSync {
             "updatedAt" to Timestamp(Date(entry.updatedAt)),
             "ownerUid" to ownerUid,
             "schemaVersion" to DiaryFirestoreSchema.SCHEMA_VERSION,
-            "contentType" to DiaryFirestoreSchema.CONTENT_TYPE_TEXT,
+            "contentType" to contentType,
             "label" to consoleLabel(entry),
             "bodyPreview" to bodyPreview(entry),
+            "status" to status,
+            "hasMedia" to hasMedia,
             "deleted" to entry.deleted,
-            "attachments" to emptyList<Any>(),
+            "attachments" to entry.attachments.map { encodeAttachment(it) },
             // Origin platform — preserve if known; stamp Android for legacy locals missing the field.
             "sourcePlatform" to (
                 entry.sourcePlatform?.takeIf { it.isNotBlank() }
@@ -198,6 +221,20 @@ object DiaryCloudSync {
             val deletedAt = entry.deletedAt ?: entry.updatedAt
             data["deletedAt"] = Timestamp(Date(deletedAt))
         }
+        return data
+    }
+
+    fun encodeAttachment(attachment: DiaryMediaAttachment): Map<String, Any> {
+        val data = mutableMapOf<String, Any>(
+            "id" to attachment.id,
+            "kind" to attachment.kind.raw,
+            "localFileName" to attachment.localFileName,
+            "mimeType" to attachment.mimeType,
+            "createdAt" to Timestamp(Date(attachment.createdAt)),
+        )
+        attachment.remotePath?.takeIf { it.isNotBlank() }?.let { data["remotePath"] = it }
+        attachment.durationSeconds?.let { data["durationSeconds"] = it }
+        attachment.byteSize?.let { data["byteSize"] = it }
         return data
     }
 
@@ -250,10 +287,17 @@ object DiaryCloudSync {
         val deleted = when (val raw = data["deleted"]) {
             is Boolean -> raw
             is Number -> raw.toInt() != 0
-            else -> false
+            else -> {
+                // Prefer explicit bool; fall back to status string from Console-era docs.
+                (data["status"] as? String)?.equals(
+                    DiaryFirestoreSchema.STATUS_DELETED,
+                    ignoreCase = true,
+                ) == true
+            }
         }
         val deletedAt = dateMillis(data["deletedAt"])
         val sourcePlatform = (data["sourcePlatform"] as? String)?.trim()?.takeIf { it.isNotEmpty() }
+        val attachments = decodeAttachments(data["attachments"])
         return DiaryEntry(
             id = idString,
             title = title,
@@ -263,7 +307,53 @@ object DiaryCloudSync {
             updatedAt = updatedAt,
             deleted = deleted,
             deletedAt = deletedAt,
+            attachments = attachments,
             sourcePlatform = sourcePlatform,
+        )
+    }
+
+    fun decodeAttachments(raw: Any?): List<DiaryMediaAttachment> {
+        val list = raw as? List<*> ?: return emptyList()
+        return list.mapNotNull { item ->
+            @Suppress("UNCHECKED_CAST")
+            val map = item as? Map<String, Any?> ?: return@mapNotNull null
+            decodeAttachment(map)
+        }
+    }
+
+    fun decodeAttachment(data: Map<String, Any?>): DiaryMediaAttachment? {
+        val idString = data["id"] as? String ?: return null
+        if (runCatching { UUID.fromString(idString) }.isFailure) return null
+        val kind = DiaryMediaKind.fromRaw(data["kind"] as? String) ?: return null
+        val localRaw = (data["localFileName"] as? String)?.trim()
+        val resolvedName = when {
+            !localRaw.isNullOrEmpty() && !localRaw.contains("/") -> localRaw
+            else -> {
+                val remote = data["remotePath"] as? String
+                remote?.substringAfterLast('/')?.takeIf { it.isNotEmpty() }
+                    ?: "$idString.${kind.defaultFileExtension}"
+            }
+        }
+        val mime = (data["mimeType"] as? String) ?: kind.defaultMimeType
+        val remotePath = (data["remotePath"] as? String)?.takeIf { it.isNotBlank() }
+        val duration = when (val n = data["durationSeconds"]) {
+            is Number -> n.toDouble()
+            else -> null
+        }
+        val byteSize = when (val n = data["byteSize"]) {
+            is Number -> n.toInt()
+            else -> null
+        }
+        val createdAt = dateMillis(data["createdAt"]) ?: System.currentTimeMillis()
+        return DiaryMediaAttachment(
+            id = idString,
+            kind = kind,
+            localFileName = resolvedName,
+            remotePath = remotePath,
+            mimeType = mime,
+            durationSeconds = duration,
+            byteSize = byteSize,
+            createdAt = createdAt,
         )
     }
 

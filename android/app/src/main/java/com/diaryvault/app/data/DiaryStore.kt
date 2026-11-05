@@ -93,6 +93,8 @@ class DiaryStore(
             deleted = false,
             deletedAt = null,
             updatedAt = System.currentTimeMillis(),
+            // Keep media metadata on the same entry when composer has no attachment UI yet.
+            attachments = entry.attachments.ifEmpty { existing?.attachments.orEmpty() },
             // Keep origin platform; fill Android only for pre-field legacy rows.
             sourcePlatform = entry.sourcePlatform?.takeIf { it.isNotBlank() }
                 ?: existing?.sourcePlatform?.takeIf { it.isNotBlank() }

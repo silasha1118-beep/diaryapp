@@ -2,6 +2,51 @@ package com.diaryvault.app.model
 
 import java.util.UUID
 
+/** Kind of media attached to a diary entry — matches iOS `DiaryMediaKind`. */
+enum class DiaryMediaKind(val raw: String) {
+    Voice("voice"),
+    Image("image"),
+    Video("video");
+
+    val defaultFileExtension: String
+        get() = when (this) {
+            Voice -> "m4a"
+            Image -> "jpg"
+            Video -> "mp4"
+        }
+
+    val defaultMimeType: String
+        get() = when (this) {
+            Voice -> "audio/mp4"
+            Image -> "image/jpeg"
+            Video -> "video/mp4"
+        }
+
+    companion object {
+        fun fromRaw(raw: String?): DiaryMediaKind? =
+            entries.firstOrNull { it.raw.equals(raw, ignoreCase = true) }
+    }
+}
+
+/**
+ * Local + cloud reference for one media file on a diary entry.
+ * Local: filesDir/diary_media/{entryId}/{localFileName}
+ * Cloud Storage: users/{uid}/entries/{entryId}/{localFileName}
+ * Metadata always lives on the Firestore entry doc `attachments` array (never orphaned).
+ */
+data class DiaryMediaAttachment(
+    val id: String = UUID.randomUUID().toString(),
+    val kind: DiaryMediaKind,
+    /** Filename only (no path separators) under the entry media folder. */
+    val localFileName: String,
+    /** Firebase Storage object path (null until uploaded). */
+    val remotePath: String? = null,
+    val mimeType: String = kind.defaultMimeType,
+    val durationSeconds: Double? = null,
+    val byteSize: Int? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+)
+
 data class DiaryEntry(
     val id: String = UUID.randomUUID().toString(),
     val title: String = "",
@@ -13,11 +58,19 @@ data class DiaryEntry(
     val deleted: Boolean = false,
     val deletedAt: Long? = null,
     /**
+     * Voice / image / video attachments. Synced on the same Firestore entry doc
+     * (`attachments` + `hasMedia` + `contentType`). Capture UI may still be deferred;
+     * decode/encode keeps cross-platform media on the post.
+     */
+    val attachments: List<DiaryMediaAttachment> = emptyList(),
+    /**
      * Which client first wrote this entry (`"ios"` / `"android"`).
      * Shared Firestore field `sourcePlatform` — preserved across edits/sync.
      */
     val sourcePlatform: String? = null,
 ) {
+    val hasMedia: Boolean get() = attachments.isNotEmpty()
+
     val preview: String
         get() {
             val trimmed = body.trim()

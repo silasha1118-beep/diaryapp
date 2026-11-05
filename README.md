@@ -54,7 +54,7 @@ If Xcode does not resolve packages after pull: **File → Packages → Resolve P
 1. Firebase Console → project **`diaryappsilas`** → **Build → Firestore Database → Create database** (if not already).
 2. Prefer location **`asia-east1` (Taiwan)** when available (product residency narrative); else nearest Asia region. Location is permanent.
 3. **Rules** → paste [`firebase/firestore.rules`](firebase/firestore.rules) → **Publish**. Clients may only read/write `users/{theirUid}/…`.
-4. Schema + behavior notes: [`firebase/README.md`](firebase/README.md). Multimedia upload is **out of scope** (DA-15 later).
+4. Schema + behavior notes: [`firebase/README.md`](firebase/README.md). Entry docs include `label` / `status` / `hasMedia` / `attachments` on the **same** post. Vault-like cloud viewer: [`firebase/admin/README.md`](firebase/admin/README.md).
 5. Rebuild the iOS app with `GoogleService-Info.plist` present. Sync runs only when Firebase Auth has a live user.
 
 **You already have `GoogleService-Info.plist` locally — do not commit it.** After merge:
