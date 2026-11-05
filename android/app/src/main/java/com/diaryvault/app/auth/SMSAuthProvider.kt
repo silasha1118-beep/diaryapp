@@ -135,14 +135,21 @@ object SMSAuthProviderFactory {
     }
 
     /**
-     * +86 → Aliyun Cloud Functions (no reCAPTCHA); other dials → Firebase Phone Auth.
+     * Dual SMS:
+     * - **DEBUG:** all dials (including +86) → Firebase Phone Auth so Console test numbers work
+     * - **Release +86:** Aliyun Cloud Functions when keys are set; if keys/Functions missing →
+     *   Firebase Phone Auth fallback (not a local stub that ignores Console codes)
+     * - other dials → Firebase Phone Auth (Play Integrity preferred — see #77)
      * Aliyun AccessKeys stay on the server — never in the APK.
      */
-    private fun routedFirebase(app: Context): SMSAuthProviding =
-        RoutingSMSAuthProvider(
-            chinaMainland = AliyunSmsAuthProvider(app),
-            other = FirebasePhoneSMSAuthProvider(app),
+    private fun routedFirebase(app: Context): SMSAuthProviding {
+        val firebase = FirebasePhoneSMSAuthProvider(app)
+        return RoutingSMSAuthProvider(
+            chinaMainland = AliyunSmsAuthProvider(app, firebaseFallback = firebase),
+            other = firebase,
+            preferFirebaseForChinaMainland = BuildConfig.DEBUG,
         )
+    }
 }
 
 /** Local OTP stub — does **not** send SMS. */
@@ -540,12 +547,28 @@ class FirebasePhoneSMSAuthProvider(
         val trimmed = code.trim()
         if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
 
-        val verificationID = session.verificationID.ifEmpty {
-            prefs().getString(KEY_VERIFICATION_ID, "").orEmpty()
+        // Prefer the verificationId from onCodeSent stored on the session.
+        // Prefs are a last-resort recovery only when the session id is blank.
+        val fromSession = session.verificationID.trim()
+        val verificationID = when {
+            fromSession.isNotEmpty() && fromSession != "auto" -> fromSession
+            else -> prefs().getString(KEY_VERIFICATION_ID, "").orEmpty().trim()
         }
         if (verificationID.isEmpty() || verificationID == "auto") {
             throw SMSAuthError.Underlying("Missing verification session. Request a new code.")
         }
+        if (fromSession.isNotEmpty() && fromSession != "auto" &&
+            fromSession != prefs().getString(KEY_VERIFICATION_ID, null)
+        ) {
+            // Session wins; keep prefs aligned for any recovery path.
+            prefs().edit().putString(KEY_VERIFICATION_ID, fromSession).apply()
+        }
+        Log.i(
+            TAG,
+            "verifyCredential verificationIdLen=${verificationID.length} " +
+                "prefix=${verificationID.take(6)}… codeLen=${trimmed.length} " +
+                "fromSession=${fromSession.isNotEmpty()}",
+        )
 
         val credential = PhoneAuthProvider.getCredential(verificationID, trimmed)
         return try {

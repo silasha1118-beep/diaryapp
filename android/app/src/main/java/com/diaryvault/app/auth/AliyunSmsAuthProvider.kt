@@ -3,7 +3,6 @@ package com.diaryvault.app.auth
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
@@ -16,13 +15,14 @@ import kotlinx.coroutines.tasks.await
  *
  * No AccessKey in the APK. No Google reCAPTCHA on this path.
  *
- * When Functions are missing / Aliyun secrets unset:
- * - DEBUG: falls back to [stubFallback] (local OTP) so builds still run.
- * - Release: [SMSAuthError.NotConfigured].
+ * When Functions are missing / Aliyun secrets unset / CF returns stub mode:
+ * fall back to [firebaseFallback] (Firebase Phone Auth) so Firebase Console
+ * **test phone numbers** (e.g. 123456) work — never a local stub OTP that
+ * ignores Console test codes.
  */
 class AliyunSmsAuthProvider(
     private val appContext: Context,
-    private val stubFallback: SMSAuthProviding = StubSMSAuthProvider(),
+    private val firebaseFallback: SMSAuthProviding,
 ) : SMSAuthProviding {
 
     override suspend fun sendCode(
@@ -37,7 +37,12 @@ class AliyunSmsAuthProvider(
 
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.hasGoogleServicesJson || !FirebaseBootstrap.isConfigured) {
-            return sendViaStubFallback(activity, normalized, resend, "Firebase not configured")
+            return sendViaFirebaseFallback(
+                activity,
+                normalized,
+                resend,
+                "Firebase not configured for Aliyun path",
+            )
         }
 
         return try {
@@ -47,31 +52,49 @@ class AliyunSmsAuthProvider(
                 throw SMSAuthError.EmptyVerificationId
             }
             val stub = data["stub"] as? Boolean == true
-            val hint = data["stubDebugHint"] as? String
             if (stub) {
-                Log.w(TAG, "Aliyun CF returned stub mode (keys missing / ALLOW_STUB)")
+                // Keys missing / ALLOW_STUB — do not accept server stub OTP.
+                // Firebase Console test numbers only work on Firebase Phone Auth.
+                Log.w(
+                    TAG,
+                    "Aliyun CF returned stub mode (keys missing / ALLOW_STUB) — " +
+                        "falling back to Firebase Phone Auth for Console test numbers",
+                )
+                return sendViaFirebaseFallback(
+                    activity,
+                    normalized,
+                    resend,
+                    "Aliyun keys missing (CF stub mode)",
+                )
             }
             SMSCodeSession(
                 verificationID = sessionId,
                 phoneE164 = normalized,
-                stubDebugHint = if (BuildConfig.DEBUG) hint else null,
+                stubDebugHint = null,
                 autoVerified = false,
-                path = if (stub) SmsAuthPath.STUB else SmsAuthPath.ALIYUN,
+                path = SmsAuthPath.ALIYUN,
             )
         } catch (e: SMSAuthError) {
             throw e
         } catch (e: Exception) {
             val mapped = mapFunctionsError(e)
-            if (shouldFallbackToStub(mapped)) {
-                return sendViaStubFallback(activity, normalized, resend, mapped.message)
+            if (shouldFallbackToFirebase(mapped)) {
+                return sendViaFirebaseFallback(activity, normalized, resend, mapped.message)
             }
             throw mapped
         }
     }
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
+        // Stub / Firebase sessions must not hit verifyAliyunSmsOtp with a Phone Auth id.
+        if (session.path == SmsAuthPath.FIREBASE) {
+            return firebaseFallback.verify(code, session)
+        }
         if (session.path == SmsAuthPath.STUB || session.verificationID.startsWith("stub-")) {
-            return stubFallback.verify(code, session)
+            // Legacy stub sessions: route to Firebase only if somehow still present —
+            // local stub no longer issued on this path.
+            Log.w(TAG, "Unexpected stub session on Aliyun path — trying Firebase verify")
+            return firebaseFallback.verify(code, session)
         }
 
         FirebaseBootstrap.configureIfNeeded(appContext)
@@ -109,28 +132,21 @@ class AliyunSmsAuthProvider(
         }
     }
 
-    private suspend fun sendViaStubFallback(
+    private suspend fun sendViaFirebaseFallback(
         activity: Activity,
         phoneE164: String,
         resend: Boolean,
         reason: String?,
     ): SMSCodeSession {
-        if (!BuildConfig.DEBUG) {
-            throw SMSAuthError.NotConfigured(
-                reason?.takeIf { it.isNotBlank() }
-                    ?: "Aliyun SMS Cloud Functions are not available. Deploy functions and set ALIYUN_SMS_* secrets.",
-            )
-        }
-        Log.w(TAG, "DEBUG: Aliyun path falling back to local stub — $reason")
-        val session = stubFallback.sendCode(activity, phoneE164, resend)
-        return session.copy(path = SmsAuthPath.STUB)
+        Log.w(TAG, "Aliyun path → Firebase Phone Auth fallback — $reason")
+        return firebaseFallback.sendCode(activity, phoneE164, resend)
     }
 
-    private fun shouldFallbackToStub(error: SMSAuthError): Boolean {
-        if (!BuildConfig.DEBUG) return false
-        return error is SMSAuthError.NotConfigured ||
-            (error is SMSAuthError.Underlying &&
-                error.detail.contains("NOT_FOUND", ignoreCase = true))
+    private fun shouldFallbackToFirebase(error: SMSAuthError): Boolean {
+        // Missing Aliyun / Functions → Firebase (Console test numbers; Aliyun still deferred).
+        if (error is SMSAuthError.NotConfigured) return true
+        return error is SMSAuthError.Underlying &&
+            error.detail.contains("NOT_FOUND", ignoreCase = true)
     }
 
     private suspend fun call(name: String, payload: Map<String, Any>): Map<*, *> {
