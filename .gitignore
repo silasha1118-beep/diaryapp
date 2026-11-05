@@ -54,4 +54,5 @@ firebase/functions/node_modules/
 firebase/functions/lib/
 firebase/functions/.env
 firebase/functions/.env.*
+!firebase/functions/.env.example
 
