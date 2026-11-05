@@ -1,5 +1,6 @@
 package com.diaryvault.app.ui.diary
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -319,6 +321,7 @@ private fun DiaryComposerScreen(
     var hardMeta by remember { mutableStateOf<String?>(null) }
     var hardShowUpgrade by remember { mutableStateOf(false) }
     var hardUpgradePro by remember { mutableStateOf(false) }
+    val canSave = body.isNotBlank()
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = VaultColors.seal,
         unfocusedBorderColor = VaultColors.line,
@@ -327,6 +330,7 @@ private fun DiaryComposerScreen(
     )
 
     fun trySave() {
+        if (!canSave) return
         if (existing != null) {
             viewModel.updateEntry(
                 existing.copy(title = title.trim(), body = body.trim(), moodTag = mood.trim().ifBlank { null }),
@@ -363,43 +367,63 @@ private fun DiaryComposerScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = VaultColors.paper,
         topBar = {
+            // iOS chrome: Cancel (muted) leading · Save (seal, disabled when empty) trailing
             TopAppBar(
-                title = { Text(localizedString(if (existing == null) R.string.diary_new else R.string.common_edit)) },
+                title = {
+                    Text(
+                        localizedString(if (existing == null) R.string.diary_new else R.string.common_edit),
+                        color = VaultColors.ink,
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = onCancel) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = localizedString(R.string.common_cancel))
+                    TextButton(onClick = onCancel) {
+                        Text(
+                            localizedString(R.string.common_cancel),
+                            color = VaultColors.inkMuted,
+                        )
                     }
                 },
                 actions = {
-                    TextButton(onClick = { trySave() }) {
-                        Text(localizedString(R.string.common_save), color = VaultColors.seal)
+                    TextButton(
+                        onClick = { trySave() },
+                        enabled = canSave,
+                    ) {
+                        Text(
+                            localizedString(R.string.common_save),
+                            color = if (canSave) VaultColors.seal else VaultColors.inkMuted,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = VaultColors.paper),
             )
         },
         bottomBar = {
-            // Media icon row stubs — UI only (iOS composerAttachDock parity).
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MediaStubIcon(Icons.Default.Mic, localizedString(R.string.diary_media_voice))
-                MediaStubIcon(Icons.Default.Image, localizedString(R.string.diary_media_photo))
-                MediaStubIcon(Icons.Default.Videocam, localizedString(R.string.diary_media_video))
-                Spacer(Modifier.weight(1f))
-                Text(
-                    localizedString(R.string.diary_media_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = VaultColors.inkMuted,
-                    maxLines = 2,
-                    modifier = Modifier.weight(2.5f),
-                )
+            // Keep existing mic/photo/video stubs — light dock chrome only
+            Column(Modifier.fillMaxWidth()) {
+                HorizontalDivider(color = VaultColors.line.copy(alpha = 0.7f))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(VaultColors.paper)
+                        .padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MediaStubIcon(Icons.Default.Mic, localizedString(R.string.diary_media_voice))
+                    MediaStubIcon(Icons.Default.Image, localizedString(R.string.diary_media_photo))
+                    MediaStubIcon(Icons.Default.Videocam, localizedString(R.string.diary_media_video))
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        localizedString(R.string.diary_media_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = VaultColors.inkMuted,
+                        maxLines = 2,
+                        modifier = Modifier.weight(2.5f),
+                    )
+                }
             }
         },
     ) { padding ->
@@ -481,6 +505,6 @@ private fun DiaryComposerScreen(
 @Composable
 private fun MediaStubIcon(icon: ImageVector, label: String) {
     IconButton(onClick = { /* stub — media pickers deferred */ }) {
-        Icon(icon, contentDescription = label, tint = VaultColors.seal)
+        Icon(icon, contentDescription = label, tint = VaultColors.inkMuted)
     }
 }

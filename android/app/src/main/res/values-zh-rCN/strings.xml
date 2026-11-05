@@ -27,7 +27,7 @@
     <string name="diary_empty_body">写下第一页——一句话就够。</string>
     <string name="diary_empty_body_placeholder">（空白）</string>
     <string name="diary_field_title">标题（可选）</string>
-    <string name="diary_field_mood">心情标签（可选）</string>
+    <string name="diary_field_mood">心情（选填）</string>
     <string name="diary_field_body">在这里书写…</string>
     <string name="diary_detail_owned">这一页属于你。</string>
     <string name="diary_missing">这篇日记已不在金库中。</string>
@@ -49,9 +49,9 @@
     <string name="diary_quota_upgrade">升级 Author Plus</string>
     <string name="diary_quota_upgrade_pro">升级 Author Pro</string>
     <string name="mirror_title">镜子</string>
-    <string name="mirror_intro">我是一面以你写过的内容为依据的镜子。我会反映与提问——不会告诉你「该做什么」。</string>
-    <string name="mirror_mode_mock">倾听中</string>
-    <string name="mirror_mode_cloud">倾听中</string>
+    <string name="mirror_intro">我是一面依你所写而立的镜子。我会映照、提问——不会告诉你该怎么做。</string>
+    <string name="mirror_mode_mock">模拟镜子</string>
+    <string name="mirror_mode_cloud">云端镜子</string>
     <string name="mirror_style_hint">反映 · 提问 — 非教练</string>
     <string name="mirror_placeholder">说说此刻在想什么…</string>
     <string name="mirror_send">发送</string>
