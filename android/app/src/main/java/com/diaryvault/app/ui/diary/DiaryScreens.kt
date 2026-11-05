@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Videocam
@@ -26,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,7 +49,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -112,7 +114,6 @@ fun DiaryNavHost(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DiaryListScreen(
     viewModel: VaultViewModel,
@@ -127,23 +128,18 @@ private fun DiaryListScreen(
         localizedString(R.string.diary_subtitle_named, name)
     }
 
-    // iOS DiaryListView: trailing toolbar `square.and.pencil` — no bottom FAB.
+    // Android convention: bottom-right circular Material + FAB (not iOS top square.and.pencil).
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { },
-                actions = {
-                    IconButton(onClick = onCreate) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_square_and_pencil),
-                            contentDescription = localizedString(R.string.diary_new),
-                            tint = VaultColors.ink,
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onCreate,
+                containerColor = VaultColors.seal,
+                contentColor = VaultColors.paper,
+                shape = CircleShape,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = localizedString(R.string.diary_new))
+            }
         },
     ) { padding ->
         if (entries.isEmpty()) {
@@ -190,8 +186,8 @@ private fun DiaryListScreen(
                 contentPadding = PaddingValues(
                     start = 24.dp,
                     end = 20.dp,
-                    top = padding.calculateTopPadding() + 4.dp,
-                    bottom = padding.calculateBottomPadding() + 24.dp,
+                    top = padding.calculateTopPadding() + 12.dp,
+                    bottom = padding.calculateBottomPadding() + 88.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
