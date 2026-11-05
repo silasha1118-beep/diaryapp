@@ -135,10 +135,12 @@
     <string name="auth_sms_rate_limited">Too many attempts — try again later.</string>
     <string name="auth_sms_region_blocked">SMS isn’t available for this number’s region right now. Try again later or use another number.</string>
     <string name="auth_sms_app_verification">Couldn’t finish the security check. If a browser page opened, complete it, then try again.</string>
-    <string name="auth_sms_timed_out">Request timed out. If a verification page appeared, complete it, check your network, then try again.</string>
+    <string name="auth_sms_recaptcha_unavailable">Security check needs a browser. On emulator: use a Play Store system image with Chrome installed, or a real phone. For emulator-only testing, add this number under Firebase Console → Authentication → Phone → Phone numbers for testing, then enter the fixed test code.</string>
+    <string name="auth_sms_timed_out">Request timed out. If a verification page appeared, complete it; otherwise install Chrome / use a real device and try again.</string>
     <string name="auth_sms_sent_hint">If you don’t receive the code, you can try again later.</string>
     <string name="auth_sms_empty_verification">Verification didn’t finish. Please try sending the code again.</string>
     <string name="auth_sms_generic_failure">Something went wrong sending the code. Please try again later.</string>
+    <string name="auth_sms_sending_security">Opening security check…</string>
     <string name="mirror_today_label">Today’s question</string>
     <string name="mirror_today_question">What moment today is worth keeping for your future self?</string>
     <string name="mirror_start_chat">Start conversation</string>
