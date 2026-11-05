@@ -2,8 +2,9 @@ rules_version = '2';
 
 // DiaryVault — paste into Firebase Console → Firestore → Rules → Publish.
 // Clients may only read/write their own users/{uid} tree.
-// Admin / console / Admin SDK bypass these rules (phase-2 viewer can use Admin SDK).
-// Entry deletes are soft-only: clients update deleted/deletedAt; hard delete is denied
+// Admin / console / Admin SDK bypass these rules.
+// In-repo Vault-like viewer: firebase/admin (owner signs in; same rules).
+// Entry deletes are soft-only: clients update deleted/deletedAt/status; hard delete is denied
 // so diary docs remain under users/{uid}/entries forever.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -33,10 +34,10 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       // Diary entries. entryId MUST stay the DiaryEntry UUID (not phone+datetime).
-      // Optional: label, bodyPreview, moodTag, deleted, deletedAt, attachments[],
-      // sourcePlatform ("ios" | "android").
+      // Optional: label, bodyPreview, status ("active"|"deleted"), hasMedia,
+      // moodTag, deleted, deletedAt, attachments[], sourcePlatform ("ios"|"android").
       // contentType is "text" or "multimedia". Soft-delete only — no hard delete.
-      // Media bytes live in Storage at users/{uid}/entries/{entryId}/{fileName}.
+      // Media metadata on this doc; bytes in Storage users/{uid}/entries/{entryId}/{fileName}.
       match /entries/{entryId} {
         allow read: if isOwner(userId);
 

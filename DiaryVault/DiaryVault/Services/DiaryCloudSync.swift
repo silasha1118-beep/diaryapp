@@ -16,19 +16,24 @@ import FirebaseFirestore
 /// users/{uid}/entries/{entryId}        // entryId = stable DiaryEntry UUID (never phone+datetime)
 ///   id, title, body, moodTag?, createdAt, updatedAt,
 ///   deleted, deletedAt?,                 // soft-delete; docs retained forever
+///   status ("active" | "deleted"),       // Console / admin scan twin of `deleted`
+///   hasMedia: bool,                      // true when attachments[] is non-empty
 ///   ownerUid, schemaVersion, contentType ("text" | "multimedia"),
 ///   sourcePlatform? ("ios" | "android"), // which client first wrote the entry
 ///   attachments?: [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }],
 ///   label?, bodyPreview?               // Console browsing aids — not path keys
 /// ```
 /// Media bytes live in Firebase Storage at `users/{uid}/entries/{entryId}/{fileName}`.
+/// Metadata (`attachments` / `hasMedia` / `contentType`) always lives on this same entry doc.
 /// Identity fields live on the user doc only (Console lookup by phoneNumber).
 /// Entry document IDs stay UUIDs (local sync / privacy / phone changes). Use `label` in Console.
-/// User deletes never call Firestore `delete()` — set `deleted` + `deletedAt` instead.
+/// User deletes never call Firestore `delete()` — set `deleted` + `deletedAt` + `status` instead.
 enum DiaryFirestoreSchema {
     static let schemaVersion = 1
     static let contentTypeText = "text"
     static let contentTypeMultimedia = "multimedia"
+    static let statusActive = "active"
+    static let statusDeleted = "deleted"
     /// Shared with Android — which client first wrote the entry.
     static let sourcePlatformIOS = "ios"
     static let sourcePlatformAndroid = "android"
@@ -100,6 +105,7 @@ enum DiaryCloudSync {
             try await ref.setData([
                 "deleted": true,
                 "deletedAt": Timestamp(date: date),
+                "status": DiaryFirestoreSchema.statusDeleted,
                 "updatedAt": Timestamp(date: date)
             ], merge: true)
             try await upsertUserProfile(uid: uid, hasTextEntries: true)
@@ -256,6 +262,7 @@ enum DiaryCloudSync {
                     batch.setData([
                         "deleted": true,
                         "deletedAt": Timestamp(date: now),
+                        "status": DiaryFirestoreSchema.statusDeleted,
                         "updatedAt": Timestamp(date: now)
                     ], forDocument: doc.reference, merge: true)
                 }
@@ -322,6 +329,9 @@ enum DiaryCloudSync {
         let contentType = entry.hasMedia
             ? DiaryFirestoreSchema.contentTypeMultimedia
             : DiaryFirestoreSchema.contentTypeText
+        let status = entry.deleted
+            ? DiaryFirestoreSchema.statusDeleted
+            : DiaryFirestoreSchema.statusActive
         var data: [String: Any] = [
             "id": entry.id.uuidString,
             "title": entry.title,
@@ -332,9 +342,11 @@ enum DiaryCloudSync {
             // Explicit Int so rules `schemaVersion is int` never sees a Double bridge.
             "schemaVersion": Int(DiaryFirestoreSchema.schemaVersion),
             "contentType": contentType,
-            // Non-key Console aids (UUID doc IDs are opaque in the list view).
+            // Console / admin scan fields (UUID doc IDs stay opaque in the list view).
             "label": consoleLabel(for: entry),
-            "bodyPreview": bodyPreview(for: entry)
+            "bodyPreview": bodyPreview(for: entry),
+            "status": status,
+            "hasMedia": entry.hasMedia
         ]
         // Omit nil moodTag (do not write NSNull — merge deletes the field and confuses rules debugging).
         if let mood = entry.moodTag {

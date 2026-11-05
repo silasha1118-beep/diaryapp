@@ -56,3 +56,6 @@ firebase/functions/.env
 firebase/functions/.env.*
 !firebase/functions/.env.example
 
+# Vault admin web config (apiKey from Console Web app — keep local)
+firebase/admin/firebase-config.js
+

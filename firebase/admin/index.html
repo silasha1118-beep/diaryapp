@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>日記金庫 · Vault Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #f5f1e8;
+      --paper-deep: #e6e0d4;
+      --ink: #292420;
+      --ink-muted: #665c52;
+      --seal: #8c382e;
+      --line: #c7bdb0;
+      --active: #2f5d3a;
+      --deleted: #8c382e;
+      --media: #3a4f6a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #fff9ef 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #ebe4d6 0%, transparent 50%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+    h1 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(2rem, 5vw, 2.75rem);
+      margin: 0 0 0.25rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--ink-muted);
+      margin: 0 0 1.75rem;
+      font-size: 1rem;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.72);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 0.35rem;
+    }
+    input, select, button, textarea {
+      font: inherit;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
+      margin-bottom: 0.85rem;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: transparent;
+      color: var(--ink);
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0 0 1rem;
+    }
+    .filters button[aria-pressed="true"] {
+      background: var(--seal);
+      border-color: var(--seal);
+      color: #fff8f2;
+    }
+    .meta {
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      margin-bottom: 1rem;
+    }
+    .err {
+      color: var(--seal);
+      background: #f7ebe8;
+      border: 1px solid #e3c4bd;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+    .entry {
+      border-top: 1px solid var(--line);
+      padding: 1rem 0.15rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+    .entry:first-of-type { border-top: none; }
+    .entry.deleted {
+      opacity: 0.72;
+    }
+    .entry-title {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      margin: 0;
+    }
+    .entry-preview {
+      margin: 0;
+      color: var(--ink-muted);
+      line-height: 1.45;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--line);
+      color: var(--ink-muted);
+    }
+    .badge.active { color: var(--active); border-color: #9cbc9f; }
+    .badge.deleted { color: var(--deleted); border-color: #d4a59c; }
+    .badge.media { color: var(--media); border-color: #a8b6c8; }
+    .time {
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+    .id {
+      font-size: 0.72rem;
+      color: #9a9084;
+      word-break: break-all;
+    }
+    .hidden { display: none !important; }
+    #recaptcha-container { min-height: 1px; }
+    details.attachments {
+      margin-top: 0.35rem;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+    details.attachments summary { cursor: pointer; }
+    code {
+      font-size: 0.85em;
+      background: rgba(0,0,0,0.04);
+      padding: 0.05rem 0.3rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>日記金庫</h1>
+    <p class="subtitle">Vault-like cloud viewer — same account entries as the app, with soft-deleted posts marked (never removed).</p>
+
+    <div id="config-warn" class="err hidden">
+      Missing <code>firebase-config.js</code>. Copy <code>firebase-config.example.js</code> → <code>firebase-config.js</code> and paste the Web app config from Firebase Console (project <strong>diaryappsilas</strong>).
+    </div>
+
+    <section id="auth-panel" class="panel">
+      <p class="meta" id="auth-status">Not signed in. Use the same phone number as the app.</p>
+      <div id="signed-out">
+        <label for="phone">Phone (E.164)</label>
+        <input id="phone" type="tel" placeholder="+886912345678" autocomplete="tel" />
+        <div id="recaptcha-container"></div>
+        <div class="row">
+          <button type="button" id="btn-send">Send OTP</button>
+        </div>
+        <label for="otp">OTP code</label>
+        <input id="otp" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" />
+        <div class="row">
+          <button type="button" id="btn-verify">Verify &amp; open Vault</button>
+        </div>
+      </div>
+      <div id="signed-in" class="hidden">
+        <div class="row">
+          <button type="button" id="btn-refresh" class="secondary">Refresh</button>
+          <button type="button" id="btn-signout" class="secondary">Sign out</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="error" class="err hidden"></div>
+
+    <section id="vault" class="hidden">
+      <div class="filters" role="tablist" aria-label="Entry filter">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="active" aria-pressed="false">Active</button>
+        <button type="button" data-filter="deleted" aria-pressed="false">Deleted</button>
+      </div>
+      <p class="meta" id="list-meta"></p>
+      <div id="list"></div>
+    </section>
+  </main>
+
+  <script src="./firebase-config.js" onerror="window.__DIARY_CONFIG_MISSING=true"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      RecaptchaVerifier,
+      signInWithPhoneNumber,
+      signOut,
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const els = {
+      configWarn: document.getElementById("config-warn"),
+      authStatus: document.getElementById("auth-status"),
+      signedOut: document.getElementById("signed-out"),
+      signedIn: document.getElementById("signed-in"),
+      phone: document.getElementById("phone"),
+      otp: document.getElementById("otp"),
+      btnSend: document.getElementById("btn-send"),
+      btnVerify: document.getElementById("btn-verify"),
+      btnRefresh: document.getElementById("btn-refresh"),
+      btnSignout: document.getElementById("btn-signout"),
+      error: document.getElementById("error"),
+      vault: document.getElementById("vault"),
+      list: document.getElementById("list"),
+      listMeta: document.getElementById("list-meta"),
+    };
+
+    let filter = "all";
+    let confirmation = null;
+    let entriesCache = [];
+
+    function showError(msg) {
+      if (!msg) {
+        els.error.classList.add("hidden");
+        els.error.textContent = "";
+        return;
+      }
+      els.error.textContent = msg;
+      els.error.classList.remove("hidden");
+    }
+
+    if (window.__DIARY_CONFIG_MISSING || !window.DIARY_FIREBASE_CONFIG?.apiKey || window.DIARY_FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
+      els.configWarn.classList.remove("hidden");
+      throw new Error("firebase-config.js missing");
+    }
+
+    const app = initializeApp(window.DIARY_FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+      callback: () => {},
+    });
+
+    function tsToDate(raw) {
+      if (!raw) return null;
+      if (typeof raw.toDate === "function") return raw.toDate();
+      if (raw instanceof Date) return raw;
+      if (typeof raw === "number") return new Date(raw > 1e12 ? raw : raw * 1000);
+      return null;
+    }
+
+    function formatTime(date) {
+      if (!date) return "—";
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function isDeleted(data) {
+      if (typeof data.deleted === "boolean") return data.deleted;
+      if (typeof data.status === "string") return data.status.toLowerCase() === "deleted";
+      return false;
+    }
+
+    function hasMedia(data) {
+      if (typeof data.hasMedia === "boolean") return data.hasMedia;
+      const attachments = Array.isArray(data.attachments) ? data.attachments : [];
+      return attachments.length > 0 || data.contentType === "multimedia";
+    }
+
+    function titleOf(data) {
+      const title = (data.title || "").trim();
+      if (title) return title;
+      const preview = (data.bodyPreview || data.body || "").trim().replace(/\s+/g, " ");
+      if (preview) return preview.slice(0, 48) + (preview.length > 48 ? "…" : "");
+      return "(untitled)";
+    }
+
+    function previewOf(data) {
+      const p = (data.bodyPreview || data.body || "").trim().replace(/\s+/g, " ");
+      if (!p) return "";
+      return p.length <= 140 ? p : p.slice(0, 140) + "…";
+    }
+
+    function renderList() {
+      const active = entriesCache.filter((e) => !e.deleted);
+      const deleted = entriesCache.filter((e) => e.deleted);
+      const shown = entriesCache.filter((e) => {
+        if (filter === "active") return !e.deleted;
+        if (filter === "deleted") return e.deleted;
+        return true;
+      });
+
+      els.listMeta.textContent =
+        `${active.length} active · ${deleted.length} deleted · showing ${shown.length}` +
+        (auth.currentUser ? ` · uid ${auth.currentUser.uid}` : "");
+
+      els.list.innerHTML = "";
+      if (shown.length === 0) {
+        els.list.innerHTML = `<p class="meta">No entries in this filter.</p>`;
+        return;
+      }
+
+      for (const entry of shown) {
+        const el = document.createElement("article");
+        el.className = "entry" + (entry.deleted ? " deleted" : "");
+        const mediaKinds = (entry.attachments || [])
+          .map((a) => a.kind)
+          .filter(Boolean);
+        const mediaLabel = entry.hasMedia
+          ? `Media${mediaKinds.length ? ": " + mediaKinds.join(", ") : ""}`
+          : null;
+        const attachmentRows = (entry.attachments || [])
+          .map((a) => {
+            const path = a.remotePath || a.localFileName || a.id;
+            return `<li><code>${a.kind || "?"}</code> ${path}</li>`;
+          })
+          .join("");
+
+        el.innerHTML = `
+          <h2 class="entry-title">${escapeHtml(entry.title)}</h2>
+          <p class="time">${escapeHtml(formatTime(entry.createdAt))}${entry.deletedAt ? " · deleted " + escapeHtml(formatTime(entry.deletedAt)) : ""}</p>
+          ${entry.preview ? `<p class="entry-preview">${escapeHtml(entry.preview)}</p>` : ""}
+          <div class="badges">
+            <span class="badge ${entry.deleted ? "deleted" : "active"}">${entry.deleted ? "Deleted" : "Active"}</span>
+            ${mediaLabel ? `<span class="badge media">${escapeHtml(mediaLabel)}</span>` : ""}
+            ${entry.sourcePlatform ? `<span class="badge">${escapeHtml(entry.sourcePlatform)}</span>` : ""}
+            ${entry.label ? `<span class="badge">${escapeHtml(entry.label)}</span>` : ""}
+          </div>
+          ${attachmentRows ? `<details class="attachments"><summary>Attachments on this entry</summary><ul>${attachmentRows}</ul></details>` : ""}
+          <div class="id">${escapeHtml(entry.id)}</div>
+        `;
+        els.list.appendChild(el);
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function loadEntries(uid) {
+      showError("");
+      const snap = await getDocs(collection(db, "users", uid, "entries"));
+      entriesCache = snap.docs.map((doc) => {
+        const data = doc.data() || {};
+        const deleted = isDeleted(data);
+        return {
+          id: data.id || doc.id,
+          title: titleOf(data),
+          preview: previewOf(data),
+          label: data.label || "",
+          createdAt: tsToDate(data.createdAt),
+          deletedAt: tsToDate(data.deletedAt),
+          deleted,
+          hasMedia: hasMedia(data),
+          sourcePlatform: data.sourcePlatform || "",
+          attachments: Array.isArray(data.attachments) ? data.attachments : [],
+        };
+      }).sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+      els.vault.classList.remove("hidden");
+      renderList();
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        els.authStatus.textContent = "Not signed in. Use the same phone number as the app.";
+        els.signedOut.classList.remove("hidden");
+        els.signedIn.classList.add("hidden");
+        els.vault.classList.add("hidden");
+        entriesCache = [];
+        return;
+      }
+      els.authStatus.textContent = `Signed in as ${user.phoneNumber || user.uid}`;
+      els.signedOut.classList.add("hidden");
+      els.signedIn.classList.remove("hidden");
+      try {
+        await loadEntries(user.uid);
+      } catch (e) {
+        showError(e?.message || String(e));
+      }
+    });
+
+    els.btnSend.addEventListener("click", async () => {
+      showError("");
+      const phone = els.phone.value.trim();
+      if (!phone.startsWith("+")) {
+        showError("Use E.164 format, e.g. +8869…");
+        return;
+      }
+      els.btnSend.disabled = true;
+      try {
+        confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        showError("");
+        els.authStatus.textContent = "OTP sent — enter the code below.";
+      } catch (e) {
+        showError(e?.message || String(e));
+        try { window.recaptchaVerifier.render(); } catch (_) {}
+      } finally {
+        els.btnSend.disabled = false;
+      }
+    });
+
+    els.btnVerify.addEventListener("click", async () => {
+      showError("");
+      if (!confirmation) {
+        showError("Send OTP first.");
+        return;
+      }
+      els.btnVerify.disabled = true;
+      try {
+        await confirmation.confirm(els.otp.value.trim());
+      } catch (e) {
+        showError(e?.message || String(e));
+      } finally {
+        els.btnVerify.disabled = false;
+      }
+    });
+
+    els.btnRefresh.addEventListener("click", async () => {
+      if (!auth.currentUser) return;
+      try {
+        await loadEntries(auth.currentUser.uid);
+      } catch (e) {
+        showError(e?.message || String(e));
+      }
+    });
+
+    els.btnSignout.addEventListener("click", () => signOut(auth));
+
+    document.querySelectorAll(".filters button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        filter = btn.dataset.filter;
+        document.querySelectorAll(".filters button").forEach((b) => {
+          b.setAttribute("aria-pressed", String(b === btn));
+        });
+        renderList();
+      });
+    });
+  </script>
+</body>
+</html>

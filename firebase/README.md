@@ -38,8 +38,10 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   id: string                    // same UUID as document ID
   title: string
   body: string                  // full text
-  bodyPreview: string           // short Console excerpt
-  label: string                 // e.g. "2026-10-30 18:22 · Morning notes" for Console browsing
+  bodyPreview: string           // short Console / admin excerpt
+  label: string                 // e.g. "2026-10-30 18:22 · Morning notes" for scanning
+  status: string                // "active" | "deleted" — Console twin of `deleted`
+  hasMedia: bool                // true when attachments[] is non-empty
   moodTag: string | null
   createdAt: timestamp
   updatedAt: timestamp
@@ -52,13 +54,15 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
   attachments?: array           // [{ id, kind, localFileName, remotePath?, mimeType, durationSeconds?, byteSize?, createdAt }]
 ```
 
-**Storage path:** `users/{uid}/entries/{entryId}/{localFileName}` (voice m4a / image jpg / video mp4). Soft-delete keeps Storage objects with the archived entry.
+**Storage path:** `users/{uid}/entries/{entryId}/{localFileName}` (voice m4a / image jpg / video mp4). Soft-delete keeps Storage objects with the archived entry. **Multimedia metadata always lives on the same entry document** (`attachments` / `hasMedia` / `contentType`) — never as orphaned docs elsewhere.
 
-**Soft-delete / retention:** User delete sets `deleted: true` + `deletedAt` (local JSON + Firestore upsert). Clients never call Firestore `delete()` on entries; rules deny hard delete. Docs remain under `users/{uid}/entries` for admin/future. Vault list, Mirror context, and export omit soft-deleted rows. After changing rules, **Publish** again in Console.
+**Soft-delete / retention:** User delete sets `deleted: true` + `deletedAt` + `status: "deleted"` (local JSON + Firestore upsert). Clients never call Firestore `delete()` on entries; rules deny hard delete. Docs remain under `users/{uid}/entries` for admin/future. Vault list, Mirror context, and export omit soft-deleted rows. After changing rules, **Publish** again in Console.
 
 **Console tip:** Data → `users` → open a doc, or filter by `phoneNumber`. Document ID remains the Auth UID. Identity fields are written on sign-in and each cloud sync (user doc only — not mirrored onto entries).
 
-**Entry order / Console browsing:** Document IDs stay entry UUIDs (required for local sync, privacy, and phone number changes — do **not** rename to phone+datetime). Console’s default list is UUID order. Open `users/{uid}/entries`, sort by `createdAt`, and scan the `label` field (`yyyy-MM-dd HH:mm · title`). Phone lives on the parent `users/{uid}.phoneNumber`, not in the entry path. The app Vault list always sorts newest-`createdAt`-first.
+**Entry order / Console browsing:** Document IDs stay entry UUIDs (required for local sync, privacy, and phone number changes — do **not** rename to phone+datetime). Console’s default list is UUID order. Open `users/{uid}/entries`, sort by `createdAt`, and scan **`label`**, **`status`**, **`hasMedia`**, **`sourcePlatform`**. Phone lives on the parent `users/{uid}.phoneNumber`, not in the entry path. The app Vault list always sorts newest-`createdAt`-first.
+
+**Vault-like admin viewer (preferred over raw UUID lists):** see [`admin/README.md`](admin/README.md). Sign in with the same phone as the app to list Active + soft-deleted posts together with media badges.
 
 ## Client behavior
 
@@ -71,8 +75,8 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
 
 **Rules:** Creating the database in production mode starts deny-all — paste [`firestore.rules`](firestore.rules) and **Publish**, or every write fails.
 
-## Admin read (later — do not build UI now)
+## Admin / Vault-like viewer
 
-- Security rules keep clients to own `uid` paths.
-- A future admin tool should use the **Firebase Admin SDK** (or Console) which bypasses rules.
-- Query `users` for profiles; `collectionGroup('entries')` + `ownerUid` for cross-user content.
+- **In-repo viewer:** [`admin/`](admin/) — phone OTP → Vault-style list (title, preview, time, Active/Deleted, media, platform). Owner-only via existing Firestore rules.
+- **Console:** sort `entries` by `createdAt`; scan `label` / `status` / `hasMedia` / `sourcePlatform`.
+- Cross-user admin later: **Firebase Admin SDK** + `collectionGroup('entries')` filtered by `ownerUid` (bypasses rules).
