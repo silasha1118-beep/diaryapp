@@ -135,7 +135,7 @@
     <string name="diary_media_voice">Voice</string>
     <string name="diary_media_photo">Photo</string>
     <string name="diary_media_video">Video</string>
-    <string name="diary_media_hint">Voice ~90s, video ~60s. Stubs only — pickers deferred.</string>
+    <string name="diary_media_hint">Voice up to 90s · video up to 60s. Text and media share one vault upload.</string>
     <string name="settings_account_provider">Sign-in method</string>
     <string name="settings_account_provider_phone">Phone (SMS code)</string>
     <string name="settings_account_provider_apple">Sign in with Apple</string>

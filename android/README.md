@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose scaffold that visually/functionally mirrors the iOS `DiaryVault/` app and the HarmonyOS UI notes: fake phone OTP → three tabs（金庫／鏡子／設定）→ vault list, composer, Mirror home+chat, Settings sections. Mock data / stubs first — no Firebase SMS or Play Billing in this folder yet.
+Compose scaffold that visually/functionally mirrors the iOS `DiaryVault/` app: fake phone OTP → three tabs（金庫／鏡子／設定）→ vault list, composer (+), Mirror chat (direct, no 開始對話 gate), Settings sections. Mock data / stubs first — no Firebase SMS or Play Billing in this folder yet.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  

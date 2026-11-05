@@ -3,6 +3,7 @@ package com.diaryvault.app.ui.diary
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -23,14 +26,13 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,10 +47,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -321,13 +327,8 @@ private fun DiaryComposerScreen(
     var hardMeta by remember { mutableStateOf<String?>(null) }
     var hardShowUpgrade by remember { mutableStateOf(false) }
     var hardUpgradePro by remember { mutableStateOf(false) }
+    // iOS: canSave when body has text (or attachments — stubs empty here)
     val canSave = body.isNotBlank()
-    val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = VaultColors.seal,
-        unfocusedBorderColor = VaultColors.line,
-        focusedTextColor = VaultColors.ink,
-        cursorColor = VaultColors.seal,
-    )
 
     fun trySave() {
         if (!canSave) return
@@ -369,12 +370,14 @@ private fun DiaryComposerScreen(
     Scaffold(
         containerColor = VaultColors.paper,
         topBar = {
-            // iOS chrome: Cancel (muted) leading · Save (seal, disabled when empty) trailing
-            TopAppBar(
+            // iOS: Cancel · 新日記 · 儲存 (gray when empty)
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         localizedString(if (existing == null) R.string.diary_new else R.string.common_edit),
                         color = VaultColors.ink,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp,
                     )
                 },
                 navigationIcon = {
@@ -397,11 +400,13 @@ private fun DiaryComposerScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = VaultColors.paper),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = VaultColors.paper,
+                ),
             )
         },
         bottomBar = {
-            // Keep existing mic/photo/video stubs — light dock chrome only
+            // iOS composerAttachDock: divider + mic/photo/video + muted duration caption
             Column(Modifier.fillMaxWidth()) {
                 HorizontalDivider(color = VaultColors.line.copy(alpha = 0.7f))
                 Row(
@@ -420,6 +425,7 @@ private fun DiaryComposerScreen(
                         localizedString(R.string.diary_media_hint),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
+                        fontSize = 12.sp,
                         maxLines = 2,
                         modifier = Modifier.weight(2.5f),
                     )
@@ -427,43 +433,83 @@ private fun DiaryComposerScreen(
             }
         },
     ) { padding ->
+        // iOS formContent: title → mood → hairline → body (borderless, cream paper)
         Column(
             Modifier
                 .padding(padding)
-                .padding(horizontal = 20.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(localizedString(R.string.diary_field_title)) },
-                singleLine = true,
-                colors = fieldColors,
-                shape = RoundedCornerShape(12.dp),
-            )
-            OutlinedTextField(
-                value = mood,
-                onValueChange = { mood = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(localizedString(R.string.diary_field_mood)) },
-                singleLine = true,
-                colors = fieldColors,
-                shape = RoundedCornerShape(12.dp),
-            )
-            OutlinedTextField(
-                value = body,
-                onValueChange = { body = it },
-                modifier = Modifier
+            Column(
+                Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                placeholder = { Text(localizedString(R.string.diary_field_body)) },
-                colors = fieldColors,
-                shape = RoundedCornerShape(12.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                ComposerPlainField(
+                    value = title,
+                    onValueChange = { title = it },
+                    placeholder = localizedString(R.string.diary_field_title),
+                    textStyle = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 22.sp,
+                        color = VaultColors.ink,
+                        lineHeight = 28.sp,
+                    ),
+                    placeholderColor = VaultColors.inkMuted.copy(alpha = 0.55f),
+                    singleLine = true,
+                )
+                ComposerPlainField(
+                    value = mood,
+                    onValueChange = { mood = it },
+                    placeholder = localizedString(R.string.diary_field_mood),
+                    textStyle = TextStyle(
+                        fontFamily = FontFamily.Default,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = VaultColors.inkMuted,
+                        lineHeight = 20.sp,
+                    ),
+                    placeholderColor = VaultColors.inkMuted.copy(alpha = 0.7f),
+                    singleLine = true,
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                color = VaultColors.line.copy(alpha = 0.85f),
             )
+
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                ComposerPlainField(
+                    value = body,
+                    onValueChange = { body = it },
+                    placeholder = localizedString(R.string.diary_field_body),
+                    textStyle = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 17.sp,
+                        color = VaultColors.ink,
+                        lineHeight = 26.sp,
+                    ),
+                    placeholderColor = VaultColors.inkMuted.copy(alpha = 0.55f),
+                    singleLine = false,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
             hardTitle?.let { titleText ->
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     Text(
                         titleText,
                         color = VaultColors.ink,
@@ -503,8 +549,44 @@ private fun DiaryComposerScreen(
 }
 
 @Composable
+private fun ComposerPlainField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    textStyle: TextStyle,
+    placeholderColor: Color,
+    singleLine: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        textStyle = textStyle,
+        cursorBrush = SolidColor(VaultColors.seal),
+        singleLine = singleLine,
+        decorationBox = { inner ->
+            Box(Modifier.fillMaxWidth()) {
+                if (value.isEmpty()) {
+                    Text(placeholder, style = textStyle.copy(color = placeholderColor))
+                }
+                inner()
+            }
+        },
+    )
+}
+
+@Composable
 private fun MediaStubIcon(icon: ImageVector, label: String) {
-    IconButton(onClick = { /* stub — media pickers deferred */ }) {
-        Icon(icon, contentDescription = label, tint = VaultColors.inkMuted)
+    IconButton(
+        onClick = { /* stub — media pickers deferred */ },
+        modifier = Modifier.size(40.dp, 36.dp),
+    ) {
+        Icon(
+            icon,
+            contentDescription = label,
+            tint = VaultColors.inkMuted,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
