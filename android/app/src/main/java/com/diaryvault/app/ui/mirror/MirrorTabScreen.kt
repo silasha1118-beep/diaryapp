@@ -98,9 +98,9 @@ private fun MirrorHomePane(
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.72f), RoundedCornerShape(14.dp))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .background(Color.White.copy(alpha = 0.78f), RoundedCornerShape(14.dp))
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 localizedString(R.string.mirror_today_label),
