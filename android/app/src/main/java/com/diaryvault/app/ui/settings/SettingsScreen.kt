@@ -67,11 +67,14 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val accountSignedIn by viewModel.accountSignedIn.collectAsState()
     val accountLabel by viewModel.accountLabel.collectAsState()
     val billingActive by viewModel.billingActive.collectAsState()
+    val hasLiveFirebase by viewModel.hasLiveFirebaseAuth.collectAsState()
+    val lastSyncAt by viewModel.lastCloudSyncAt.collectAsState()
+    val lastSyncError by viewModel.lastCloudSyncError.collectAsState()
+    val isSyncing by viewModel.isSyncing.collectAsState()
 
     var phoneNational by remember { mutableStateOf("") }
     var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
     var dialExpanded by remember { mutableStateOf(false) }
-    var syncStatus by remember { mutableStateOf(R.string.settings_cloud_status_synced) }
     var exportReady by remember { mutableStateOf(false) }
     var langExpanded by remember { mutableStateOf(false) }
 
@@ -85,6 +88,18 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
         R.string.auth_dial_jp,
     )
     val dialCode = localizedString(dialRes)
+    val syncStatusText = when {
+        hasLiveFirebase && lastSyncError != null ->
+            localizedString(R.string.settings_cloud_status_error)
+        hasLiveFirebase && lastSyncAt != null ->
+            localizedString(R.string.settings_cloud_status_synced)
+        hasLiveFirebase ->
+            localizedString(R.string.settings_cloud_status_pending)
+        accountSignedIn ->
+            localizedString(R.string.settings_cloud_status_local_session)
+        else ->
+            localizedString(R.string.settings_cloud_status_signed_out)
+    }
     val linkedPhone = viewModel.accountPhone != null
     val linkedApple = false // Android stub — Apple Sign-In not wired
     val identity = accountLabel.ifBlank { name }.ifBlank { "Silas" }
@@ -279,13 +294,27 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
             ) {
                 SettingsRow(
                     localizedString(R.string.settings_cloud_status),
-                    localizedString(syncStatus),
+                    syncStatusText,
                 )
+                if (!lastSyncError.isNullOrBlank()) {
+                    SettingsDivider()
+                    Text(
+                        lastSyncError ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = VaultColors.seal,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                }
                 SettingsDivider()
                 SettingsActionRow(
-                    title = localizedString(R.string.settings_cloud_sync_now),
-                    color = VaultColors.seal,
-                    onClick = { syncStatus = R.string.settings_cloud_status_synced },
+                    title = localizedString(
+                        if (isSyncing) R.string.settings_cloud_syncing
+                        else R.string.settings_cloud_sync_now,
+                    ),
+                    color = if (hasLiveFirebase) VaultColors.seal else VaultColors.inkMuted,
+                    onClick = {
+                        if (hasLiveFirebase && !isSyncing) viewModel.syncNow()
+                    },
                 )
             }
 

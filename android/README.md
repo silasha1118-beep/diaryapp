@@ -1,103 +1,106 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose scaffold that visually/functionally mirrors the iOS `DiaryVault/` app: fake phone OTP → three tabs（金庫／鏡子／設定）→ vault list, bottom-right Material `+` FAB for compose (Android convention), Mirror chat (direct, no 開始對話 gate), Settings sections. Mock data / stubs first — no Firebase SMS or Play Billing in this folder yet.
+Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Firebase Phone Auth + Firestore text sync** match iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
-**minSdk:** 26 · **compileSdk / targetSdk:** 34
+**minSdk:** 26 · **compileSdk / targetSdk:** 34  
+**Firebase project:** `diaryappsilas` (same as iOS)
 
 > Do not open or edit the iOS Xcode project from this folder. `DiaryVault/` stays the iOS source of truth.
 
 ## What Silas needs on his Mac
 
-1. **Android Studio** Hedgehog or newer (or Meerkat / Narwhal) — [developer.android.com/studio](https://developer.android.com/studio)
-2. During setup, install:
-   - Android SDK Platform **34**
-   - Android SDK Build-Tools
-   - A system image for an emulator (API 26+; API 34 recommended)
-3. **JDK 17** (Android Studio bundles one — prefer the IDE’s embedded JDK)
+1. **Android Studio** Hedgehog or newer — [developer.android.com/studio](https://developer.android.com/studio)
+2. Android SDK Platform **34**, Build-Tools, an emulator image (API 26+)
+3. **JDK 17** (prefer the IDE’s embedded JDK)
+
+## Firebase setup (required for real SMS + sync)
+
+`google-services.json` is **gitignored** (same rule as iOS `GoogleService-Info.plist`). Without it the app builds and runs in **stub SMS** mode (no Firestore writes).
+
+### 1. Add the Android app in Firebase Console
+
+1. Open [Firebase Console](https://console.firebase.google.com/) → project **`diaryappsilas`**.
+2. **Project settings → Your apps → Add app → Android**.
+3. Android package name: **`com.diaryvault.app`** (must match `applicationId` in `app/build.gradle.kts`).
+4. Download **`google-services.json`** and place it at:
+
+```text
+android/app/google-services.json
+```
+
+(See `android/app/google-services.json.example` for the expected shape — never commit the real file.)
+
+5. Leave `DIARY_SMS_PROVIDER` empty (default). Empty + JSON present → Firebase. Set `stub` only to force local OTP.
+
+### 2. Register SHA-1 for Phone Auth
+
+Phone Auth app verification needs the signing certificate fingerprint:
+
+```bash
+# Debug keystore (default Android Studio debug key)
+keytool -list -v -alias androiddebugkey \
+  -keystore ~/.android/debug.keystore \
+  -storepass android -keypass android
+```
+
+Copy the **SHA-1** (and ideally SHA-256) → Firebase Console → Project settings → Your apps → Android `com.diaryvault.app` → **Add fingerprint**.
+
+Without SHA-1, SMS send often fails with app-verification / reCAPTCHA errors.
+
+### 3. Enable Phone Auth + regions
+
+1. Authentication → Sign-in method → **Phone** → Enable.
+2. Allow SMS regions for launch markets: **TW / HK / CN / MY / SG / TH / JP** (same checklist as iOS README).
+3. Optional: add test phone numbers under Phone → Phone numbers for testing (skips real SMS while iterating).
+
+### 4. Firestore (same as iOS)
+
+1. Firestore Database **`(default)`** — paste / publish [`firebase/firestore.rules`](../firebase/firestore.rules).
+2. Sync path: `users/{uid}/entries/{entryId}` with soft-delete (`deleted` / `deletedAt`). Free includes sync.
 
 ## Open in Android Studio
 
 1. Clone / pull this repo.
-2. **File → Open…** and select the **`android/`** directory (not only the repo root).
-3. Trust the Gradle project and wait for sync (`Gradle sync`).
-4. If sync asks for an SDK path, set it under **Settings → Languages & Frameworks → Android SDK**, or create `android/local.properties`:
+2. Place `android/app/google-services.json` if you want live Firebase.
+3. **File → Open…** → select the **`android/`** directory.
+4. Trust the Gradle project and wait for sync.
 
-```properties
-sdk.dir=/Users/YOUR_MAC_USERNAME/Library/Android/sdk
-```
-
-(`local.properties` is gitignored — never commit it.)
-
-## Run on an emulator
-
-1. **Tools → Device Manager → Create Device** (e.g. Pixel 7, system image API 34).
-2. Start the emulator.
-3. Select the **app** run configuration → green **Run**.
-
-Or from Terminal:
+## Run
 
 ```bash
 cd android
+./gradlew :app:assembleDebug
 ./gradlew :app:installDebug
 ```
 
-## Run on a physical phone (USB debugging)
+## How to test (Silas checklist)
 
-1. On the phone: **Settings → About phone** → tap **Build number** 7 times → enable Developer options.
-2. **Developer options → USB debugging** → ON.
-3. Plug in USB; accept the “Allow USB debugging?” prompt.
-4. In Android Studio, pick the device in the device dropdown → **Run**.
-5. Confirm with `adb devices` (Platform-Tools must be installed).
-
-## Build with Gradle (CLI)
-
-```bash
-cd android
-./gradlew :app:assembleDebug
-```
-
-Debug APK:
-
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-## Screens in this scaffold
-
-| Screen | Notes |
-|--------|--------|
-| Onboarding | Brand / privacy / optional name / language |
-| Phone OTP login | Fake gate like HarmonyOS `Index` — any number → send → any code |
-| 金庫 | Cream `#F3EEE6`, burgundy `#6B3A2E`, title 日記金庫 + seal underline + `{name} 的金庫`, bottom-right circular burgundy `+` FAB for compose, date/title/body rows |
-| Composer | Title / mood / body + media icon row **stubs** |
-| 鏡子 | Home (今日一問) → in-tab chat with **mock** reply |
-| 設定 | Account, link phone stub, sync, billing, privacy, language, reminders, vault name, legal — UI only |
+1. Confirm Settings → Sync shows **Local session only** / **Signed out** before login.
+2. Sign in with phone OTP (DEBUG banner: “SMS backend: Firebase” when JSON is present).
+3. Create a diary entry → Settings → **Sync now** → status becomes **Synced**.
+4. In Console → Firestore → `users/{your Auth UID}/entries` — docs appear; delete in-app soft-sets `deleted: true` (no hard delete).
+5. If SMS fails: re-check SHA-1, package name, Phone provider enabled, region policy.
 
 ## Optional: cloud Mirror AI
 
-Default Mirror is local mock. To call a cloud chat API (**no secrets in git**):
-
 ```bash
 export DIARY_AI_API_KEY="…"
-export DIARY_AI_PROVIDER=openai   # or anthropic
+export DIARY_AI_PROVIDER=openai   # or anthropic / xai
 ./gradlew :app:assembleDebug
 ```
-
-See also root `README.md` for env var details.
 
 ## Layout
 
 ```text
 android/
+  app/google-services.json.example
   app/src/main/java/com/diaryvault/app/
-    account/     # AccountSession stub (phone + local)
-    billing/     # BillingConfig stub
-    config/      # AI / upload quota config
-    data/        # AppPreferences, DiaryStore (JSON on device)
-    model/
-    service/     # Mirror AI mock / cloud
+    account/     # AccountSession (Firebase Auth state)
+    auth/        # SMS OTP (Firebase + stub)
+    config/      # AuthConfig, FirebaseBootstrap, AI / quotas
+    data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
+    sync/        # DiaryCloudSync (Firestore schema parity with iOS)
     ui/          # auth, diary, mirror, settings, theme
-  app/src/main/res/values{,-zh-rTW,-zh-rCN}/
 ```

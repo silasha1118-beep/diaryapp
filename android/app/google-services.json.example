@@ -1,0 +1,30 @@
+{
+  "_comment": "EXAMPLE ONLY — do NOT rename this file to google-services.json and commit secrets. Silas: add an Android app in Firebase Console → project diaryappsilas with package name com.diaryvault.app, download google-services.json, place it at android/app/google-services.json (gitignored). Leave DIARY_SMS_PROVIDER empty so the app auto-selects Firebase when the file is present. Also register the debug/release SHA-1 fingerprints under Project settings → Your apps → Android for Phone Auth.",
+  "project_info": {
+    "project_number": "REPLACE_ME",
+    "project_id": "diaryappsilas",
+    "storage_bucket": "diaryappsilas.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:REPLACE_ME:android:REPLACE_ME",
+        "android_client_info": {
+          "package_name": "com.diaryvault.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REPLACE_ME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

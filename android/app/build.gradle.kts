@@ -22,6 +22,10 @@ android {
         buildConfigField("String", "DIARY_AI_MAX_CONTEXT_ENTRIES", "\"${System.getenv("DIARY_AI_MAX_CONTEXT_ENTRIES") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_FREE_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_FREE_DAILY_REQUEST_LIMIT") ?: ""}\"")
         buildConfigField("String", "DIARY_AI_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_DAILY_REQUEST_LIMIT") ?: ""}\"")
+        // SMS / Firebase — leave empty to auto-select firebase when google-services.json is present.
+        buildConfigField("String", "DIARY_SMS_PROVIDER", "\"${System.getenv("DIARY_SMS_PROVIDER") ?: ""}\"")
+        buildConfigField("String", "DIARY_SMS_STUB_CODE", "\"${System.getenv("DIARY_SMS_STUB_CODE") ?: ""}\"")
+        buildConfigField("String", "DIARY_FIREBASE_PROJECT_ID", "\"${System.getenv("DIARY_FIREBASE_PROJECT_ID") ?: "diaryappsilas"}\"")
     }
 
     buildTypes {
@@ -76,8 +80,21 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.foundation:foundation")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
     implementation("com.google.code.gson:gson:2.11.0")
+
+    // Firebase Auth (Phone SMS) + Firestore diary sync — same project as iOS (diaryappsilas).
+    val firebaseBom = platform("com.google.firebase:firebase-bom:33.5.1")
+    implementation(firebaseBom)
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// Apply only when Silas has placed the real (gitignored) google-services.json —
+// mirrors iOS optional GoogleService-Info.plist so stub builds still assemble.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }

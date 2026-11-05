@@ -9,6 +9,9 @@ data class DiaryEntry(
     val moodTag: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
+    /** Soft-delete — keep forever in local JSON + Firestore; Vault hides when true. */
+    val deleted: Boolean = false,
+    val deletedAt: Long? = null,
 ) {
     val preview: String
         get() {

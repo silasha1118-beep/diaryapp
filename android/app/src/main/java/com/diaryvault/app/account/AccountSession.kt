@@ -1,22 +1,26 @@
 package com.diaryvault.app.account
 
 import android.content.Context
+import com.diaryvault.app.auth.PhoneNumberNormalizer
+import com.diaryvault.app.config.FirebaseBootstrap
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Local account session stub.
- *
- * iOS ships phone SMS OTP (stub) + optional Apple as the account gate.
- * Android keeps SharedPreferences hooks only — no real SMS SDK / Credential Manager
- * until the Play Store path is prioritized (near-term target still runs without a Mac,
- * but full auth/billing is iOS-first). Primary provider semantics match iOS: **phone**.
+ * Account session for phone SMS OTP (primary). When Firebase Auth succeeds, `userId` is the
+ * Firebase UID and diary sync can run. Stub / local sessions stay on-device only.
  */
 class AccountSession(context: Context) {
-    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private var authListener: FirebaseAuth.AuthStateListener? = null
 
     enum class Provider(val raw: String) {
         PHONE("phone"),
         LOCAL("local"),
-        /** Reserved; not a primary path (aligned with iOS — WeChat/Google dropped as primary). */
         GOOGLE("google"),
         ;
 
@@ -25,9 +29,12 @@ class AccountSession(context: Context) {
         }
     }
 
+    private val _userId = MutableStateFlow(prefs.getString(KEY_USER_ID, null))
+    val userIdFlow: StateFlow<String?> = _userId.asStateFlow()
     var userId: String?
-        get() = prefs.getString(KEY_USER_ID, null)
+        get() = _userId.value
         private set(value) {
+            _userId.value = value
             prefs.edit().putString(KEY_USER_ID, value).apply()
         }
 
@@ -49,26 +56,114 @@ class AccountSession(context: Context) {
             prefs.edit().putString(KEY_PROVIDER, value?.raw).apply()
         }
 
+    private val _firebaseAuthUID = MutableStateFlow<String?>(null)
+    val firebaseAuthUID: StateFlow<String?> = _firebaseAuthUID.asStateFlow()
+
+    private val _firebaseAuthReady = MutableStateFlow(false)
+    val firebaseAuthReady: StateFlow<Boolean> = _firebaseAuthReady.asStateFlow()
+
+    private val _hasLinkedPhone = MutableStateFlow(provider == Provider.PHONE || phoneE164 != null)
+    val hasLinkedPhone: StateFlow<Boolean> = _hasLinkedPhone.asStateFlow()
+
     val isSignedIn: Boolean get() = !userId.isNullOrBlank()
 
-    /** Stub phone session — mirrors iOS SMS OTP success without sending SMS. */
-    fun signInWithPhone(phoneE164: String, displayName: String?) {
-        val digits = phoneE164.filter { it.isDigit() }
-        userId = "phone-$digits"
-        this.phoneE164 = phoneE164.trim().ifEmpty { null }
-        this.displayName = displayName?.trim()?.ifEmpty { null }
-        provider = Provider.PHONE
+    /** Firestore sync requires a live Firebase Auth user — not merely a SharedPreferences / stub session. */
+    val hasLiveFirebaseAuth: Boolean
+        get() = !_firebaseAuthUID.value.isNullOrBlank()
+
+    val displayLabel: String
+        get() {
+            displayName?.takeIf { it.isNotBlank() }?.let { return it }
+            phoneE164?.takeIf { it.isNotBlank() }?.let {
+                return PhoneNumberNormalizer.maskedDisplay(it)
+            }
+            return ""
+        }
+
+    init {
+        FirebaseBootstrap.configureIfNeeded(appContext)
+        if (FirebaseBootstrap.isConfigured) {
+            val auth = FirebaseAuth.getInstance()
+            auth.currentUser?.let { applyFirebaseUser(it) }
+            val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+                val user = firebaseAuth.currentUser
+                _firebaseAuthReady.value = true
+                if (user != null) {
+                    applyFirebaseUser(user)
+                } else {
+                    // First callback can briefly be nil while restore is in flight — do not wipe
+                    // SharedPreferences on that alone. Only clear the live-UID mirror.
+                    _firebaseAuthUID.value = null
+                }
+            }
+            authListener = listener
+            auth.addAuthStateListener(listener)
+        } else {
+            _firebaseAuthReady.value = true
+            _firebaseAuthUID.value = null
+        }
     }
 
-    /** Stub local session for Settings / future gate — not a production auth path. */
+    private fun applyFirebaseUser(fbUser: FirebaseUser) {
+        _firebaseAuthUID.value = fbUser.uid
+        val linkedPhone = userHasPhoneProvider(fbUser)
+        _hasLinkedPhone.value = linkedPhone
+        val phone = fbUser.phoneNumber ?: if (linkedPhone) phoneE164 else null
+        apply(
+            userId = fbUser.uid,
+            displayName = displayName ?: fbUser.displayName,
+            phoneE164 = phone,
+            provider = Provider.PHONE,
+        )
+    }
+
+    fun signInWithPhone(userId: String, phoneE164: String, displayName: String?) {
+        apply(
+            userId = userId,
+            displayName = displayName,
+            phoneE164 = phoneE164,
+            provider = Provider.PHONE,
+        )
+        if (FirebaseBootstrap.isConfigured) {
+            val current = FirebaseAuth.getInstance().currentUser
+            if (current != null && current.uid == userId) {
+                _firebaseAuthUID.value = userId
+                _hasLinkedPhone.value = userHasPhoneProvider(current)
+            } else {
+                _firebaseAuthUID.value = null
+                _hasLinkedPhone.value = true
+            }
+        } else {
+            _firebaseAuthUID.value = null
+            _hasLinkedPhone.value = true
+        }
+    }
+
     fun signInLocally(displayName: String?) {
-        userId = "local-" + java.util.UUID.randomUUID()
-        this.displayName = displayName?.trim()?.ifEmpty { null }
-        phoneE164 = null
-        provider = Provider.LOCAL
+        apply(
+            userId = "local-" + java.util.UUID.randomUUID(),
+            displayName = displayName,
+            phoneE164 = null,
+            provider = Provider.LOCAL,
+        )
+        _firebaseAuthUID.value = null
+        _hasLinkedPhone.value = false
     }
 
     fun signOut() {
+        if (FirebaseBootstrap.isConfigured) {
+            runCatching { FirebaseAuth.getInstance().signOut() }
+        }
+        _firebaseAuthUID.value = null
+        _hasLinkedPhone.value = false
+        clearLocalSession()
+    }
+
+    private fun clearLocalSession() {
+        userId = null
+        displayName = null
+        phoneE164 = null
+        provider = null
         prefs.edit()
             .remove(KEY_USER_ID)
             .remove(KEY_DISPLAY_NAME)
@@ -77,11 +172,28 @@ class AccountSession(context: Context) {
             .apply()
     }
 
+    private fun apply(
+        userId: String,
+        displayName: String?,
+        phoneE164: String?,
+        provider: Provider,
+    ) {
+        this.userId = userId
+        this.displayName = displayName?.trim()?.ifEmpty { null }
+        this.phoneE164 = phoneE164?.trim()?.ifEmpty { null }
+        this.provider = provider
+    }
+
     companion object {
         private const val PREFS = "diary_vault_account"
         private const val KEY_USER_ID = "userId"
         private const val KEY_DISPLAY_NAME = "displayName"
         private const val KEY_PHONE = "phoneE164"
         private const val KEY_PROVIDER = "provider"
+
+        fun userHasPhoneProvider(user: FirebaseUser): Boolean {
+            if (!user.phoneNumber.isNullOrBlank()) return true
+            return user.providerData.any { it.providerId == "phone" }
+        }
     }
 }
