@@ -27,7 +27,7 @@
     <string name="diary_empty_body">Write a first page — one sentence is enough.</string>
     <string name="diary_empty_body_placeholder">(empty)</string>
     <string name="diary_field_title">Title (optional)</string>
-    <string name="diary_field_mood">Mood tag (optional)</string>
+    <string name="diary_field_mood">Mood (optional)</string>
     <string name="diary_field_body">Write here…</string>
     <string name="diary_detail_owned">This page belongs to you.</string>
     <string name="diary_missing">This entry is no longer in the vault.</string>
@@ -49,7 +49,7 @@
     <string name="diary_quota_upgrade">Upgrade to Author Plus</string>
     <string name="diary_quota_upgrade_pro">Upgrade to Author Pro</string>
     <string name="mirror_title">Mirror</string>
-    <string name="mirror_intro">I’m a mirror grounded in what you’ve written. I’ll reflect and ask — I won’t tell you what to do. (Placeholder AI for this scaffold.)</string>
+    <string name="mirror_intro">I’m a mirror grounded in what you’ve written. I’ll reflect and ask — I won’t tell you what to do.</string>
     <string name="mirror_mode_mock">Mock mirror</string>
     <string name="mirror_mode_cloud">Cloud mirror</string>
     <string name="mirror_style_hint">Reflect · ask — not coach</string>

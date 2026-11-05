@@ -27,7 +27,7 @@
     <string name="diary_empty_body">寫下第一頁——一句話就夠。</string>
     <string name="diary_empty_body_placeholder">（空白）</string>
     <string name="diary_field_title">標題（可選）</string>
-    <string name="diary_field_mood">心情標籤（可選）</string>
+    <string name="diary_field_mood">心情（選填）</string>
     <string name="diary_field_body">在這裡書寫…</string>
     <string name="diary_detail_owned">這一頁屬於你。</string>
     <string name="diary_missing">這篇日記已不在金庫中。</string>
@@ -49,7 +49,7 @@
     <string name="diary_quota_upgrade">升級 Author Plus</string>
     <string name="diary_quota_upgrade_pro">升級 Author Pro</string>
     <string name="mirror_title">鏡子</string>
-    <string name="mirror_intro">我是一面以你寫過的內容為依據的鏡子。我會反映與提問——不會告訴你「該做什麼」。（此骨架為佔位 AI。）</string>
+    <string name="mirror_intro">我是一面依你所寫而立的鏡子。我會映照、提問——不會告訴你該怎麼做。</string>
     <string name="mirror_mode_mock">模擬鏡子</string>
     <string name="mirror_mode_cloud">雲端鏡子</string>
     <string name="mirror_style_hint">反映 · 提問 — 非教練</string>
