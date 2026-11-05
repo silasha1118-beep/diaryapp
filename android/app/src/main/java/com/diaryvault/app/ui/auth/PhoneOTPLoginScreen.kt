@@ -1,7 +1,6 @@
 package com.diaryvault.app.ui.auth
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.config.AuthConfig
@@ -47,6 +45,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Phone SMS OTP gate — Firebase when `google-services.json` is present, else local stub.
+ * Customer UI only — no DEBUG / stub / local-session chrome (prefs: no developer chrome).
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
  */
 @Composable
@@ -91,13 +90,15 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 28.dp, vertical = 48.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 28.dp)
+                .padding(top = 48.dp, bottom = 40.dp),
         ) {
             VaultBrandHeader(
                 title = localizedString(R.string.brand_name),
                 subtitle = localizedString(R.string.auth_tagline),
             )
+
+            Spacer(Modifier.height(28.dp))
 
             Text(
                 localizedString(R.string.auth_headline),
@@ -106,29 +107,21 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 fontWeight = FontWeight.Normal,
                 color = VaultColors.ink,
             )
+            Spacer(Modifier.height(10.dp))
             Text(
                 localizedString(R.string.auth_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = VaultColors.inkMuted,
             )
 
-            // Production-looking gate: hide Firebase live-send banner.
-            // DEBUG stub-only — so a missing google-services.json stays obvious.
-            if (BuildConfig.DEBUG &&
-                viewModel.smsProviderKind == AuthConfig.SMSProviderKind.STUB
-            ) {
-                Text(
-                    localizedString(R.string.auth_sms_provider_stub),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = VaultColors.seal,
-                )
-            }
+            Spacer(Modifier.height(28.dp))
 
             Text(
                 localizedString(R.string.auth_phone_label),
                 style = MaterialTheme.typography.bodyMedium,
                 color = VaultColors.inkMuted,
             )
+            Spacer(Modifier.height(8.dp))
             AuthDialPhoneRow(
                 dialLabel = dialCode,
                 dialExpanded = dialExpanded,
@@ -145,6 +138,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             )
 
             if (sent) {
+                Spacer(Modifier.height(16.dp))
                 AuthOutlinedField(
                     value = code,
                     onValueChange = {
@@ -156,14 +150,8 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                     placeholder = localizedString(R.string.auth_otp_placeholder),
                     keyboardType = KeyboardType.Number,
                 )
-                session?.stubDebugHint?.let { hint ->
-                    Text(
-                        localizedString(R.string.auth_stub_hint, hint),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = VaultColors.inkMuted,
-                    )
-                }
                 if (viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         localizedString(R.string.auth_sms_sent_hint),
                         style = MaterialTheme.typography.bodyMedium,
@@ -173,10 +161,12 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             }
 
             error?.let {
+                Spacer(Modifier.height(12.dp))
                 Text(it, color = VaultColors.seal, style = MaterialTheme.typography.bodyMedium)
             }
 
             if (busy && !sent && viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+                Spacer(Modifier.height(12.dp))
                 Text(
                     localizedString(R.string.auth_sms_sending_security),
                     style = MaterialTheme.typography.bodyMedium,
@@ -184,6 +174,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 )
             }
 
+            Spacer(Modifier.height(24.dp))
             Button(
                 onClick = {
                     if (!sent) {
@@ -218,6 +209,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             }
 
             if (sent) {
+                Spacer(Modifier.height(4.dp))
                 TextButton(
                     onClick = {
                         code = ""
@@ -245,27 +237,6 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 ) {
                     Text(
                         localizedString(R.string.auth_phone_change_number),
-                        color = VaultColors.inkMuted,
-                    )
-                }
-            }
-
-            if (viewModel.smsProviderKind != AuthConfig.SMSProviderKind.FIREBASE) {
-                Text(
-                    localizedString(R.string.auth_preview_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = VaultColors.inkMuted,
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-            if (BuildConfig.DEBUG) {
-                TextButton(
-                    onClick = { viewModel.signInLocalStub() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        localizedString(R.string.auth_dev_local),
                         color = VaultColors.inkMuted,
                     )
                 }

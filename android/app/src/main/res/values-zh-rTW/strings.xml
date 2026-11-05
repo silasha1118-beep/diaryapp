@@ -68,7 +68,6 @@
     <string name="settings_account_signed_out">尚未登入</string>
     <string name="settings_account_identity">身分</string>
     <string name="settings_account_sign_out">登出</string>
-    <string name="settings_account_dev_sign_in">開發：本機會話 stub</string>
     <string name="settings_account_footer">會話僅存於此裝置。登入為手機 SMS OTP。</string>
     <string name="settings_section_billing">訂閱</string>
     <string name="settings_billing_plan">方案</string>
@@ -108,7 +107,7 @@
     <string name="lang_en_full">English</string>
     <string name="auth_tagline">寫下今日，留給未來的自己</string>
     <string name="auth_headline">登入，讓金庫真正屬於你。</string>
-    <string name="auth_body">使用手機號碼與簡訊驗證碼登入（主路徑）。登入後文字日記會同步到帳號（Free 含同步）。</string>
+    <string name="auth_body">使用手機號碼與簡訊驗證碼登入。登入後文字日記會同步到帳號。</string>
     <string name="auth_phone_label">手機號碼</string>
     <string name="auth_phone_placeholder">手機號碼（不含國碼）</string>
     <string name="auth_phone_send">傳送驗證碼</string>
@@ -119,16 +118,11 @@
     <string name="auth_dial_sg">+65 新加坡</string>
     <string name="auth_dial_th">+66 泰國</string>
     <string name="auth_dial_jp">+81 日本</string>
-    <string name="auth_sms_provider_firebase">簡訊後端：Firebase（真實發送）</string>
-    <string name="auth_sms_provider_stub">簡訊後端：Stub（本機，未真實發送）</string>
     <string name="auth_phone_invalid">請輸入有效的手機號碼。</string>
     <string name="auth_otp_label">驗證碼</string>
     <string name="auth_otp_placeholder">六位數字</string>
     <string name="auth_otp_verify">驗證並繼續</string>
     <string name="auth_otp_error">驗證碼不符，請再試一次。</string>
-    <string name="auth_stub_hint">Stub 簡訊（未真實發送）：請使用 %1$s</string>
-    <string name="auth_preview_note">Stub 模式：合理號碼 → 發送 → 使用提示碼（或任意 6 碼）。加入 google-services.json 即可真實 Firebase 簡訊。</string>
-    <string name="auth_dev_local">開發：以本機會話繼續</string>
     <string name="auth_phone_change_number">改用其他號碼</string>
     <string name="auth_phone_resend">重新發送驗證碼</string>
     <string name="auth_phone_resend_in">%1$d 秒後可重送</string>
