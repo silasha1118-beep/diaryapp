@@ -13,7 +13,7 @@ On-device JSON remains the offline source of truth. Media bytes go to **Firebase
 4. **Location (data residency narrative: Taiwan):** choose the closest available region — prefer **`asia-east1` (Taiwan)** if offered, otherwise **`asia-east2` (Hong Kong)** or **`asia-northeast1` (Tokyo)**. Location is permanent for the database.
 5. Open **Rules** → replace with the contents of [`firestore.rules`](firestore.rules) in this folder → **Publish**. Deny-all / unpublished rules make writes fail; the app now surfaces permission-denied instead of “synced”.
 6. No composite indexes are required for phase 1 (simple collection reads under `users/{uid}/entries`).
-7. Rebuild the iOS app with `GoogleService-Info.plist` present (same as Phone Auth). SPM products **FirebaseFirestore** + **FirebaseStorage** are linked in the Xcode project.
+7. Rebuild the iOS app with `GoogleService-Info.plist` present (same as Phone Auth). SPM products **FirebaseFirestore** + **FirebaseStorage** are linked in the Xcode project. For Android, place gitignored `android/app/google-services.json` (package `com.diaryvault.app`) and rebuild — Auth + Firestore deps are in `android/app/build.gradle.kts`.
 8. **Build → Storage** → get started if needed. Prefer the same region narrative as Firestore (`asia-east1` when available). Paste [`storage.rules`](storage.rules) → **Publish**.
 9. After **Sync now**, open Data → `users` → `{Auth UID from Settings}` → `entries`. Media files appear under Storage → `users/{uid}/entries/{entryId}/`. Settings also shows **Entries on server**; if that is `0` while you have local diaries, sync did not land (check project ID + rules).
 
