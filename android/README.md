@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose scaffold that visually/functionally mirrors the iOS `DiaryVault/` app: fake phone OTP → three tabs（金庫／鏡子／設定）→ vault list, composer (+), Mirror chat (direct, no 開始對話 gate), Settings sections. Mock data / stubs first — no Firebase SMS or Play Billing in this folder yet.
+Compose scaffold that visually/functionally mirrors the iOS `DiaryVault/` app: fake phone OTP → three tabs（金庫／鏡子／設定）→ vault list, top-bar compose (`square.and.pencil`), Mirror chat (direct, no 開始對話 gate), Settings sections. Mock data / stubs first — no Firebase SMS or Play Billing in this folder yet.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
@@ -70,7 +70,7 @@ app/build/outputs/apk/debug/app-debug.apk
 |--------|--------|
 | Onboarding | Brand / privacy / optional name / language |
 | Phone OTP login | Fake gate like HarmonyOS `Index` — any number → send → any code |
-| 金庫 | Cream `#F3EEE6`, burgundy `#6B3A2E`, title 日記金庫 + seal underline + `{name} 的金庫`, FAB `+`, date/title/body rows |
+| 金庫 | Cream `#F3EEE6`, burgundy `#6B3A2E`, title 日記金庫 + seal underline + `{name} 的金庫`, trailing toolbar compose (square-and-pencil; no FAB), date/title/body rows |
 | Composer | Title / mood / body + media icon row **stubs** |
 | 鏡子 | Home (今日一問) → in-tab chat with **mock** reply |
 | 設定 | Account, link phone stub, sync, billing, privacy, language, reminders, vault name, legal — UI only |
