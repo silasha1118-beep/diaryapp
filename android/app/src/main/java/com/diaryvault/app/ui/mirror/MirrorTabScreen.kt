@@ -88,9 +88,9 @@ private fun MirrorHomePane(
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.72f), RoundedCornerShape(14.dp))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .background(Color.White.copy(alpha = 0.78f), RoundedCornerShape(14.dp))
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
                 localizedString(R.string.mirror_today_label),
@@ -145,11 +145,9 @@ private fun MirrorChatPane(
                     Column {
                         Text(localizedString(R.string.mirror_title), style = MaterialTheme.typography.titleLarge)
                         Text(
-                            text = localizedString(
-                                if (viewModel.useCloudClient) R.string.mirror_mode_cloud
-                                else R.string.mirror_mode_mock,
-                            ) + " · " + localizedString(R.string.mirror_style_hint),
+                            text = localizedString(R.string.mirror_style_hint),
                             style = MaterialTheme.typography.bodyMedium,
+                            color = VaultColors.inkMuted,
                         )
                     }
                 },
