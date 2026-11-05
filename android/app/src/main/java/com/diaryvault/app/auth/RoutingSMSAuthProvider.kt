@@ -1,20 +1,31 @@
 package com.diaryvault.app.auth
 
 import android.app.Activity
+import com.diaryvault.app.BuildConfig
 
 /**
  * Dial-based SMS routing:
- * - **+86** (China mainland) → [chinaMainland] (Aliyun via Cloud Functions)
+ * - **+86** (China mainland) → [chinaMainland] (Aliyun via Cloud Functions) in **release**
+ *   when Aliyun is configured
+ * - **DEBUG** (or when Aliyun keys are missing — see [AliyunSmsAuthProvider]) → Firebase Phone Auth
+ *   so Firebase Console **test phone numbers** work for +86
  * - all other country codes → [other] (Firebase Phone Auth)
  */
 class RoutingSMSAuthProvider(
     private val chinaMainland: SMSAuthProviding,
     private val other: SMSAuthProviding,
+    /**
+     * When true, never call Aliyun for +86 — use Firebase Phone Auth (Console test numbers).
+     * Default: DEBUG builds. Release keeps Aliyun unless the Aliyun provider itself falls back.
+     */
+    private val preferFirebaseForChinaMainland: Boolean = BuildConfig.DEBUG,
 ) : SMSAuthProviding {
 
     private fun pick(phoneE164: String): SMSAuthProviding {
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
-        return if (isChinaMainland(normalized)) chinaMainland else other
+        if (!isChinaMainland(normalized)) return other
+        if (preferFirebaseForChinaMainland) return other
+        return chinaMainland
     }
 
     override suspend fun sendCode(
@@ -24,17 +35,17 @@ class RoutingSMSAuthProvider(
     ): SMSCodeSession = pick(phoneE164).sendCode(activity, phoneE164, resend)
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
+        // Always verify on the backend that produced the session — never cross Aliyun
+        // sessionId with Firebase verificationId (or vice versa).
         return when (session.path) {
+            SmsAuthPath.FIREBASE -> other.verify(code, session)
             SmsAuthPath.ALIYUN, SmsAuthPath.STUB -> {
-                // Stub sessions from Aliyun DEBUG fallback still verify on chinaMainland
-                // (which delegates stub verification IDs).
                 if (session.phoneE164.let { isChinaMainland(it) }) {
                     chinaMainland.verify(code, session)
                 } else {
                     other.verify(code, session)
                 }
             }
-            SmsAuthPath.FIREBASE -> other.verify(code, session)
         }
     }
 

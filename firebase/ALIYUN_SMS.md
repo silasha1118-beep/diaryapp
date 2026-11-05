@@ -1,7 +1,10 @@
 # +86 SMS via Alibaba Cloud (Aliyun) — Silas setup
 
-**Routing:** dial **`+86`** → Aliyun SMS OTP (Cloud Functions) → Firebase Auth **custom token**.  
-All other dial codes keep **Firebase Phone Auth** (no change).
+**Routing:**
+- **Release** dial **`+86`** → Aliyun SMS OTP (Cloud Functions) → Firebase Auth **custom token** when keys are set
+- **DEBUG** dial **`+86`** → **Firebase Phone Auth** (so Console *Phone numbers for testing* work)
+- Aliyun keys / Functions missing → Android falls back to **Firebase Phone Auth** (not a local stub OTP)
+- All other dial codes keep **Firebase Phone Auth**
 
 Secrets never go in the Android APK. The app only calls Firebase Callable Functions
 `sendAliyunSmsOtp` / `verifyAliyunSmsOtp`.
@@ -51,21 +54,26 @@ Redeploy after changing secrets if your binding method requires it.
 ## 3. Android app
 
 1. Keep `android/app/google-services.json` (same as today).
-2. Leave `DIARY_SMS_PROVIDER` empty → Firebase for non-`+86`; `+86` uses Aliyun callables automatically.
-3. Rebuild / install. Login → choose **+86** → Send → enter SMS (no Google reCAPTCHA for this path).
+2. Leave `DIARY_SMS_PROVIDER` empty → Firebase for non-`+86`; release `+86` uses Aliyun callables when configured.
+3. Rebuild / install.
+   - **DEBUG:** Login → **+86** → Send → enter Firebase Console test code (Play Integrity / emulator test path from Phone Auth harden).
+   - **Release + Aliyun keys:** Login → **+86** → Send → enter Aliyun SMS (no Google reCAPTCHA on that path).
 
 ## 4. Stub / debug without Aliyun keys
 
-- **Cloud:** set `ALIYUN_SMS_ALLOW_STUB=true` and omit AccessKeys → Functions store a local OTP and return `stubDebugHint` (Logcat / emulator only).
-- **Android without Functions / without JSON:** existing **stub** SMS provider still compiles and runs (any 6-digit / `DIARY_SMS_STUB_CODE`).
-- Release builds must have real Aliyun keys; do not ship `ALLOW_STUB=true` in production.
+- **Android DEBUG:** `+86` skips Aliyun and uses Firebase Phone Auth — add the number under Console **Phone numbers for testing**.
+- **Cloud `ALLOW_STUB`:** if a release build somehow hits Aliyun CF in stub mode, the Android client **rejects** that stub session and falls back to Firebase Phone Auth (Console test codes), instead of accepting a random server OTP.
+- **Android without JSON:** existing **stub** SMS provider still compiles and runs (any 6-digit / `DIARY_SMS_STUB_CODE`).
+- Release builds that need real mainland SMS must have Aliyun keys; do not ship `ALLOW_STUB=true` in production.
 
 ## 5. Quick test matrix
 
-| Dial | Expected path |
-|------|----------------|
-| `+86` | Aliyun CF → custom token → `users/{uid}` sync |
-| `+852` / `+886` / others | Firebase Phone Auth (reCAPTCHA / Integrity as today) |
+| Dial / build | Expected path |
+|--------------|----------------|
+| `+86` DEBUG | Firebase Phone Auth (Console test numbers) |
+| `+86` release + Aliyun keys | Aliyun CF → custom token → `users/{uid}` sync |
+| `+86` release, keys missing | Firebase Phone Auth fallback |
+| `+852` / `+886` / others | Firebase Phone Auth (Play Integrity preferred) |
 
 ## 6. iOS later
 
