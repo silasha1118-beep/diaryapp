@@ -69,7 +69,7 @@
     <string name="settings_account_identity">Identity</string>
     <string name="settings_account_sign_out">Sign out</string>
     <string name="settings_account_dev_sign_in">Dev: local session stub</string>
-    <string name="settings_account_footer">Session stays on this device. Primary sign-in is phone SMS OTP; Sign in with Apple appears when available.</string>
+    <string name="settings_account_footer">Session stays on this device. Sign-in is phone SMS OTP.</string>
     <string name="settings_section_billing">Subscription</string>
     <string name="settings_billing_plan">Plan</string>
     <string name="settings_billing_free">Free</string>
@@ -149,7 +149,7 @@
     <string name="settings_account_linked_yes">Yes</string>
     <string name="settings_account_linked_no">No</string>
     <string name="settings_section_link_phone">Link phone</string>
-    <string name="settings_link_phone_banner">You’re signed in with Apple. Link a phone number so either method can open the same vault.</string>
+    <string name="settings_link_phone_banner">Link a phone number so you can open this vault with an SMS code on any device.</string>
     <string name="settings_link_phone_send">Send link verification code</string>
     <string name="settings_link_phone_note">We’ll verify the number and keep it on this account.</string>
     <string name="settings_section_cloud">Sync</string>
