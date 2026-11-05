@@ -29,6 +29,13 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
+/** Which SMS backend produced this session (drives verify + UI hints). */
+enum class SmsAuthPath {
+    FIREBASE,
+    ALIYUN,
+    STUB,
+}
+
 /** Result of requesting an SMS OTP. */
 data class SMSCodeSession(
     val verificationID: String,
@@ -40,6 +47,7 @@ data class SMSCodeSession(
      * UI must sign in immediately — do **not** wait for an SMS that will never arrive.
      */
     val autoVerified: Boolean = false,
+    val path: SmsAuthPath = SmsAuthPath.FIREBASE,
 )
 
 /** Signed-in identity after a successful OTP verify. */
@@ -90,6 +98,7 @@ interface SMSAuthProviding {
 object SMSAuthProviderFactory {
     fun make(context: Context): SMSAuthProviding {
         FirebaseBootstrap.configureIfNeeded(context)
+        val app = context.applicationContext
         val resolution = AuthConfig.smsProviderResolution
         val kind = resolution.kind
         // Never silently stay on stub when google-services was baked into this APK.
@@ -101,7 +110,7 @@ object SMSAuthProviderFactory {
                     "SMSAuthFactory",
                     "google-services.json present but resolution chose stub — forcing Firebase",
                 )
-                return FirebasePhoneSMSAuthProvider(context.applicationContext)
+                return routedFirebase(app)
             }
             Log.w(
                 "SMSAuthFactory",
@@ -109,11 +118,21 @@ object SMSAuthProviderFactory {
             )
         }
         return when (kind) {
-            AuthConfig.SMSProviderKind.FIREBASE -> FirebasePhoneSMSAuthProvider(context.applicationContext)
+            AuthConfig.SMSProviderKind.FIREBASE -> routedFirebase(app)
             AuthConfig.SMSProviderKind.TWILIO -> TwilioReadySMSAuthProvider()
             AuthConfig.SMSProviderKind.STUB -> StubSMSAuthProvider()
         }
     }
+
+    /**
+     * +86 → Aliyun Cloud Functions (no reCAPTCHA); other dials → Firebase Phone Auth.
+     * Aliyun AccessKeys stay on the server — never in the APK.
+     */
+    private fun routedFirebase(app: Context): SMSAuthProviding =
+        RoutingSMSAuthProvider(
+            chinaMainland = AliyunSmsAuthProvider(app),
+            other = FirebasePhoneSMSAuthProvider(app),
+        )
 }
 
 /** Local OTP stub — does **not** send SMS. */
@@ -134,6 +153,7 @@ class StubSMSAuthProvider : SMSAuthProviding {
             verificationID = verificationID,
             phoneE164 = normalized,
             stubDebugHint = expected,
+            path = SmsAuthPath.STUB,
         )
     }
 
@@ -311,6 +331,7 @@ class FirebasePhoneSMSAuthProvider(
                                 phoneE164 = normalized,
                                 stubDebugHint = null,
                                 autoVerified = true,
+                                path = SmsAuthPath.FIREBASE,
                             ),
                         )
                     }
@@ -349,6 +370,7 @@ class FirebasePhoneSMSAuthProvider(
                                 phoneE164 = normalized,
                                 stubDebugHint = null,
                                 autoVerified = false,
+                                path = SmsAuthPath.FIREBASE,
                             ),
                         )
                     }

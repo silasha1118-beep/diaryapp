@@ -1,7 +1,9 @@
 # Firebase / Firestore (DiaryVault)
 
-**Text + multimedia diary sync** for signed-in users (Firebase Auth phone / Apple).  
+**Text + multimedia diary sync** for signed-in users (Firebase Auth phone / Apple / **Aliyun +86 custom token**).  
 On-device JSON remains the offline source of truth. Media bytes go to **Firebase Storage**; entry docs keep an `attachments` array. Free/Plus/Pro vault **upload counts** include text + media in one bucket.
+
+**+86 SMS:** Alibaba Cloud Dysmsapi via Cloud Functions — see [`ALIYUN_SMS.md`](ALIYUN_SMS.md). Other dial codes use Firebase Phone Auth on the client.
 
 ## Enable Firestore (Silas — Console)
 

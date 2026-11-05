@@ -34,17 +34,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.auth.SmsAuthPath
 import com.diaryvault.app.config.AuthConfig
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.AuthOutlinedField
 import com.diaryvault.app.ui.components.VaultBrandHeader
+import com.diaryvault.app.ui.components.dialCodeFromLabel
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultBackground
 import com.diaryvault.app.ui.theme.VaultColors
 import kotlinx.coroutines.delay
 
 /**
- * Phone SMS OTP gate — Firebase when `google-services.json` is present, else local stub.
+ * Phone SMS OTP gate — dial **+86** → Aliyun (Cloud Functions, no reCAPTCHA);
+ * other dials → Firebase Phone Auth when `google-services.json` is present, else local stub.
  * Customer UI only — no DEBUG / stub / local-session chrome (prefs: no developer chrome).
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
  */
@@ -60,6 +63,13 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val busy by viewModel.authBusy.collectAsState()
     val error by viewModel.authError.collectAsState()
     val sent = session != null
+    // Firebase Phone Auth may open Play Integrity / reCAPTCHA; Aliyun +86 does not.
+    val usesFirebaseAppVerification =
+        viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE &&
+            when {
+                sent -> session?.path == SmsAuthPath.FIREBASE
+                else -> dialCodeFromLabel(dialCode) != "+86"
+            }
 
     var resendCooldown by remember { mutableIntStateOf(0) }
     LaunchedEffect(session?.verificationID) {
@@ -150,7 +160,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                     placeholder = localizedString(R.string.auth_otp_placeholder),
                     keyboardType = KeyboardType.Number,
                 )
-                if (viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+                if (session?.path == SmsAuthPath.FIREBASE || session?.path == SmsAuthPath.ALIYUN) {
                     Spacer(Modifier.height(8.dp))
                     Text(
                         localizedString(R.string.auth_sms_sent_hint),
@@ -165,7 +175,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 Text(it, color = VaultColors.seal, style = MaterialTheme.typography.bodyMedium)
             }
 
-            if (busy && !sent && viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE) {
+            if (busy && !sent && usesFirebaseAppVerification) {
                 Spacer(Modifier.height(12.dp))
                 Text(
                     localizedString(R.string.auth_sms_sending_security),
