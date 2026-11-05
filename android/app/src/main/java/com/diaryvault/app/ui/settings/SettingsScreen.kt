@@ -1,6 +1,5 @@
 package com.diaryvault.app.ui.settings
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,6 +32,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
@@ -54,7 +56,7 @@ private val DividerColor = Color(0xFFE8E2D8)
 /**
  * Settings sections aligned with iOS SettingsView + HarmonyOS SettingsTab order:
  * 帳號 → 連結手機 → 同步 → 訂閱 → 隱私與資料 → 語言 → 建議 → 金庫 → 法律資訊
- * (+ collapsed 開發 at bottom for engineers). UI-only stubs where backend is missing.
+ * Customer UI only — no Developer / Firebase backend dumps (matches iOS SettingsDeveloperTools off).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,11 +69,10 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val billingActive by viewModel.billingActive.collectAsState()
 
     var phoneNational by remember { mutableStateOf("") }
-    var dialCode by remember { mutableStateOf("+886 台灣") }
+    var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
     var dialExpanded by remember { mutableStateOf(false) }
     var syncStatus by remember { mutableStateOf(R.string.settings_cloud_status_synced) }
     var exportReady by remember { mutableStateOf(false) }
-    var developerExpanded by remember { mutableStateOf(false) }
     var langExpanded by remember { mutableStateOf(false) }
 
     val dialOptions = listOf(
@@ -83,6 +84,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
         R.string.auth_dial_th,
         R.string.auth_dial_jp,
     )
+    val dialCode = localizedString(dialRes)
     val linkedPhone = viewModel.accountPhone != null
     val linkedApple = false // Android stub — Apple Sign-In not wired
     val identity = accountLabel.ifBlank { name }.ifBlank { "Silas" }
@@ -160,40 +162,39 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 }
             }
 
-            // 2. 連結手機
+            // 2. 連結手機 — mirrors iOS linkSections + PhoneOTPLoginForm(.settings, .link)
+            // No Firebase/Stub provider caption (iOS hides that outside DEBUG).
             SettingsCard(
                 header = localizedString(R.string.settings_section_link_phone),
                 footer = localizedString(R.string.settings_link_phone_note),
             ) {
                 Text(
                     localizedString(R.string.settings_link_phone_banner),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
+                    ),
                     color = VaultColors.seal,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                )
-                Text(
-                    localizedString(R.string.auth_sms_provider_firebase),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = VaultColors.ink,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, top = 14.dp, bottom = 10.dp),
                 )
                 Text(
                     localizedString(R.string.auth_phone_label),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     color = VaultColors.inkMuted,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
                 )
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ExposedDropdownMenuBox(
                         expanded = dialExpanded,
                         onExpandedChange = { dialExpanded = it },
-                        modifier = Modifier.weight(0.45f),
+                        modifier = Modifier.weight(0.42f),
                     ) {
                         OutlinedTextField(
                             value = dialCode,
@@ -201,21 +202,27 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                             readOnly = true,
                             singleLine = true,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dialExpanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
                             colors = creamFieldColors(),
-                            shape = RoundedCornerShape(10.dp),
-                            textStyle = MaterialTheme.typography.labelLarge,
+                            shape = RoundedCornerShape(4.dp),
+                            textStyle = MaterialTheme.typography.labelLarge.copy(color = VaultColors.ink),
                         )
                         ExposedDropdownMenu(
                             expanded = dialExpanded,
                             onDismissRequest = { dialExpanded = false },
                         ) {
                             dialOptions.forEach { res ->
-                                val label = localizedString(res)
                                 DropdownMenuItem(
-                                    text = { Text(label) },
+                                    text = {
+                                        Text(
+                                            localizedString(res),
+                                            color = VaultColors.ink,
+                                        )
+                                    },
                                     onClick = {
-                                        dialCode = label
+                                        dialRes = res
                                         dialExpanded = false
                                     },
                                 )
@@ -224,27 +231,44 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     }
                     OutlinedTextField(
                         value = phoneNational,
-                        onValueChange = { phoneNational = it },
-                        modifier = Modifier.weight(0.55f),
-                        placeholder = { Text(localizedString(R.string.auth_phone_placeholder)) },
+                        onValueChange = { phoneNational = it.filter { ch -> ch.isDigit() || ch == ' ' } },
+                        modifier = Modifier.weight(0.58f),
+                        placeholder = {
+                            Text(
+                                localizedString(R.string.auth_phone_placeholder),
+                                color = VaultColors.inkMuted,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        },
                         singleLine = true,
                         colors = creamFieldColors(),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = VaultColors.ink),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     )
                 }
+                // iOS: Color.white on VaultTheme.seal — cream paper as contentColor washed out on burgundy.
                 Button(
-                    onClick = { /* UI stub — no Firebase SMS yet */ },
+                    onClick = { /* UI stub — SMS link wiring later */ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                         .height(44.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = VaultColors.seal,
-                        contentColor = VaultColors.paper,
+                        contentColor = Color.White,
                     ),
-                    shape = RoundedCornerShape(12.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                    ),
+                    shape = RoundedCornerShape(4.dp),
                 ) {
-                    Text(localizedString(R.string.settings_link_phone_send))
+                    Text(
+                        localizedString(R.string.settings_link_phone_send),
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
                 }
             }
 
@@ -417,60 +441,6 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Collapsed 開發 — AI gradle notes + reset onboarding (not customer-facing)
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    text = localizedString(R.string.settings_section_developer) +
-                        if (developerExpanded) " ▾" else " ▸",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = VaultColors.inkMuted,
-                    modifier = Modifier
-                        .clickable { developerExpanded = !developerExpanded }
-                        .padding(vertical = 8.dp),
-                )
-                AnimatedVisibility(visible = developerExpanded) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .background(CardBg, RoundedCornerShape(CardRadius))
-                            .padding(vertical = 4.dp),
-                    ) {
-                        SettingsRow(
-                            localizedString(R.string.settings_ai_mode),
-                            localizedString(
-                                if (viewModel.useCloudClient) R.string.settings_ai_cloud
-                                else R.string.settings_ai_mock,
-                            ),
-                        )
-                        SettingsDivider()
-                        SettingsRow(
-                            localizedString(R.string.settings_ai_provider),
-                            localizedString(
-                                if (viewModel.isAnthropicProvider) R.string.settings_ai_provider_anthropic
-                                else R.string.settings_ai_provider_openai,
-                            ),
-                        )
-                        SettingsDivider()
-                        SettingsRow(
-                            localizedString(R.string.settings_ai_residency),
-                            viewModel.dataResidency,
-                        )
-                        SettingsDivider()
-                        Text(
-                            localizedString(R.string.settings_ai_footer),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = VaultColors.inkMuted,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        )
-                        SettingsDivider()
-                        SettingsActionRow(
-                            title = localizedString(R.string.settings_reset_onboarding),
-                            color = VaultColors.seal,
-                            onClick = viewModel::resetOnboarding,
-                        )
-                    }
-                }
-            }
         }
     }
 }
@@ -488,9 +458,12 @@ private fun creamFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = VaultColors.line,
     focusedContainerColor = VaultColors.paper,
     unfocusedContainerColor = VaultColors.paper,
+    disabledContainerColor = VaultColors.paper,
     cursorColor = VaultColors.seal,
     focusedTextColor = VaultColors.ink,
     unfocusedTextColor = VaultColors.ink,
+    focusedPlaceholderColor = VaultColors.inkMuted,
+    unfocusedPlaceholderColor = VaultColors.inkMuted,
 )
 
 @Composable
