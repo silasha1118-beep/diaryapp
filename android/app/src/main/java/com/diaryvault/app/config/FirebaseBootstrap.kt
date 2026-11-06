@@ -72,6 +72,7 @@ object FirebaseBootstrap {
                         "resourceProjectId=${resourceProjectId ?: "?"} " +
                         "expected=$EXPECTED_PROJECT_ID",
                 )
+                // Trailing if must include else: try is an expression in Kotlin.
                 if (cachedProjectId.isNullOrBlank()) {
                     Log.e(
                         TAG,
@@ -86,6 +87,8 @@ object FirebaseBootstrap {
                             "expected=$EXPECTED_PROJECT_ID — Console test codes on " +
                             "diaryappsilas will never verify",
                     )
+                } else {
+                    // projectId matches EXPECTED_PROJECT_ID
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "FirebaseApp.initializeApp failed — staying on stub SMS", e)
