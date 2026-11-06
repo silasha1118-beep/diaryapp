@@ -47,12 +47,9 @@ import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.AppLanguage
-import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
-import java.text.DateFormat
-import java.util.Date
 
 private val CardBg = Color.White
 private val CardRadius = 14.dp
@@ -66,7 +63,11 @@ private val DividerColor = Color(0xFFE8E2D8)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    viewModel: VaultViewModel,
+    onOpenRecentlyDeleted: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val language by viewModel.language.collectAsState()
     val reminders by viewModel.gentleReminders.collectAsState()
     val name by viewModel.displayName.collectAsState()
@@ -78,6 +79,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val lastSyncError by viewModel.lastCloudSyncError.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
     val recentlyDeleted by viewModel.recentlyDeletedEntries.collectAsState()
+    val recentlyDeletedCount = recentlyDeleted.size
 
     var phoneNational by remember { mutableStateOf("") }
     var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
@@ -392,10 +394,9 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 }
             }
 
-            // 8. 金庫 — display name + soft-delete restore (30 days); no Developer clutter.
+            // 8. 金庫 — display name + drill-in to soft-delete restore (30 days).
             SettingsCard(
                 header = localizedString(R.string.settings_section_vault),
-                footer = localizedString(R.string.settings_vault_restore_footer),
             ) {
                 SettingsRow(
                     localizedString(R.string.settings_name),
@@ -403,28 +404,11 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     valueColor = VaultColors.ink,
                 )
                 SettingsDivider()
-                Text(
-                    localizedString(R.string.settings_vault_recently_deleted),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                    color = VaultColors.ink,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 4.dp),
+                SettingsNavRow(
+                    title = localizedString(R.string.settings_vault_recently_deleted),
+                    value = if (recentlyDeletedCount > 0) recentlyDeletedCount.toString() else "",
+                    onClick = onOpenRecentlyDeleted,
                 )
-                if (recentlyDeleted.isEmpty()) {
-                    Text(
-                        localizedString(R.string.settings_vault_restore_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = VaultColors.inkMuted,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 14.dp),
-                    )
-                } else {
-                    recentlyDeleted.forEachIndexed { index, entry ->
-                        if (index > 0) SettingsDivider()
-                        RecentlyDeletedRow(
-                            entry = entry,
-                            onRestore = { viewModel.restoreEntry(entry.id) },
-                        )
-                    }
-                }
                 SettingsDivider()
                 Text(
                     localizedString(R.string.settings_legacy_stub),
@@ -565,43 +549,30 @@ private fun SettingsActionRow(
 }
 
 @Composable
-private fun SettingsDivider() {
-    HorizontalDivider(
-        color = DividerColor,
-        thickness = 0.5.dp,
-        modifier = Modifier.padding(start = 16.dp),
-    )
-}
-
-@Composable
-private fun RecentlyDeletedRow(
-    entry: DiaryEntry,
-    onRestore: () -> Unit,
+private fun SettingsNavRow(
+    title: String,
+    value: String,
+    onClick: () -> Unit,
 ) {
-    val deletedAt = entry.deletedAt ?: entry.updatedAt
-    val whenText = DateFormat
-        .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-        .format(Date(deletedAt))
-    val title = entry.title.ifBlank {
-        entry.preview.ifBlank { localizedString(R.string.diary_empty_body_placeholder) }
-    }
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = VaultColors.ink,
+            modifier = Modifier.weight(1f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (value.isNotEmpty()) {
             Text(
-                title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = VaultColors.ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                whenText,
+                value,
                 style = MaterialTheme.typography.bodyMedium,
                 color = VaultColors.inkMuted,
                 maxLines = 1,
@@ -609,12 +580,18 @@ private fun RecentlyDeletedRow(
             )
         }
         Text(
-            localizedString(R.string.settings_vault_restore),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            color = VaultColors.seal,
-            modifier = Modifier
-                .clickable(onClick = onRestore)
-                .padding(vertical = 4.dp),
+            "›",
+            style = MaterialTheme.typography.bodyLarge,
+            color = VaultColors.inkMuted,
         )
     }
+}
+
+@Composable
+private fun SettingsDivider() {
+    HorizontalDivider(
+        color = DividerColor,
+        thickness = 0.5.dp,
+        modifier = Modifier.padding(start = 16.dp),
+    )
 }

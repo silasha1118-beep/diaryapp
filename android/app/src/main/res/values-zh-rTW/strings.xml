@@ -102,7 +102,7 @@
     <string name="settings_vault_recently_deleted">最近刪除</string>
     <string name="settings_vault_restore">還原</string>
     <string name="settings_vault_restore_empty">過去 30 天沒有已刪除的日記。</string>
-    <string name="settings_vault_restore_footer">軟刪除的日記會從金庫隱藏，30 天內可在此還原。</string>
+    <string name="settings_vault_restore_footer">軟刪除的日記會從金庫隱藏，30 天內可在此列表還原。</string>
     <string name="settings_reset_onboarding">重新顯示導覽</string>
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">簡中</string>

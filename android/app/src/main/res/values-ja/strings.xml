@@ -11,7 +11,7 @@
     <string name="settings_vault_recently_deleted">最近削除した項目</string>
     <string name="settings_vault_restore">復元</string>
     <string name="settings_vault_restore_empty">過去30日に削除した日記はありません。</string>
-    <string name="settings_vault_restore_footer">削除した日記はボールトから隠れます。30日以内ならここから復元できます。</string>
+    <string name="settings_vault_restore_footer">削除した日記はボールトから隠れます。30日以内ならこの一覧から復元できます。</string>
     <string name="tab_vault">ボールト</string>
     <string name="tab_mirror">ミラー</string>
     <string name="tab_settings">設定</string>
