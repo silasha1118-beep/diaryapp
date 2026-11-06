@@ -272,11 +272,18 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         // verificationId is visible without Logcat (Console test list may already be correct).
         is SMSAuthError.InvalidCode ->
             if (BuildConfig.DEBUG) {
-                string(
-                    R.string.auth_otp_error_debug_detail,
-                    FirebaseBootstrap.projectId ?: "?",
-                    e.firebaseErrorCode.ifBlank { "INVALID_CODE" },
-                )
+                val project = FirebaseBootstrap.projectId?.takeIf { it.isNotBlank() }
+                if (project == null || !FirebaseBootstrap.isConfigured) {
+                    // Typical when google-services.json was missing at assemble time (stub OTP)
+                    // or resources lack project_id — Console 123456 will never verify.
+                    string(R.string.auth_otp_error_debug_missing_google_services)
+                } else {
+                    string(
+                        R.string.auth_otp_error_debug_detail,
+                        project,
+                        e.firebaseErrorCode.ifBlank { "INVALID_CODE" },
+                    )
+                }
             } else {
                 string(R.string.auth_otp_error)
             }

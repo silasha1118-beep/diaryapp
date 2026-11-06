@@ -1,5 +1,5 @@
 {
-  "_comment": "EXAMPLE ONLY — do NOT rename this file to google-services.json and commit secrets. Silas: add an Android app in Firebase Console → project diaryappsilas with package name com.diaryvault.app, download google-services.json, place it at android/app/google-services.json (gitignored). Leave DIARY_SMS_PROVIDER empty so the app auto-selects Firebase when the file is present. Register debug/release SHA-1 AND SHA-256 under Project settings → Your apps → Android so Play Integrity can attest and Phone Auth avoids the flaky reCAPTCHA Custom Tabs path.",
+  "_comment": "EXAMPLE ONLY — do NOT rename this to google-services.json and commit. Silas (Windows): Firebase Console → project diaryappsilas → Project settings → Android com.diaryvault.app → download google-services.json → save to C:\\dev\\diaryapp\\android\\app\\google-services.json (gitignored). Open the file and confirm project_id is diaryappsilas. Debug Gradle fails if the file is missing or project_id is wrong (-Pdiary.allowStubSms=true for stub-only). Leave DIARY_SMS_PROVIDER empty. Register debug/release SHA-1 AND SHA-256 so Play Integrity can attest.",
   "project_info": {
     "project_number": "REPLACE_ME",
     "project_id": "diaryappsilas",
