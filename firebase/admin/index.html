@@ -493,22 +493,48 @@
       return k || "file";
     }
 
+    function normalizeStoragePath(path) {
+      let p = String(path || "").trim();
+      if (!p) return "";
+      const gs = p.match(/^gs:\/\/[^/]+\/(.+)$/i);
+      if (gs) p = gs[1];
+      p = p.replace(/^\/+/, "");
+      return p;
+    }
+
     function storagePathOf(attachment, entryId, ownerUid) {
-      const remote = (attachment.remotePath || "").trim();
+      const remote = normalizeStoragePath(attachment.remotePath || "");
       if (remote) return remote;
-      const name = (attachment.localFileName || "").trim();
-      if (name && ownerUid && entryId) {
+      const name = (attachment.localFileName || "").trim().replace(/^\/+/, "");
+      if (name && ownerUid && entryId && !name.includes("/")) {
         return `users/${ownerUid}/entries/${entryId}/${name}`;
       }
       return "";
     }
 
     async function resolveUrl(path) {
-      if (!path) throw new Error("Missing Storage path");
-      if (urlCache.has(path)) return urlCache.get(path);
-      const url = await getDownloadURL(storageRef(storage, path));
-      urlCache.set(path, url);
-      return url;
+      const normalized = normalizeStoragePath(path);
+      if (!normalized) throw new Error("Missing Storage path");
+      if (urlCache.has(normalized)) return urlCache.get(normalized);
+      // Ensure the ID token Storage uses still carries vaultAdmin after mint.
+      if (isOperator && auth.currentUser) {
+        await auth.currentUser.getIdToken(true);
+      }
+      try {
+        const url = await getDownloadURL(storageRef(storage, normalized));
+        urlCache.set(normalized, url);
+        return url;
+      } catch (err) {
+        const code = err?.code || "";
+        const msg = err?.message || String(err);
+        if (code === "storage/unauthorized" || /storage\/unauthorized/i.test(msg)) {
+          throw new Error(
+            msg +
+              " — Operator needs Storage rules with vaultAdmin read. From firebase/: firebase deploy --only storage",
+          );
+        }
+        throw err;
+      }
     }
 
     function openLightbox(url) {

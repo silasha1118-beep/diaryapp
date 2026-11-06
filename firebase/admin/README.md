@@ -32,6 +32,20 @@ firebase deploy --only functions:mintAdminVaultSession,functions:listAdminVaultA
 # or full: firebase deploy --only functions,firestore:rules,storage:rules
 ```
 
+**Storage rules alone** (needed when entries load but media shows `storage/unauthorized`):
+
+```bash
+cd firebase
+firebase deploy --only storage
+```
+
+**Windows PowerShell** (same, from the repo’s `firebase` folder):
+
+```powershell
+cd firebase
+firebase deploy --only storage
+```
+
 What this enables:
 
 | Piece | Role |
@@ -100,6 +114,25 @@ That bare message is usually the **client SDK sanitizing** a failed callable (CO
 ### After pulling the region fix
 
 Redeploy both vault callables so they live in **`asia-east1`** (explicit region + `globalOptions` loaded before `onCall`). Delete any stale **`us-central1`** copies of these two functions in Console if deploy left duplicates.
+
+### Media fails with `storage/unauthorized`
+
+Operator can list Firestore entries, but image / `.m4a` / `.mp4` attachments fail with:
+
+`Firebase Storage: User does not have permission to access 'users/.../entries/...'. (storage/unauthorized)`
+
+That means **Storage rules in the live project still only allow `request.auth.uid == userId`**. The operator signs in as `diaryvault-operator` with claim `vaultAdmin` (not the customer uid), so `getDownloadURL` is denied until Storage rules allow `isVaultAdmin()` reads.
+
+**Fix — publish Storage rules** (Firestore rules alone are not enough):
+
+```powershell
+cd firebase
+firebase deploy --only storage
+```
+
+Or Console → Storage → Rules → paste [`storage.rules`](../storage.rules) → **Publish**.
+
+Confirm the published rules include `request.auth.token.vaultAdmin == true` on read for `users/{userId}/entries/...`. Writes stay owner-only. Reload the Vault admin page and expand attachments again.
 
 ### `iam.serviceAccounts.signBlob` denied (Operator session mint failed)
 
