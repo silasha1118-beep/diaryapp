@@ -13,7 +13,7 @@ import com.diaryvault.app.auth.SMSAuthProviding
 import com.diaryvault.app.auth.SMSAuthUser
 import com.diaryvault.app.auth.SMSCodeSession
 import com.diaryvault.app.billing.BillingConfig
-import com.diaryvault.app.billing.BillingStub
+import com.diaryvault.app.billing.SubscriptionStore
 import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.config.AIProvider
 import com.diaryvault.app.config.AuthConfig
@@ -50,11 +50,11 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val store = DiaryStore(application, viewModelScope)
     private val mirrorChatStore = MirrorChatStore(application)
     private val accountSession = AccountSession(application)
-    private val billingStub = BillingStub()
+    val subscriptionStore = SubscriptionStore(application)
     private val isAuthorPlusEntitled: Boolean
-        get() = billingStub.isSubscribed && !isAuthorProEntitled
+        get() = subscriptionStore.isSubscribed.value && !isAuthorProEntitled
     private val isAuthorProEntitled: Boolean
-        get() = false
+        get() = subscriptionStore.isAuthorPro.value
     private val ai = createMirrorAIService(
         application,
         isAuthorPlus = { isAuthorPlusEntitled },
@@ -120,8 +120,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val _hasLiveFirebaseAuth = MutableStateFlow(accountSession.hasLiveFirebaseAuth)
     val hasLiveFirebaseAuth: StateFlow<Boolean> = _hasLiveFirebaseAuth.asStateFlow()
 
-    private val _billingActive = MutableStateFlow(billingStub.isSubscribed)
-    val billingActive: StateFlow<Boolean> = _billingActive.asStateFlow()
+    /** True when Author Plus or Author Pro is entitled (Play Billing / DEBUG simulate). */
+    val billingActive: StateFlow<Boolean> = subscriptionStore.isSubscribed
+    val billingTier: StateFlow<BillingConfig.Tier> = subscriptionStore.tier
+    val billingIsAuthorPro: StateFlow<Boolean> = subscriptionStore.isAuthorPro
+    val billingActiveProductId: StateFlow<String?> = subscriptionStore.activeProductId
+    val billingExpirationMs: StateFlow<Long?> = subscriptionStore.expirationMs
 
     val lastCloudSyncAt: StateFlow<Long?> = store.lastCloudSyncAt
     val lastCloudSyncError: StateFlow<String?> = store.lastCloudSyncError
@@ -129,7 +133,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     val isSyncing: StateFlow<Boolean> = store.isSyncing
 
     val billingProductIds: List<String> get() = BillingConfig.productIds
-    val billingPlanName: String get() = BillingConfig.PLAN_NAME
+    val billingPlanName: String
+        get() = when (subscriptionStore.tier.value) {
+            BillingConfig.Tier.AUTHOR_PRO -> BillingConfig.HIGHER_PLAN_NAME
+            BillingConfig.Tier.AUTHOR_PLUS -> BillingConfig.PLAN_NAME
+            BillingConfig.Tier.FREE -> BillingConfig.Tier.FREE.displayName
+        }
 
     val smsProviderKind: AuthConfig.SMSProviderKind get() = AuthConfig.smsProvider
     val firebaseProjectLabel: String
@@ -172,6 +181,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                         reloadMirrorMessagesForCurrentAccount()
                     }
                 }
+        }
+        // Recompute Mirror / Vault quota UI when Play entitlement changes.
+        viewModelScope.launch {
+            subscriptionStore.tier.collect {
+                _mirrorQuotaTick.value = _mirrorQuotaTick.value + 1
+            }
         }
     }
 
@@ -293,11 +308,10 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
 
     fun signOutAccount() {
         accountSession.signOut()
-        billingStub.clear()
+        // Play entitlements stay with the Google account — do not clear on app sign-out.
         _accountSignedIn.value = false
         _accountLabel.value = ""
         _hasLiveFirebaseAuth.value = false
-        _billingActive.value = false
         _otpSession.value = null
         // userIdFlow collector swaps account key + reloads that account's Mirror thread.
     }

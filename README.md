@@ -11,7 +11,7 @@ Product plan (source of truth for decisions): kept in the project workspace docs
 
 See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :app:assembleDebug`.
 
-Android **account / Play Billing** in this PR: **stub hooks only** (Settings shows local session / phone stub + Author Plus product ID placeholders). Full SMS OTP / Play Billing is deferred — iOS phone OTP + StoreKit is the first path.
+Android **Play Billing** is wired in-app (Author Plus / Author Pro × 月／季／年, same product IDs as iOS). Settings paywall + Vault/Mirror hard-cap checkout work; catalog is empty until Silas creates the six subscriptions in Play Console (see [android/README.md](android/README.md) § Play Billing). Debug builds can **Simulate Plus/Pro** without Console SKUs.
 
 ## Open in Xcode
 
@@ -312,13 +312,14 @@ Cost / billing notes: see project docs `ai-cost-and-billing.md` and `account-and
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
 | Gentle reminders toggle | Persisted preference only |
 | Sample seed entry | First launch if vault empty |
-| Android account / billing | **Stub hooks** in Settings only |
+| Android Play Billing (Plus / Pro × 月／季／年) | Client wired — needs Play Console SKUs for real prices / purchase; DEBUG simulate for quota smoke |
 
 ## What is stubbed / omitted
 
 - **App Store Connect live products / prices** — need paid Apple Developer; IDs are configurable here; local `.storekit` covers Personal Team testing
 - **Auth / receipt backend** — Firebase Phone Auth + Firestore text sync on iOS; Twilio / server receipt verify later
-- **Android SMS OTP / Play Billing** — stubs only
+- **Android Play Console subscription products** — client ready; create the six SKUs + license testers before real purchase smoke
+- **Android +86 release SMS** — Tencent path / KYC still pending (DEBUG +86 uses Firebase test numbers)
 - **Voice / video diary UI / Storage** — duration polish deferred (DA-15); Free/Plus/Pro vault **counts** already include multimedia in one bucket
 - **Text Firestore sync** is phase 1 (media Storage paths later)
 - **Taiwan residency** — product narrative + prefer Firestore `asia-east1` when creating the database

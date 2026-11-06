@@ -2,6 +2,7 @@ package com.diaryvault.app.ui.mirror
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,9 +56,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.billing.BillingConfig
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
 import com.diaryvault.app.ui.components.localizedString
+import com.diaryvault.app.ui.paywall.UpgradeCheckoutSheet
 import com.diaryvault.app.ui.theme.VaultColors
 import kotlinx.coroutines.flow.first
 
@@ -81,14 +84,23 @@ private fun MirrorChatPane(
     val error by viewModel.mirrorError.collectAsState()
     val quotaTick by viewModel.mirrorQuotaTick.collectAsState()
     val billingActive by viewModel.billingActive.collectAsState()
+    val billingTier by viewModel.billingTier.collectAsState()
     var draft by remember { mutableStateOf("") }
+    var showUpgrade by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val canSend = draft.isNotBlank() && !thinking
 
-    val exhausted = remember(quotaTick, billingActive) { viewModel.mirrorQuotaExhausted() }
-    val remaining = remember(quotaTick, billingActive) { viewModel.mirrorQuotaRemaining() }
-    val limit = remember(quotaTick, billingActive) { viewModel.mirrorQuotaLimit() }
+    val exhausted = remember(quotaTick, billingActive, billingTier) { viewModel.mirrorQuotaExhausted() }
+    val remaining = remember(quotaTick, billingActive, billingTier) { viewModel.mirrorQuotaRemaining() }
+    val limit = remember(quotaTick, billingActive, billingTier) { viewModel.mirrorQuotaLimit() }
     val cloudReady = viewModel.useCloudClient
+    val showUpgradeCta = exhausted && billingTier != BillingConfig.Tier.AUTHOR_PRO
+    val preferredUpgradeTier =
+        if (billingTier == BillingConfig.Tier.AUTHOR_PLUS) {
+            BillingConfig.Tier.AUTHOR_PRO
+        } else {
+            BillingConfig.Tier.AUTHOR_PLUS
+        }
 
     // Pin the latest row just above the composer (iOS ScrollViewReader anchor: .bottom).
     // animateScrollToItem alone puts the row at the *top* of the viewport and leaves a
@@ -130,7 +142,18 @@ private fun MirrorChatPane(
                 remaining = remaining,
                 limit = limit,
                 isFree = !billingActive,
+                isPro = billingTier == BillingConfig.Tier.AUTHOR_PRO,
+                showUpgrade = showUpgradeCta,
+                onUpgrade = { showUpgrade = true },
             )
+
+            if (showUpgrade) {
+                UpgradeCheckoutSheet(
+                    viewModel = viewModel,
+                    preferredTier = preferredUpgradeTier,
+                    onDismiss = { showUpgrade = false },
+                )
+            }
 
             LazyColumn(
                 state = listState,
@@ -274,21 +297,21 @@ private fun MirrorQuotaStrip(
     remaining: Int?,
     limit: Int,
     isFree: Boolean,
+    isPro: Boolean,
+    showUpgrade: Boolean,
+    onUpgrade: () -> Unit,
 ) {
     val status = when {
         !cloudReady -> localizedString(R.string.mirror_mode_needs_key)
         remaining == null -> localizedString(R.string.mirror_quota_unlimited)
         exhausted && isFree -> localizedString(R.string.mirror_quota_exhausted_free, limit)
+        exhausted && isPro -> localizedString(R.string.mirror_quota_exhausted_pro, limit)
         exhausted && !isFree -> localizedString(R.string.mirror_quota_exhausted_plus, limit)
         isFree -> localizedString(R.string.mirror_quota_remaining_lifetime, remaining, limit)
         else -> localizedString(R.string.mirror_quota_remaining_daily, remaining, limit)
     }
-    Text(
-        text = status,
-        style = MaterialTheme.typography.labelLarge,
-        fontSize = 12.sp,
-        color = if (exhausted || !cloudReady) VaultColors.seal else VaultColors.inkMuted,
-        modifier = Modifier
+    Column(
+        Modifier
             .fillMaxWidth()
             .background(
                 if (exhausted || !cloudReady) {
@@ -298,7 +321,27 @@ private fun MirrorQuotaStrip(
                 },
             )
             .padding(horizontal = 20.dp, vertical = 10.dp),
-    )
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = status,
+            style = MaterialTheme.typography.labelLarge,
+            fontSize = 12.sp,
+            color = if (exhausted || !cloudReady) VaultColors.seal else VaultColors.inkMuted,
+        )
+        if (showUpgrade) {
+            Text(
+                text = localizedString(
+                    if (isFree) R.string.diary_quota_upgrade else R.string.diary_quota_upgrade_pro,
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = VaultColors.seal,
+                modifier = Modifier.clickable(onClick = onUpgrade),
+            )
+        }
+    }
 }
 
 /**

@@ -46,10 +46,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.billing.BillingConfig
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
+import java.text.DateFormat
+import java.util.Date
 
 private val CardBg = Color.White
 private val CardRadius = 14.dp
@@ -66,6 +69,7 @@ private val DividerColor = Color(0xFFE8E2D8)
 fun SettingsScreen(
     viewModel: VaultViewModel,
     onOpenRecentlyDeleted: () -> Unit,
+    onOpenPaywall: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val language by viewModel.language.collectAsState()
@@ -74,6 +78,8 @@ fun SettingsScreen(
     val accountSignedIn by viewModel.accountSignedIn.collectAsState()
     val accountLabel by viewModel.accountLabel.collectAsState()
     val billingActive by viewModel.billingActive.collectAsState()
+    val billingTier by viewModel.billingTier.collectAsState()
+    val billingExpirationMs by viewModel.billingExpirationMs.collectAsState()
     val hasLiveFirebase by viewModel.hasLiveFirebaseAuth.collectAsState()
     val lastSyncAt by viewModel.lastCloudSyncAt.collectAsState()
     val lastSyncError by viewModel.lastCloudSyncError.collectAsState()
@@ -112,12 +118,18 @@ fun SettingsScreen(
     }
     val linkedPhone = viewModel.accountPhone != null
     val identity = accountLabel.ifBlank { name }.ifBlank { "Silas" }
-    val planName = if (billingActive) {
-        viewModel.billingPlanName
-    } else {
-        localizedString(R.string.settings_billing_active)
+    val planName = when (billingTier) {
+        BillingConfig.Tier.FREE -> localizedString(R.string.settings_billing_free)
+        BillingConfig.Tier.AUTHOR_PLUS -> localizedString(R.string.settings_billing_active)
+        BillingConfig.Tier.AUTHOR_PRO -> localizedString(R.string.settings_billing_active_pro)
     }
-    val periodEnd = localizedString(R.string.settings_billing_period_stub)
+    val periodEnd = billingExpirationMs?.let { ms ->
+        DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(ms))
+    } ?: if (billingActive) {
+        localizedString(R.string.settings_billing_period_play)
+    } else {
+        localizedString(R.string.settings_billing_period_none)
+    }
 
     Scaffold(
         modifier = modifier,
@@ -285,7 +297,7 @@ fun SettingsScreen(
                 SettingsActionRow(
                     title = localizedString(R.string.settings_billing_manage),
                     color = VaultColors.seal,
-                    onClick = { /* stub paywall */ },
+                    onClick = onOpenPaywall,
                 )
             }
 
