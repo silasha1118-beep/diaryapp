@@ -126,6 +126,90 @@ dependencies {
 
 // Apply only when Silas has placed the real (gitignored) google-services.json —
 // mirrors iOS optional GoogleService-Info.plist so stub builds still assemble.
-if (file("google-services.json").exists()) {
+val googleServicesFile = file("google-services.json")
+if (googleServicesFile.exists()) {
     apply(plugin = "com.google.gms.google-services")
+}
+
+/**
+ * Debug Phone Auth for diaryappsilas requires a real google-services.json.
+ * Escape hatch for stub-only CI / local builds: `-Pdiary.allowStubSms=true`
+ * or env `DIARY_SMS_PROVIDER=stub`.
+ */
+fun readGoogleServicesProjectId(jsonFile: java.io.File): String? {
+    if (!jsonFile.exists()) return null
+    val match = Regex("\"project_id\"\\s*:\\s*\"([^\"]+)\"").find(jsonFile.readText())
+    return match?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+}
+
+fun readGoogleServicesPackageName(jsonFile: java.io.File): String? {
+    if (!jsonFile.exists()) return null
+    val match = Regex("\"package_name\"\\s*:\\s*\"([^\"]+)\"").find(jsonFile.readText())
+    return match?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+}
+
+fun stubSmsExplicitlyAllowed(): Boolean {
+    if (project.findProperty("diary.allowStubSms")?.toString()?.equals("true", ignoreCase = true) == true) {
+        return true
+    }
+    return System.getenv("DIARY_SMS_PROVIDER")?.trim().equals("stub", ignoreCase = true)
+}
+
+tasks.configureEach {
+    if (name != "preDebugBuild") return@configureEach
+    doFirst {
+        val expectedProject = "diaryappsilas"
+        val expectedPackage = "com.diaryvault.app"
+        val windowsPath = "C:\\dev\\diaryapp\\android\\app\\google-services.json"
+        if (!googleServicesFile.exists()) {
+            if (stubSmsExplicitlyAllowed()) {
+                logger.warn(
+                    "diary.allowStubSms / DIARY_SMS_PROVIDER=stub: building Debug without " +
+                        "google-services.json (local stub OTP only).",
+                )
+                return@doFirst
+            }
+            throw GradleException(
+                """
+                Missing android/app/google-services.json (gitignored — never committed).
+
+                Redmi Debug Phone Auth needs project_id=$expectedProject wired into the APK.
+                Without this file the app falls back to stub OTP and shows
+                Firebase project=? error=INVALID_CODE for Console test codes like 123456.
+
+                Silas — Windows steps (简体 UI):
+                1. Open https://console.firebase.google.com/ → project $expectedProject
+                2. 项目设置 (Project settings) → 您的应用 → Android `$expectedPackage`
+                   (Add app if missing; package must be exactly `$expectedPackage`)
+                3. Download google-services.json
+                4. Save / overwrite:
+                   $windowsPath
+                5. Open the file and confirm: "project_id": "$expectedProject"
+                6. Android Studio Sync → uninstall app on Redmi → Run Debug
+
+                Stub-only (no Firebase): .\gradlew :app:assembleDebug -Pdiary.allowStubSms=true
+                """.trimIndent(),
+            )
+        }
+        val projectId = readGoogleServicesProjectId(googleServicesFile)
+        if (projectId != expectedProject) {
+            throw GradleException(
+                "android/app/google-services.json project_id=${projectId ?: "<missing>"} — " +
+                    "expected \"$expectedProject\". " +
+                    "Windows path: $windowsPath — re-download from Firebase Console for " +
+                    "project $expectedProject / Android $expectedPackage.",
+            )
+        }
+        val packageName = readGoogleServicesPackageName(googleServicesFile)
+        if (packageName != null && packageName != expectedPackage) {
+            throw GradleException(
+                "android/app/google-services.json package_name=$packageName — " +
+                    "expected \"$expectedPackage\". Download the Android app config for " +
+                    "$expectedPackage from project $expectedProject.",
+            )
+        }
+        logger.lifecycle(
+            "google-services.json OK project_id=$projectId package=${packageName ?: "?"}",
+        )
+    }
 }

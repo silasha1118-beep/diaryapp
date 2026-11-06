@@ -243,7 +243,31 @@ class FirebasePhoneSMSAuthProvider(
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.hasGoogleServicesJson || !FirebaseBootstrap.isConfigured) {
             throw SMSAuthError.NotConfigured(
-                "google-services.json missing. Place it at android/app/google-services.json (gitignored), rebuild.",
+                "google-services.json missing. Place it at " +
+                    "C:\\dev\\diaryapp\\android\\app\\google-services.json " +
+                    "(or android/app/google-services.json), confirm project_id is " +
+                    "${FirebaseBootstrap.EXPECTED_PROJECT_ID}, rebuild Debug.",
+            )
+        }
+
+        val runtimeProject = FirebaseBootstrap.projectId
+        val expectedProject = AuthConfig.firebaseProjectID
+            ?: FirebaseBootstrap.EXPECTED_PROJECT_ID
+        // Blank projectId = JSON not applied / incomplete resources. Stop before Phone Auth
+        // so Debug never shows a fake INVALID_CODE for Console test numbers.
+        if (runtimeProject.isNullOrBlank()) {
+            throw SMSAuthError.NotConfigured(
+                "Firebase project_id is blank (google-services not applied). " +
+                    "Open C:\\dev\\diaryapp\\android\\app\\google-services.json, " +
+                    "confirm \"project_id\": \"${FirebaseBootstrap.EXPECTED_PROJECT_ID}\", " +
+                    "Sync Gradle, uninstall app, reinstall Debug.",
+            )
+        }
+        if (BuildConfig.DEBUG && runtimeProject != expectedProject) {
+            throw SMSAuthError.NotConfigured(
+                "Firebase project_id=$runtimeProject — expected $expectedProject. " +
+                    "Re-download google-services.json for Android com.diaryvault.app " +
+                    "from Firebase Console project $expectedProject.",
             )
         }
 
@@ -261,21 +285,6 @@ class FirebasePhoneSMSAuthProvider(
         // Phone numbers for testing (must also be on the Console list for this project).
         val debugTestCode = DebugPhoneTestCodes.codeFor(normalized)
         applyDebugAutoRetrievedSms(normalized, debugTestCode)
-
-        val runtimeProject = FirebaseBootstrap.projectId
-        val expectedProject = AuthConfig.firebaseProjectID
-        if (BuildConfig.DEBUG &&
-            !runtimeProject.isNullOrBlank() &&
-            !expectedProject.isNullOrBlank() &&
-            runtimeProject != expectedProject
-        ) {
-            Log.e(
-                TAG,
-                "FIREBASE PROJECT MISMATCH runtime=$runtimeProject " +
-                    "expected=$expectedProject — google-services.json is not diaryappsilas; " +
-                    "Console test codes on another project will never verify",
-            )
-        }
 
         Log.i(
             TAG,
@@ -620,7 +629,16 @@ class FirebasePhoneSMSAuthProvider(
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.isConfigured) {
             throw SMSAuthError.NotConfigured(
-                "Firebase is not configured. Add google-services.json to android/app/.",
+                "Firebase is not configured. Place google-services.json at " +
+                    "C:\\dev\\diaryapp\\android\\app\\google-services.json " +
+                    "with project_id=${FirebaseBootstrap.EXPECTED_PROJECT_ID}, rebuild Debug.",
+            )
+        }
+        if (FirebaseBootstrap.projectId.isNullOrBlank()) {
+            throw SMSAuthError.NotConfigured(
+                "Firebase project_id is blank. Open " +
+                    "C:\\dev\\diaryapp\\android\\app\\google-services.json and confirm " +
+                    "\"project_id\": \"${FirebaseBootstrap.EXPECTED_PROJECT_ID}\", then rebuild.",
             )
         }
 

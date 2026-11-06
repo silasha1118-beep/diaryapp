@@ -17,22 +17,40 @@ Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three 
 
 ## Firebase setup (required for real SMS + sync)
 
-`google-services.json` is **gitignored** (same rule as iOS `GoogleService-Info.plist`). Without it the app builds and runs in **stub SMS** mode (no Firestore writes).
+`google-services.json` is **gitignored** (same rule as iOS `GoogleService-Info.plist`). It is **not** in the repo and there is no CI secret for it — Silas must download it once onto the Windows PC. **Debug `assembleDebug` / Run fails closed** if the file is missing or `project_id` ≠ `diaryappsilas` (escape hatch: `-Pdiary.allowStubSms=true` for local stub OTP only).
+
+Without the real file the APK falls back to **stub SMS** — Console test codes like `123456` never verify, and Debug UI can show `Firebase project=?`.
+
+### 0. Silas Windows check (do this first when Redmi shows `project=?`)
+
+Open in Notepad / VS Code:
+
+```text
+C:\dev\diaryapp\android\app\google-services.json
+```
+
+Confirm a line exactly like:
+
+```json
+"project_id": "diaryappsilas"
+```
+
+Also confirm `"package_name": "com.diaryvault.app"`. If the file is **missing**, or `project_id` is wrong/blank → follow §1 below, then Android Studio **Sync**, **uninstall** the app on Redmi, **Run Debug** again.
 
 ### 1. Add the Android app in Firebase Console
 
 1. Open [Firebase Console](https://console.firebase.google.com/) → project **`diaryappsilas`**.
-2. **Project settings → Your apps → Add app → Android**.
+2. **项目设置** (Project settings) → **您的应用** → **添加应用** → **Android** (Add app if Android `com.diaryvault.app` is not listed yet).
 3. Android package name: **`com.diaryvault.app`** (must match `applicationId` in `app/build.gradle.kts`).
-4. Download **`google-services.json`** and place it at:
+4. Download **`google-services.json`** and save it at:
 
 ```text
-android/app/google-services.json
+C:\dev\diaryapp\android\app\google-services.json
 ```
 
-(See `android/app/google-services.json.example` for the expected shape — never commit the real file.)
+(Repo-relative: `android/app/google-services.json`. See `android/app/google-services.json.example` for the expected shape — **never commit** the real file; it stays gitignored.)
 
-5. Leave `DIARY_SMS_PROVIDER` empty (default). Empty + JSON present → Firebase. Set `stub` only to force local OTP.
+5. Leave `DIARY_SMS_PROVIDER` empty (default). Empty + JSON present → Firebase. Set `stub` / `-Pdiary.allowStubSms=true` only to force local OTP without Firebase.
 
 ### 2. Register SHA-1 **and SHA-256** for Phone Auth (required for live SMS)
 
