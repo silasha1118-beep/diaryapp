@@ -11,7 +11,7 @@
     <string name="settings_vault_recently_deleted">ลบล่าสุด</string>
     <string name="settings_vault_restore">กู้คืน</string>
     <string name="settings_vault_restore_empty">ไม่มีรายการที่ลบใน 30 วันที่ผ่านมา</string>
-    <string name="settings_vault_restore_footer">รายการที่ลบจะถูกซ่อนจากห้องเก็บ กู้คืนได้ที่นี่ภายใน 30 วัน</string>
+    <string name="settings_vault_restore_footer">รายการที่ลบจะถูกซ่อนจากห้องเก็บ กู้คืนได้จากรายการนี้ภายใน 30 วัน</string>
     <string name="tab_vault">ห้องเก็บ</string>
     <string name="tab_mirror">กระจก</string>
     <string name="tab_settings">การตั้งค่า</string>

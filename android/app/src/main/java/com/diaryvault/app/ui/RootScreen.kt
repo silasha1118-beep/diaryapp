@@ -30,7 +30,7 @@ import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.diary.DiaryNavHost
 import com.diaryvault.app.ui.mirror.MirrorTabScreen
 import com.diaryvault.app.ui.onboarding.OnboardingScreen
-import com.diaryvault.app.ui.settings.SettingsScreen
+import com.diaryvault.app.ui.settings.SettingsNavHost
 import com.diaryvault.app.ui.theme.VaultBackground
 import com.diaryvault.app.ui.theme.VaultColors
 
@@ -96,7 +96,7 @@ private fun MainTabs(viewModel: VaultViewModel) {
             when (tab) {
                 0 -> DiaryNavHost(viewModel, Modifier.padding(padding))
                 1 -> MirrorTabScreen(viewModel, Modifier.padding(padding))
-                else -> SettingsScreen(viewModel, Modifier.padding(padding))
+                else -> SettingsNavHost(viewModel, Modifier.padding(padding))
             }
         }
     }
