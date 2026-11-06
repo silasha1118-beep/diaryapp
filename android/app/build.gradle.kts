@@ -88,7 +88,7 @@ dependencies {
     implementation(firebaseBom)
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    // Callable Functions for +86 Aliyun SMS OTP (keys stay server-side).
+    // Callable Functions for +86 Tencent Cloud SMS OTP (keys stay server-side).
     implementation("com.google.firebase:firebase-functions-ktx")
     // Phone Auth app verification: Play Integrity (+ SafetyNet fallback) and SMS Retriever.
     implementation("com.google.android.play:integrity:1.4.0")

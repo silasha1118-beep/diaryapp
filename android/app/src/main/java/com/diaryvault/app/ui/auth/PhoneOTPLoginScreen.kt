@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.auth.SmsAuthPath
@@ -47,8 +46,8 @@ import com.diaryvault.app.ui.theme.VaultColors
 import kotlinx.coroutines.delay
 
 /**
- * Phone SMS OTP gate — dial **+86** → Aliyun in release when configured;
- * **DEBUG +86** (and missing Aliyun keys) → Firebase Phone Auth (Console test numbers);
+ * Phone SMS OTP gate — dial **+86** → Tencent Cloud SMS when configured (DEBUG + release);
+ * missing Tencent secrets → Firebase Phone Auth (Console test numbers);
  * other dials → Firebase Phone Auth when `google-services.json` is present, else local stub.
  * Customer UI only — no DEBUG / stub / local-session chrome (prefs: no developer chrome).
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
@@ -65,13 +64,13 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val busy by viewModel.authBusy.collectAsState()
     val error by viewModel.authError.collectAsState()
     val sent = session != null
-    // Firebase Phone Auth may open Play Integrity / reCAPTCHA; real Aliyun +86 does not.
-    // DEBUG routes +86 to Firebase so Console test numbers work.
+    // Firebase Phone Auth may open Play Integrity / reCAPTCHA; real Tencent +86 does not.
+    // +86 always tries Tencent first; Firebase path (and its security sheet) only after fallback.
     val usesFirebaseAppVerification =
         viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE &&
             when {
                 sent -> session?.path == SmsAuthPath.FIREBASE
-                else -> dialCodeFromLabel(dialCode) != "+86" || BuildConfig.DEBUG
+                else -> dialCodeFromLabel(dialCode) != "+86"
             }
 
     var resendCooldown by remember { mutableIntStateOf(0) }
@@ -163,7 +162,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                     placeholder = localizedString(R.string.auth_otp_placeholder),
                     keyboardType = KeyboardType.Number,
                 )
-                if (session?.path == SmsAuthPath.FIREBASE || session?.path == SmsAuthPath.ALIYUN) {
+                if (session?.path == SmsAuthPath.FIREBASE || session?.path == SmsAuthPath.TENCENT) {
                     Spacer(Modifier.height(8.dp))
                     Text(
                         localizedString(R.string.auth_sms_sent_hint),

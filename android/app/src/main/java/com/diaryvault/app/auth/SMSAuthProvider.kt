@@ -35,7 +35,7 @@ import kotlinx.coroutines.withTimeout
 /** Which SMS backend produced this session (drives verify + UI hints). */
 enum class SmsAuthPath {
     FIREBASE,
-    ALIYUN,
+    TENCENT,
     STUB,
 }
 
@@ -136,18 +136,16 @@ object SMSAuthProviderFactory {
 
     /**
      * Dual SMS:
-     * - **DEBUG:** all dials (including +86) → Firebase Phone Auth so Console test numbers work
-     * - **Release +86:** Aliyun Cloud Functions when keys are set; if keys/Functions missing →
-     *   Firebase Phone Auth fallback (not a local stub that ignores Console codes)
+     * - **+86** (DEBUG + release): Tencent Cloud Functions when secrets are set; if
+     *   secrets/Functions missing → Firebase Phone Auth fallback (Console test numbers)
      * - other dials → Firebase Phone Auth (Play Integrity preferred — see #77)
-     * Aliyun AccessKeys stay on the server — never in the APK.
+     * Tencent SecretId/SecretKey stay on the server — never in the APK.
      */
     private fun routedFirebase(app: Context): SMSAuthProviding {
         val firebase = FirebasePhoneSMSAuthProvider(app)
         return RoutingSMSAuthProvider(
-            chinaMainland = AliyunSmsAuthProvider(app, firebaseFallback = firebase),
+            chinaMainland = TencentSmsAuthProvider(app, firebaseFallback = firebase),
             other = firebase,
-            preferFirebaseForChinaMainland = BuildConfig.DEBUG,
         )
     }
 }
