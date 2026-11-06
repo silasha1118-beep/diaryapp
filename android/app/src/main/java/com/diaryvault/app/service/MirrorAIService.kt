@@ -226,5 +226,7 @@ fun localeForLanguageTag(tag: String): Locale =
     when {
         tag.startsWith("zh-Hant", ignoreCase = true) -> Locale.TRADITIONAL_CHINESE
         tag.startsWith("zh-Hans", ignoreCase = true) -> Locale.SIMPLIFIED_CHINESE
+        tag.startsWith("ja", ignoreCase = true) -> Locale.JAPANESE
+        tag.startsWith("th", ignoreCase = true) -> Locale.forLanguageTag("th")
         else -> Locale.ENGLISH
     }

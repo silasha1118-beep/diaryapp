@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="brand_name">ダイアリーボールト</string>
+    <string name="common_back">戻る</string>
+    <string name="common_continue">続ける</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_save">保存</string>
+    <string name="common_edit">編集</string>
+    <string name="common_delete">削除</string>
+    <string name="tab_vault">ボールト</string>
+    <string name="tab_mirror">ミラー</string>
+    <string name="tab_settings">設定</string>
+    <string name="onboarding_welcome_headline">あなた自身の日記ボールト。</string>
+    <string name="onboarding_welcome_body">あなただけが書く言葉を残しましょう。やさしいミラーが少しずつあなたの言葉を学び、問いかけて映し返します——何をすべきかは教えません。</string>
+    <string name="onboarding_privacy_title">あなたのもの</string>
+    <string name="onboarding_privacy_point1">日記はボールト内に残ります。いつでも書き出して離れられます。</string>
+    <string name="onboarding_privacy_point2">AI はあなたをより理解するためだけに学びます——公開モデルの学習には使いません。</string>
+    <string name="onboarding_privacy_point3">やさしいリマインダーはオフにできます。ミラーの口調は「映す＋問う」だけ。</string>
+    <string name="onboarding_name_title">お名前は？</string>
+    <string name="onboarding_name_body">任意。ボールト内でのみ使います。</string>
+    <string name="onboarding_name_placeholder">お名前</string>
+    <string name="onboarding_enter">ボールトに入る</string>
+    <string name="lang_zh_hant">繁中</string>
+    <string name="lang_zh_hans">簡中</string>
+    <string name="lang_en">EN</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_th">ไทย</string>
+    <string name="lang_zh_hant_full">繁體中文</string>
+    <string name="lang_zh_hans_full">简体中文</string>
+    <string name="lang_en_full">English</string>
+    <string name="lang_ja_full">日本語</string>
+    <string name="lang_th_full">ไทย</string>
+</resources>

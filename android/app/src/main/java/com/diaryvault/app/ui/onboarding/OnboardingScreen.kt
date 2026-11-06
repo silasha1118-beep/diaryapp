@@ -61,9 +61,10 @@ import com.diaryvault.app.ui.theme.VaultSerifFamily
 import kotlinx.coroutines.launch
 
 /**
- * Welcome / onboarding — top-weighted composition for Redmi 9C-class heights:
- * quiet language row, brand-first copy, pinned high-contrast CTA above system nav.
- * Uses [VaultSerifFamily] so zh-Hans matches zh-Hant / EN (no SC system-sans fallback).
+ * Welcome / onboarding — balanced vertical rhythm for Redmi 9C-class heights:
+ * five-language strip, brand-first copy with breathing room under status bar,
+ * seal-filled Continue with explicit paper label (theme typography ink must not
+ * paint black-on-black). CTA stays above system nav.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -88,13 +89,10 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
     // Redmi 9C ~720×1600 often reports ~800dp height — treat as compact.
     val compact = LocalConfiguration.current.screenHeightDp < 840
     val pagePadH = if (compact) 22.dp else 28.dp
-    val brandSize = if (compact) 30.sp else 38.sp
+    val brandSize = if (compact) 28.sp else 36.sp
     val headlineSize = if (compact) 17.sp else 20.sp
 
     VaultBackground(atmosphere = false) {
-        // Status/IME on the shell; nav padding only on the CTA dock so the Continue
-        // button stays fully above MIUI 3-button / gesture bars (safeDrawing alone
-        // still clipped the dock on Redmi 9C in Silas’s photos).
         Column(
             Modifier
                 .fillMaxSize()
@@ -105,12 +103,12 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
                 selected = language,
                 onSelect = viewModel::setLanguage,
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth()
                     .padding(
                         start = pagePadH,
                         end = pagePadH,
-                        top = if (compact) 2.dp else 8.dp,
-                        bottom = if (compact) 2.dp else 8.dp,
+                        top = if (compact) 14.dp else 18.dp,
+                        bottom = if (compact) 4.dp else 8.dp,
                     ),
             )
 
@@ -139,7 +137,7 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
                 }
             }
 
-            // CTA dock — filled Continue first (above fold); dots / back secondary.
+            // CTA dock — seal fill + explicit paper label (avoids theme ink on Text).
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -147,7 +145,6 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
                     .padding(horizontal = pagePadH)
                     .padding(
                         top = if (compact) 8.dp else 12.dp,
-                        // Floor below nav inset — MIUI sometimes reports 0 for opaque nav.
                         bottom = if (compact) 14.dp else 18.dp,
                     ),
             ) {
@@ -161,15 +158,15 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(if (compact) 54.dp else 56.dp),
+                        .height(if (compact) 52.dp else 56.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = VaultColors.ink,
+                        containerColor = VaultColors.seal,
                         contentColor = VaultColors.paper,
-                        disabledContainerColor = VaultColors.ink.copy(alpha = 0.45f),
+                        disabledContainerColor = VaultColors.seal.copy(alpha = 0.45f),
                         disabledContentColor = VaultColors.paper,
                     ),
                     elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 2.dp,
+                        defaultElevation = 1.dp,
                         pressedElevation = 0.dp,
                     ),
                     shape = RoundedCornerShape(14.dp),
@@ -182,12 +179,14 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
                         fontFamily = VaultSerifFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = if (compact) 17.sp else 18.sp,
+                        // Explicit: Material typography embeds ink and would hide on dark fills.
+                        color = VaultColors.paper,
                     )
                 }
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = if (compact) 6.dp else 8.dp)
+                        .padding(top = if (compact) 4.dp else 6.dp)
                         .height(40.dp),
                 ) {
                     if (pagerState.currentPage > 0) {
@@ -227,12 +226,13 @@ private fun WelcomePage(
     contentAlpha: Float,
     contentOffsetY: Float,
 ) {
+    // Balanced rhythm: soft top breath + content block + flexible mid spacer (not top-jammed).
     Column(
         Modifier
             .fillMaxSize()
-            .padding(horizontal = horizontalPad)
-            .padding(top = if (compact) 10.dp else 20.dp, bottom = 8.dp),
+            .padding(horizontal = horizontalPad),
     ) {
+        Spacer(Modifier.height(if (compact) 28.dp else 40.dp))
         Text(
             text = localizedString(R.string.brand_name),
             fontFamily = VaultSerifFamily,
@@ -274,6 +274,7 @@ private fun WelcomePage(
                 .fillMaxWidth()
                 .alpha(contentAlpha),
         )
+        Spacer(Modifier.weight(1f))
     }
 }
 
@@ -284,7 +285,7 @@ private fun PrivacyPage(compact: Boolean, horizontalPad: Dp) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = horizontalPad)
-            .padding(top = if (compact) 10.dp else 20.dp, bottom = 8.dp),
+            .padding(top = if (compact) 28.dp else 40.dp, bottom = 8.dp),
     ) {
         Text(
             localizedString(R.string.onboarding_privacy_title),
@@ -293,7 +294,7 @@ private fun PrivacyPage(compact: Boolean, horizontalPad: Dp) {
             fontSize = if (compact) 24.sp else 28.sp,
             color = VaultColors.ink,
         )
-        Spacer(Modifier.height(if (compact) 14.dp else 18.dp))
+        Spacer(Modifier.height(if (compact) 16.dp else 20.dp))
         listOf(
             R.string.onboarding_privacy_point1,
             R.string.onboarding_privacy_point2,
@@ -302,7 +303,7 @@ private fun PrivacyPage(compact: Boolean, horizontalPad: Dp) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(bottom = if (compact) 12.dp else 14.dp),
+                    .padding(bottom = if (compact) 14.dp else 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(
@@ -323,7 +324,6 @@ private fun PrivacyPage(compact: Boolean, horizontalPad: Dp) {
                 )
             }
         }
-        // Residency / on-device MVP footnote removed — layout rebalanced without spacer.
     }
 }
 
@@ -339,7 +339,7 @@ private fun NamePage(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = horizontalPad)
-            .padding(top = if (compact) 10.dp else 20.dp, bottom = 8.dp),
+            .padding(top = if (compact) 28.dp else 40.dp, bottom = 8.dp),
     ) {
         Text(
             localizedString(R.string.onboarding_name_title),

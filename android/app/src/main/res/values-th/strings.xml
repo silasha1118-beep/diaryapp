@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="brand_name">Diary Vault</string>
+    <string name="common_back">กลับ</string>
+    <string name="common_continue">ดำเนินการต่อ</string>
+    <string name="common_cancel">ยกเลิก</string>
+    <string name="common_save">บันทึก</string>
+    <string name="common_edit">แก้ไข</string>
+    <string name="common_delete">ลบ</string>
+    <string name="tab_vault">ห้องเก็บ</string>
+    <string name="tab_mirror">กระจก</string>
+    <string name="tab_settings">การตั้งค่า</string>
+    <string name="onboarding_welcome_headline">ห้องเก็บไดอารีของตัวคุณเอง</string>
+    <string name="onboarding_welcome_body">เขียนสิ่งที่คุณเท่านั้นจะเขียน กระจกที่อ่อนโยนจะค่อย ๆ เรียนรู้คำของคุณ — สะท้อนกลับด้วยคำถาม โดยไม่บอกว่าคุณควรทำอะไร</string>
+    <string name="onboarding_privacy_title">เป็นของคุณ</string>
+    <string name="onboarding_privacy_point1">บันทึกอยู่ในห้องเก็บของคุณ ส่งออกและออกได้ทุกเมื่อ</string>
+    <string name="onboarding_privacy_point2">AI เรียนรู้เพื่อเข้าใจคุณดีขึ้นเท่านั้น — ไม่ใช้ฝึกโมเดลสาธารณะ</string>
+    <string name="onboarding_privacy_point3">ปิดการเตือนอ่อนโยนได้ โทนของกระจก: สะท้อน + ถาม</string>
+    <string name="onboarding_name_title">เราควรเรียกคุณว่าอะไร?</string>
+    <string name="onboarding_name_body">ไม่บังคับ ใช้ภายในห้องเก็บเท่านั้น</string>
+    <string name="onboarding_name_placeholder">ชื่อของคุณ</string>
+    <string name="onboarding_enter">เข้าสู่ห้องเก็บ</string>
+    <string name="lang_zh_hant">繁中</string>
+    <string name="lang_zh_hans">簡中</string>
+    <string name="lang_en">EN</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_th">ไทย</string>
+    <string name="lang_zh_hant_full">繁體中文</string>
+    <string name="lang_zh_hans_full">简体中文</string>
+    <string name="lang_en_full">English</string>
+    <string name="lang_ja_full">日本語</string>
+    <string name="lang_th_full">ไทย</string>
+</resources>

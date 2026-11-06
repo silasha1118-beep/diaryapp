@@ -23,6 +23,10 @@ object MirrorPromptBuilder {
             context.localeTag.startsWith("zh-Hans", ignoreCase = true) ||
                 context.localeTag.startsWith("zh-CN", ignoreCase = true) ->
                 "Reply in Simplified Chinese (简体中文)."
+            context.localeTag.startsWith("ja", ignoreCase = true) ->
+                "Reply in Japanese (日本語)."
+            context.localeTag.startsWith("th", ignoreCase = true) ->
+                "Reply in Thai (ไทย)."
             context.localeTag.startsWith("zh", ignoreCase = true) ->
                 "Reply in Traditional Chinese (繁體中文)."
             else -> "Reply in English."
