@@ -3,11 +3,16 @@ package com.diaryvault.app.ui.auth
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -97,37 +103,44 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
         R.string.auth_dial_jp,
     )
     val dialOptions = dialOptionRes.map { localizedString(it) }
+    // Redmi 9C-class (~360×640–800dp usable): shrink brand + spacers so OTP + CTA stay on-screen.
+    val compact = LocalConfiguration.current.screenHeightDp < 720
+    val sectionGap = if (compact) 18.dp else 28.dp
+    val headlineSize = if (compact) 20.sp else 22.sp
 
     VaultBackground {
         Column(
             Modifier
                 .fillMaxSize()
+                // enableEdgeToEdge() — pad status / nav / cutout / IME (fixed 48.dp top was not enough on MIUI).
+                .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.ime))
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 28.dp)
-                .padding(top = 48.dp, bottom = 40.dp),
+                .padding(horizontal = 24.dp)
+                .padding(top = if (compact) 12.dp else 20.dp, bottom = 24.dp),
         ) {
             VaultBrandHeader(
                 title = localizedString(R.string.brand_name),
                 subtitle = localizedString(R.string.auth_tagline),
+                compact = compact,
             )
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(sectionGap))
 
             Text(
                 localizedString(R.string.auth_headline),
                 fontFamily = FontFamily.Serif,
-                fontSize = 22.sp,
+                fontSize = headlineSize,
                 fontWeight = FontWeight.Normal,
                 color = VaultColors.ink,
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(if (compact) 8.dp else 10.dp))
             Text(
                 localizedString(R.string.auth_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = VaultColors.inkMuted,
             )
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(sectionGap))
 
             Text(
                 localizedString(R.string.auth_phone_label),
@@ -187,7 +200,7 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(if (compact) 18.dp else 24.dp))
             Button(
                 onClick = {
                     if (!sent) {

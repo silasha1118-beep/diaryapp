@@ -7,11 +7,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
@@ -63,20 +68,22 @@ fun OnboardingScreen(viewModel: VaultViewModel) {
     )
 
     LaunchedEffect(Unit) { appeared = true }
+    val compact = LocalConfiguration.current.screenHeightDp < 720
 
     VaultBackground {
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(bottom = 28.dp),
+                // Match login: clear MIUI status + 3-button nav + IME (statusBars alone left CTA under nav).
+                .windowInsetsPadding(WindowInsets.safeDrawing.union(WindowInsets.ime))
+                .padding(bottom = if (compact) 16.dp else 28.dp),
         ) {
             LanguageStrip(
                 selected = language,
                 onSelect = viewModel::setLanguage,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = 24.dp, vertical = if (compact) 8.dp else 12.dp),
             )
 
             HorizontalPager(
