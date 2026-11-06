@@ -417,7 +417,7 @@ private fun LanguagePickerDialog(
             )
         },
         text = {
-            Column(Modifier = Modifier.selectableGroup()) {
+            Column(modifier = Modifier.selectableGroup()) {
                 AppLanguage.entries.forEach { lang ->
                     val checked = lang == selected
                     Row(
