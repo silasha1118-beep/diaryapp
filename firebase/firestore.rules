@@ -2,8 +2,9 @@ rules_version = '2';
 
 // DiaryVault — paste into Firebase Console → Firestore → Rules → Publish.
 // Clients may only read/write their own users/{uid} tree.
-// Admin / console / Admin SDK bypass these rules.
-// In-repo Vault-like viewer: firebase/admin (owner signs in; same rules).
+// Operator Vault admin (claim vaultAdmin on diaryvault-operator) may read all accounts.
+// Admin SDK / Console bypass these rules.
+// In-repo Vault-like viewer: firebase/admin.
 // Entry deletes are soft-only: clients update deleted/deletedAt/status; hard delete is denied
 // so diary docs remain under users/{uid}/entries forever.
 service cloud.firestore {
@@ -18,6 +19,11 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // Set by mintAdminVaultSession → custom token / custom claims.
+    function isVaultAdmin() {
+      return signedIn() && request.auth.token.vaultAdmin == true;
+    }
+
     function entrySoftDeleteFieldsOk() {
       return (!('deleted' in request.resource.data)
           || request.resource.data.deleted is bool)
@@ -29,7 +35,8 @@ service cloud.firestore {
     // (phoneNumber, appleUserId, displayName, authProviders) are optional extras
     // for Console lookup — never replace the path key with phone/Apple id.
     match /users/{userId} {
-      allow read, create, update: if isOwner(userId)
+      allow read: if isOwner(userId) || isVaultAdmin();
+      allow create, update: if isOwner(userId)
         && request.resource.data.ownerUid == userId;
       allow delete: if isOwner(userId);
 
@@ -39,7 +46,7 @@ service cloud.firestore {
       // contentType is "text" or "multimedia". Soft-delete only — no hard delete.
       // Media metadata on this doc; bytes in Storage users/{uid}/entries/{entryId}/{fileName}.
       match /entries/{entryId} {
-        allow read: if isOwner(userId);
+        allow read: if isOwner(userId) || isVaultAdmin();
 
         allow create, update: if isOwner(userId)
           && request.resource.data.ownerUid == userId

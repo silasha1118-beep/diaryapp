@@ -171,40 +171,133 @@
       color: var(--ink-muted);
     }
     details.attachments summary { cursor: pointer; }
+    details.alt-auth {
+      margin-top: 1rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.85rem;
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+    }
+    details.alt-auth summary {
+      cursor: pointer;
+      color: var(--ink);
+      margin-bottom: 0.75rem;
+    }
     code {
       font-size: 0.85em;
       background: rgba(0,0,0,0.04);
       padding: 0.05rem 0.3rem;
+    }
+    .media-grid {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.65rem;
+    }
+    .media-item {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      padding: 0.65rem;
+    }
+    .media-item .kind {
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--media);
+      margin-bottom: 0.4rem;
+    }
+    .media-item img.thumb {
+      display: block;
+      max-width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      cursor: zoom-in;
+      background: #efe9de;
+    }
+    .media-item audio,
+    .media-item video {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      background: #1c1916;
+    }
+    .media-item .path {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      word-break: break-all;
+      color: #9a9084;
+    }
+    .media-item .media-err {
+      color: var(--seal);
+      font-size: 0.85rem;
+    }
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(20, 16, 12, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      cursor: zoom-out;
+    }
+    .lightbox img {
+      max-width: min(96vw, 1100px);
+      max-height: 92vh;
+      object-fit: contain;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .account-bar {
+      display: grid;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
   <main>
     <h1>日記金庫</h1>
-    <p class="subtitle">Vault-like cloud viewer — same account entries as the app, with soft-deleted posts marked (never removed).</p>
+    <p class="subtitle">Vault-like cloud viewer — all accounts for the operator, media playable on each entry, soft-deleted posts marked (never removed).</p>
 
     <div id="config-warn" class="err hidden">
       Missing <code>firebase-config.js</code>. Copy <code>firebase-config.example.js</code> → <code>firebase-config.js</code> and paste the Web app config from Firebase Console (project <strong>diaryappsilas</strong>).
     </div>
 
     <section id="auth-panel" class="panel">
-      <p class="meta" id="auth-status">Not signed in. Use the same phone number as the app.</p>
+      <p class="meta" id="auth-status">Not signed in. Use operator password (OTP-free) to browse every account.</p>
       <div id="signed-out">
-        <label for="phone">Phone (E.164)</label>
-        <input id="phone" type="tel" placeholder="+886912345678" autocomplete="tel" />
-        <div id="recaptcha-container"></div>
+        <label for="admin-password">Operator password</label>
+        <input id="admin-password" type="password" autocomplete="current-password" placeholder="ADMIN_VAULT_PASSWORD" />
         <div class="row">
-          <button type="button" id="btn-send">Send OTP</button>
+          <button type="button" id="btn-admin">Open Vault as operator</button>
         </div>
-        <label for="otp">OTP code</label>
-        <input id="otp" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" />
-        <div class="row">
-          <button type="button" id="btn-verify">Verify &amp; open Vault</button>
-        </div>
+
+        <details class="alt-auth">
+          <summary>Alternate: customer phone OTP (one account)</summary>
+          <label for="phone">Phone (E.164)</label>
+          <input id="phone" type="tel" placeholder="+886912345678" autocomplete="tel" />
+          <div id="recaptcha-container"></div>
+          <div class="row">
+            <button type="button" id="btn-send" class="secondary">Send OTP</button>
+          </div>
+          <label for="otp">OTP code</label>
+          <input id="otp" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" />
+          <div class="row">
+            <button type="button" id="btn-verify" class="secondary">Verify &amp; open Vault</button>
+          </div>
+        </details>
       </div>
       <div id="signed-in" class="hidden">
+        <div id="account-bar" class="account-bar hidden">
+          <label for="account-select">Account</label>
+          <select id="account-select"></select>
+          <div class="row">
+            <button type="button" id="btn-load-account" class="secondary">Load account</button>
+            <button type="button" id="btn-refresh-accounts" class="secondary">Refresh accounts</button>
+          </div>
+        </div>
         <div class="row">
-          <button type="button" id="btn-refresh" class="secondary">Refresh</button>
+          <button type="button" id="btn-refresh" class="secondary">Refresh entries</button>
           <button type="button" id="btn-signout" class="secondary">Sign out</button>
         </div>
       </div>
@@ -223,6 +316,10 @@
     </section>
   </main>
 
+  <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="Image preview">
+    <img id="lightbox-img" alt="Full size attachment" />
+  </div>
+
   <script src="./firebase-config.js" onerror="window.__DIARY_CONFIG_MISSING=true"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -231,6 +328,7 @@
       onAuthStateChanged,
       RecaptchaVerifier,
       signInWithPhoneNumber,
+      signInWithCustomToken,
       signOut,
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import {
@@ -238,27 +336,47 @@
       collection,
       getDocs,
     } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      getDownloadURL,
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+    import {
+      getFunctions,
+      httpsCallable,
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
     const els = {
       configWarn: document.getElementById("config-warn"),
       authStatus: document.getElementById("auth-status"),
       signedOut: document.getElementById("signed-out"),
       signedIn: document.getElementById("signed-in"),
+      adminPassword: document.getElementById("admin-password"),
+      btnAdmin: document.getElementById("btn-admin"),
       phone: document.getElementById("phone"),
       otp: document.getElementById("otp"),
       btnSend: document.getElementById("btn-send"),
       btnVerify: document.getElementById("btn-verify"),
+      accountBar: document.getElementById("account-bar"),
+      accountSelect: document.getElementById("account-select"),
+      btnLoadAccount: document.getElementById("btn-load-account"),
+      btnRefreshAccounts: document.getElementById("btn-refresh-accounts"),
       btnRefresh: document.getElementById("btn-refresh"),
       btnSignout: document.getElementById("btn-signout"),
       error: document.getElementById("error"),
       vault: document.getElementById("vault"),
       list: document.getElementById("list"),
       listMeta: document.getElementById("list-meta"),
+      lightbox: document.getElementById("lightbox"),
+      lightboxImg: document.getElementById("lightbox-img"),
     };
 
     let filter = "all";
     let confirmation = null;
     let entriesCache = [];
+    let viewingUid = null;
+    let isOperator = false;
+    const urlCache = new Map();
 
     function showError(msg) {
       if (!msg) {
@@ -278,6 +396,10 @@
     const app = initializeApp(window.DIARY_FIREBASE_CONFIG);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    const functions = getFunctions(app, "asia-east1");
+    const mintAdmin = httpsCallable(functions, "mintAdminVaultSession");
+    const listAccounts = httpsCallable(functions, "listAdminVaultAccounts");
 
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
       size: "invisible",
@@ -324,6 +446,115 @@
       return p.length <= 140 ? p : p.slice(0, 140) + "…";
     }
 
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function normalizeKind(kind) {
+      const k = String(kind || "").toLowerCase();
+      if (k === "image" || k === "photo" || k === "jpg" || k === "jpeg" || k === "png") return "image";
+      if (k === "voice" || k === "audio" || k === "m4a") return "voice";
+      if (k === "video" || k === "mp4") return "video";
+      return k || "file";
+    }
+
+    function storagePathOf(attachment, entryId, ownerUid) {
+      const remote = (attachment.remotePath || "").trim();
+      if (remote) return remote;
+      const name = (attachment.localFileName || "").trim();
+      if (name && ownerUid && entryId) {
+        return `users/${ownerUid}/entries/${entryId}/${name}`;
+      }
+      return "";
+    }
+
+    async function resolveUrl(path) {
+      if (!path) throw new Error("Missing Storage path");
+      if (urlCache.has(path)) return urlCache.get(path);
+      const url = await getDownloadURL(storageRef(storage, path));
+      urlCache.set(path, url);
+      return url;
+    }
+
+    function openLightbox(url) {
+      els.lightboxImg.src = url;
+      els.lightbox.classList.remove("hidden");
+    }
+
+    els.lightbox.addEventListener("click", () => {
+      els.lightbox.classList.add("hidden");
+      els.lightboxImg.removeAttribute("src");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        els.lightbox.classList.add("hidden");
+        els.lightboxImg.removeAttribute("src");
+      }
+    });
+
+    function mediaPlaceholder(attachment, entry) {
+      const kind = normalizeKind(attachment.kind);
+      const path = storagePathOf(attachment, entry.id, entry.ownerUid || viewingUid);
+      const wrap = document.createElement("div");
+      wrap.className = "media-item";
+      wrap.dataset.kind = kind;
+      wrap.dataset.path = path;
+      wrap.innerHTML = `
+        <div class="kind">${escapeHtml(kind)}</div>
+        <div class="media-body"><span class="meta">Loading…</span></div>
+        ${path ? `<div class="path">${escapeHtml(path)}</div>` : ""}
+      `;
+      return wrap;
+    }
+
+    async function hydrateMedia(wrap) {
+      const kind = wrap.dataset.kind;
+      const path = wrap.dataset.path;
+      const body = wrap.querySelector(".media-body");
+      if (!path) {
+        body.innerHTML = `<p class="media-err">No remotePath on this attachment.</p>`;
+        return;
+      }
+      try {
+        const url = await resolveUrl(path);
+        if (kind === "image") {
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.alt = "Diary image attachment";
+          img.loading = "lazy";
+          img.src = url;
+          img.addEventListener("click", () => openLightbox(url));
+          body.replaceChildren(img);
+        } else if (kind === "voice") {
+          const audio = document.createElement("audio");
+          audio.controls = true;
+          audio.preload = "metadata";
+          audio.src = url;
+          body.replaceChildren(audio);
+        } else if (kind === "video") {
+          const video = document.createElement("video");
+          video.controls = true;
+          video.preload = "metadata";
+          video.src = url;
+          body.replaceChildren(video);
+        } else {
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = "Open attachment";
+          body.replaceChildren(a);
+        }
+      } catch (e) {
+        body.innerHTML = `<p class="media-err">${escapeHtml(e?.message || String(e))}</p>`;
+      }
+    }
+
     function renderList() {
       const active = entriesCache.filter((e) => !e.deleted);
       const deleted = entriesCache.filter((e) => e.deleted);
@@ -333,9 +564,13 @@
         return true;
       });
 
+      const who = viewingUid
+        ? ` · viewing ${viewingUid}`
+        : (auth.currentUser ? ` · uid ${auth.currentUser.uid}` : "");
       els.listMeta.textContent =
         `${active.length} active · ${deleted.length} deleted · showing ${shown.length}` +
-        (auth.currentUser ? ` · uid ${auth.currentUser.uid}` : "");
+        (isOperator ? " · operator" : "") +
+        who;
 
       els.list.innerHTML = "";
       if (shown.length === 0) {
@@ -343,21 +578,17 @@
         return;
       }
 
+      const mediaNodes = [];
+
       for (const entry of shown) {
         const el = document.createElement("article");
         el.className = "entry" + (entry.deleted ? " deleted" : "");
         const mediaKinds = (entry.attachments || [])
-          .map((a) => a.kind)
+          .map((a) => normalizeKind(a.kind))
           .filter(Boolean);
         const mediaLabel = entry.hasMedia
           ? `Media${mediaKinds.length ? ": " + mediaKinds.join(", ") : ""}`
           : null;
-        const attachmentRows = (entry.attachments || [])
-          .map((a) => {
-            const path = a.remotePath || a.localFileName || a.id;
-            return `<li><code>${a.kind || "?"}</code> ${path}</li>`;
-          })
-          .join("");
 
         el.innerHTML = `
           <h2 class="entry-title">${escapeHtml(entry.title)}</h2>
@@ -369,29 +600,45 @@
             ${entry.sourcePlatform ? `<span class="badge">${escapeHtml(entry.sourcePlatform)}</span>` : ""}
             ${entry.label ? `<span class="badge">${escapeHtml(entry.label)}</span>` : ""}
           </div>
-          ${attachmentRows ? `<details class="attachments"><summary>Attachments on this entry</summary><ul>${attachmentRows}</ul></details>` : ""}
           <div class="id">${escapeHtml(entry.id)}</div>
         `;
+
+        if ((entry.attachments || []).length) {
+          const details = document.createElement("details");
+          details.className = "attachments";
+          details.open = true;
+          const summary = document.createElement("summary");
+          summary.textContent = `Attachments (${entry.attachments.length})`;
+          details.appendChild(summary);
+          const grid = document.createElement("div");
+          grid.className = "media-grid";
+          for (const attachment of entry.attachments) {
+            const wrap = mediaPlaceholder(attachment, entry);
+            grid.appendChild(wrap);
+            mediaNodes.push(wrap);
+          }
+          details.appendChild(grid);
+          el.appendChild(details);
+        }
+
         els.list.appendChild(el);
       }
-    }
 
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      // Resolve Storage URLs after DOM paint (parallel, cached).
+      void Promise.all(mediaNodes.map((n) => hydrateMedia(n)));
     }
 
     async function loadEntries(uid) {
       showError("");
+      viewingUid = uid;
+      urlCache.clear();
       const snap = await getDocs(collection(db, "users", uid, "entries"));
       entriesCache = snap.docs.map((doc) => {
         const data = doc.data() || {};
         const deleted = isDeleted(data);
         return {
           id: data.id || doc.id,
+          ownerUid: data.ownerUid || uid,
           title: titleOf(data),
           preview: previewOf(data),
           label: data.label || "",
@@ -407,22 +654,111 @@
       renderList();
     }
 
-    onAuthStateChanged(auth, async (user) => {
+    async function refreshOperatorFlag(user) {
       if (!user) {
-        els.authStatus.textContent = "Not signed in. Use the same phone number as the app.";
-        els.signedOut.classList.remove("hidden");
-        els.signedIn.classList.add("hidden");
-        els.vault.classList.add("hidden");
-        entriesCache = [];
+        isOperator = false;
         return;
       }
-      els.authStatus.textContent = `Signed in as ${user.phoneNumber || user.uid}`;
+      const token = await user.getIdTokenResult(true);
+      isOperator = token.claims?.vaultAdmin === true;
+    }
+
+    function fillAccountSelect(accounts) {
+      els.accountSelect.innerHTML = "";
+      if (!accounts.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "(no Auth accounts found)";
+        els.accountSelect.appendChild(opt);
+        return;
+      }
+      for (const a of accounts) {
+        const opt = document.createElement("option");
+        opt.value = a.uid;
+        const label = a.phoneNumber
+          ? `${a.phoneNumber} · ${a.uid}`
+          : (a.displayName ? `${a.displayName} · ${a.uid}` : a.uid);
+        opt.textContent = a.disabled ? `${label} (disabled)` : label;
+        els.accountSelect.appendChild(opt);
+      }
+    }
+
+    async function loadAccountList() {
+      const result = await listAccounts({});
+      const accounts = result.data?.accounts || [];
+      fillAccountSelect(accounts);
+      if (accounts.length && !viewingUid) {
+        els.accountSelect.value = accounts[0].uid;
+        await loadEntries(accounts[0].uid);
+      } else if (viewingUid) {
+        els.accountSelect.value = viewingUid;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        els.authStatus.textContent = "Not signed in. Use operator password (OTP-free) to browse every account.";
+        els.signedOut.classList.remove("hidden");
+        els.signedIn.classList.add("hidden");
+        els.accountBar.classList.add("hidden");
+        els.vault.classList.add("hidden");
+        entriesCache = [];
+        viewingUid = null;
+        isOperator = false;
+        return;
+      }
+
+      try {
+        await refreshOperatorFlag(user);
+      } catch (e) {
+        showError(e?.message || String(e));
+        return;
+      }
+
       els.signedOut.classList.add("hidden");
       els.signedIn.classList.remove("hidden");
+
+      if (isOperator) {
+        els.authStatus.textContent = `Operator session (${user.uid}) — pick any account below. Session ~1h; sign in again to renew.`;
+        els.accountBar.classList.remove("hidden");
+        try {
+          await loadAccountList();
+        } catch (e) {
+          showError(e?.message || String(e));
+        }
+        return;
+      }
+
+      els.accountBar.classList.add("hidden");
+      els.authStatus.textContent = `Signed in as ${user.phoneNumber || user.uid} (single account)`;
       try {
         await loadEntries(user.uid);
       } catch (e) {
         showError(e?.message || String(e));
+      }
+    });
+
+    els.btnAdmin.addEventListener("click", async () => {
+      showError("");
+      const password = els.adminPassword.value;
+      if (!password) {
+        showError("Enter the operator password.");
+        return;
+      }
+      els.btnAdmin.disabled = true;
+      try {
+        const result = await mintAdmin({ password });
+        const token = result.data?.customToken;
+        if (!token) throw new Error("No customToken returned from mintAdminVaultSession");
+        await signInWithCustomToken(auth, token);
+        els.adminPassword.value = "";
+      } catch (e) {
+        const msg = e?.message || String(e);
+        showError(msg.includes("ADMIN_VAULT_PASSWORD")
+          ? msg + "\n\nSet the secret in Console / functions/.env — see firebase/admin/README.md."
+          : msg);
+      } finally {
+        els.btnAdmin.disabled = false;
       }
     });
 
@@ -462,10 +798,29 @@
       }
     });
 
-    els.btnRefresh.addEventListener("click", async () => {
-      if (!auth.currentUser) return;
+    els.btnLoadAccount.addEventListener("click", async () => {
+      const uid = els.accountSelect.value;
+      if (!uid) return;
       try {
-        await loadEntries(auth.currentUser.uid);
+        await loadEntries(uid);
+      } catch (e) {
+        showError(e?.message || String(e));
+      }
+    });
+
+    els.btnRefreshAccounts.addEventListener("click", async () => {
+      try {
+        await loadAccountList();
+      } catch (e) {
+        showError(e?.message || String(e));
+      }
+    });
+
+    els.btnRefresh.addEventListener("click", async () => {
+      const uid = viewingUid || auth.currentUser?.uid;
+      if (!uid) return;
+      try {
+        await loadEntries(uid);
       } catch (e) {
         showError(e?.message || String(e));
       }
