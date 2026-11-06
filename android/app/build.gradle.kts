@@ -1,7 +1,44 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+/**
+ * Resolve Mirror AI / SMS config from (in order):
+ * 1. `android/local.properties` (gitignored — preferred on Windows Studio)
+ * 2. Gradle `-P` / `gradle.properties`
+ * 3. Process environment
+ *
+ * Never commit real keys. Prefer `XAI_API_KEY` or `DIARY_AI_API_KEY` in local.properties.
+ */
+fun diaryAiProp(key: String): String {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        val props = Properties()
+        localFile.inputStream().use { props.load(it) }
+        val fromLocal = props.getProperty(key)?.trim().orEmpty()
+        if (fromLocal.isNotEmpty()) return fromLocal
+    }
+    val fromProject = project.findProperty(key)?.toString()?.trim().orEmpty()
+    if (fromProject.isNotEmpty()) return fromProject
+    return System.getenv(key)?.trim().orEmpty()
+}
+
+fun diaryAiApiKey(): String {
+    val diary = diaryAiProp("DIARY_AI_API_KEY")
+    if (diary.isNotEmpty()) return diary
+    // xAI console env name — same key, OpenAI-compatible chat completions.
+    return diaryAiProp("XAI_API_KEY")
+}
+
+fun escapeBuildConfigString(value: String): String =
+    value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "")
+        .replace("\r", "")
 
 android {
     namespace = "com.diaryvault.app"
@@ -13,19 +50,42 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
-        // Cloud AI — set via env at assemble time; never commit real keys.
-        buildConfigField("String", "DIARY_AI_PROVIDER", "\"${System.getenv("DIARY_AI_PROVIDER") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_BASE_URL", "\"${System.getenv("DIARY_AI_BASE_URL") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_API_KEY", "\"${System.getenv("DIARY_AI_API_KEY") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_MODEL", "\"${System.getenv("DIARY_AI_MODEL") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_MAX_TOKENS", "\"${System.getenv("DIARY_AI_MAX_TOKENS") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_MAX_CONTEXT_ENTRIES", "\"${System.getenv("DIARY_AI_MAX_CONTEXT_ENTRIES") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_FREE_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_FREE_DAILY_REQUEST_LIMIT") ?: ""}\"")
-        buildConfigField("String", "DIARY_AI_DAILY_REQUEST_LIMIT", "\"${System.getenv("DIARY_AI_DAILY_REQUEST_LIMIT") ?: ""}\"")
+        // Cloud AI — local.properties / env at assemble time; never commit real keys.
+        // Working provider (product pref): xAI Grok — defaults applied in AIConfig when key is set.
+        buildConfigField("String", "DIARY_AI_PROVIDER", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_PROVIDER"))}\"")
+        buildConfigField("String", "DIARY_AI_BASE_URL", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_BASE_URL"))}\"")
+        buildConfigField("String", "DIARY_AI_API_KEY", "\"${escapeBuildConfigString(diaryAiApiKey())}\"")
+        buildConfigField("String", "DIARY_AI_MODEL", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_MODEL"))}\"")
+        buildConfigField("String", "DIARY_AI_MAX_TOKENS", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_MAX_TOKENS"))}\"")
+        buildConfigField("String", "DIARY_AI_MAX_CONTEXT_ENTRIES", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_MAX_CONTEXT_ENTRIES"))}\"")
+        buildConfigField(
+            "String",
+            "DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT",
+            "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT"))}\"",
+        )
+        buildConfigField(
+            "String",
+            "DIARY_AI_FREE_DAILY_REQUEST_LIMIT",
+            "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_FREE_DAILY_REQUEST_LIMIT"))}\"",
+        )
+        buildConfigField(
+            "String",
+            "DIARY_AI_DAILY_REQUEST_LIMIT",
+            "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_DAILY_REQUEST_LIMIT"))}\"",
+        )
+        buildConfigField(
+            "String",
+            "DIARY_AI_PRO_DAILY_REQUEST_LIMIT",
+            "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_PRO_DAILY_REQUEST_LIMIT"))}\"",
+        )
         // SMS / Firebase — leave empty to auto-select firebase when google-services.json is present.
-        buildConfigField("String", "DIARY_SMS_PROVIDER", "\"${System.getenv("DIARY_SMS_PROVIDER") ?: ""}\"")
-        buildConfigField("String", "DIARY_SMS_STUB_CODE", "\"${System.getenv("DIARY_SMS_STUB_CODE") ?: ""}\"")
-        buildConfigField("String", "DIARY_FIREBASE_PROJECT_ID", "\"${System.getenv("DIARY_FIREBASE_PROJECT_ID") ?: "diaryappsilas"}\"")
+        buildConfigField("String", "DIARY_SMS_PROVIDER", "\"${escapeBuildConfigString(diaryAiProp("DIARY_SMS_PROVIDER"))}\"")
+        buildConfigField("String", "DIARY_SMS_STUB_CODE", "\"${escapeBuildConfigString(diaryAiProp("DIARY_SMS_STUB_CODE"))}\"")
+        buildConfigField(
+            "String",
+            "DIARY_FIREBASE_PROJECT_ID",
+            "\"${escapeBuildConfigString(diaryAiProp("DIARY_FIREBASE_PROJECT_ID").ifEmpty { "diaryappsilas" })}\"",
+        )
         // Overridden per buildType — release must stay empty (no hardcoded test OTPs).
         buildConfigField("String", "DIARY_DEBUG_PHONE_TEST_CODES", "\"\"")
     }

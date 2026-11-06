@@ -62,6 +62,17 @@
     <string name="mirror_mock_no_cite">I hear you. There isn’t enough in your vault yet for me to reflect specific words back — that’s okay.</string>
     <string name="mirror_mock_question">What part of that feels closest to how you are right now?</string>
     <string name="mirror_mock_disclaimer">Based on what you’ve written · mock mirror (not a coach)</string>
+    <string name="mirror_mode_needs_key">Mirror needs an xAI key — add XAI_API_KEY to android/local.properties, Sync, rebuild</string>
+    <string name="mirror_error_not_configured">Cloud Mirror is not configured. Add XAI_API_KEY (or DIARY_AI_API_KEY) to android/local.properties, Sync Gradle, and rebuild. Never commit the key.</string>
+    <string name="mirror_error_network">Mirror could not reach the cloud AI: %1$s</string>
+    <string name="mirror_error_decoding">Mirror got an unexpected reply from the cloud AI. Try again.</string>
+    <string name="mirror_error_dismiss">Dismiss</string>
+    <string name="mirror_quota_remaining_lifetime">%1$d of %2$d Mirror requests left (lifetime)</string>
+    <string name="mirror_quota_remaining_daily">%1$d of %2$d Mirror requests left today</string>
+    <string name="mirror_quota_unlimited">Mirror is unlimited today</string>
+    <string name="mirror_quota_exhausted_free">Free Mirror use is finished (%1$d lifetime). Upgrade to Author Plus to continue.</string>
+    <string name="mirror_quota_exhausted_plus">Today’s Mirror use is finished (%1$d). Upgrade to Author Pro (16/day) for more, or try again tomorrow.</string>
+    <string name="mirror_quota_exhausted_pro">Today’s Mirror use is finished (%1$d). Try again tomorrow.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_section_account">Account</string>
     <string name="settings_account_status">Status</string>
@@ -93,7 +104,7 @@
     <string name="settings_ai_provider_openai">OpenAI-compatible</string>
     <string name="settings_ai_provider_anthropic">Anthropic</string>
     <string name="settings_ai_residency">Data residency</string>
-    <string name="settings_ai_footer">Set DIARY_AI_API_KEY and optionally DIARY_AI_PROVIDER=anthropic|openai as Gradle/env vars. No secrets in the repo.</string>
+    <string name="settings_ai_footer">Working provider: xAI Grok. Add XAI_API_KEY (or DIARY_AI_API_KEY) to android/local.properties — defaults BASE_URL https://api.x.ai and model grok-4.7. No secrets in the repo.</string>
     <string name="settings_section_legacy">Legacy</string>
     <string name="settings_legacy_stub">Memorial and legacy settings will arrive in a later release.</string>
     <string name="settings_legacy_footer">Roadmap only. Omitted from this MVP scaffold.</string>

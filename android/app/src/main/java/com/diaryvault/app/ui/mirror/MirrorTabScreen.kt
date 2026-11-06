@@ -2,7 +2,6 @@ package com.diaryvault.app.ui.mirror
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,9 +27,11 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,10 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -60,7 +59,7 @@ import com.diaryvault.app.ui.theme.VaultColors
 
 /**
  * Mirror tab — opens straight into chat (iOS `MirrorChatView`).
- * No home / 今日一問 / 開始對話 gate; typing is immediate.
+ * Live xAI Grok when `XAI_API_KEY` / `DIARY_AI_API_KEY` is set at build time.
  */
 @Composable
 fun MirrorTabScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
@@ -75,13 +74,23 @@ private fun MirrorChatPane(
 ) {
     val messages by viewModel.mirrorMessages.collectAsState()
     val thinking by viewModel.mirrorThinking.collectAsState()
+    val error by viewModel.mirrorError.collectAsState()
+    val quotaTick by viewModel.mirrorQuotaTick.collectAsState()
+    val billingActive by viewModel.billingActive.collectAsState()
     var draft by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val canSend = draft.isNotBlank() && !thinking
 
-    LaunchedEffect(messages.size, thinking) {
-        val last = messages.size + if (thinking) 1 else 0
-        if (last > 0) listState.animateScrollToItem(last - 1)
+    val exhausted = remember(quotaTick, billingActive) { viewModel.mirrorQuotaExhausted() }
+    val remaining = remember(quotaTick, billingActive) { viewModel.mirrorQuotaRemaining() }
+    val limit = remember(quotaTick, billingActive) { viewModel.mirrorQuotaLimit() }
+    val cloudReady = viewModel.useCloudClient
+
+    LaunchedEffect(messages.size, thinking, error) {
+        val extra = (if (thinking) 1 else 0) + (if (error != null) 1 else 0)
+        // +1 for the intro item
+        val target = messages.size + extra
+        if (target >= 0) listState.animateScrollToItem(target)
     }
 
     Scaffold(
@@ -102,53 +111,150 @@ private fun MirrorChatPane(
                 ),
             )
         },
-        // Composer in bottomBar + imePadding (same pattern as diary composer).
-        // MainTabs hides the tab NavigationBar while IME is open so this is not
-        // stacked on nav-bar height (the large empty gap above the keyboard).
-        bottomBar = {
-            MirrorComposerBar(
-                draft = draft,
-                onDraftChange = { draft = it },
-                canSend = canSend,
-                onSend = {
-                    val text = draft
-                    draft = ""
-                    viewModel.sendMirror(text)
-                },
-                modifier = Modifier.imePadding(),
-            )
-        },
     ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
+        Column(
+            Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .padding(padding)
+                .imePadding(),
         ) {
-            item {
-                // System intro — no bubble (iOS MirrorRole.system)
-                Text(
-                    localizedString(R.string.mirror_intro),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = VaultColors.inkMuted,
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                )
-            }
-            items(messages, key = { it.id }) { msg ->
-                MirrorBubble(msg)
-            }
-            if (thinking) {
+            // Quota / mode strip (iOS MirrorChatView parity)
+            MirrorQuotaStrip(
+                cloudReady = cloudReady,
+                exhausted = exhausted,
+                remaining = remaining,
+                limit = limit,
+                isFree = !billingActive,
+            )
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
                 item {
                     Text(
-                        localizedString(R.string.mirror_thinking),
+                        localizedString(R.string.mirror_intro),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(horizontal = 6.dp),
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+                items(messages, key = { it.id }) { msg ->
+                    MirrorBubble(msg)
+                }
+                if (thinking) {
+                    item {
+                        Text(
+                            localizedString(R.string.mirror_thinking),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = VaultColors.inkMuted,
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier.padding(horizontal = 6.dp),
+                        )
+                    }
+                }
+                if (error != null) {
+                    item {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    VaultColors.seal.copy(alpha = 0.08f),
+                                    RoundedCornerShape(8.dp),
+                                )
+                                .padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                error ?: "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = VaultColors.seal,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                            )
+                            TextButton(
+                                onClick = { viewModel.clearMirrorError() },
+                                contentPadding = PaddingValues(0.dp),
+                            ) {
+                                Text(
+                                    localizedString(R.string.mirror_error_dismiss),
+                                    color = VaultColors.seal,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(VaultColors.paperDeep.copy(alpha = 0.85f))
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                BasicTextField(
+                    value = draft,
+                    onValueChange = {
+                        draft = it
+                        if (error != null) viewModel.clearMirrorError()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(VaultColors.paper, RoundedCornerShape(8.dp))
+                        .border(1.dp, VaultColors.line.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    textStyle = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 16.sp,
+                        color = VaultColors.ink,
+                        lineHeight = 22.sp,
+                    ),
+                    cursorBrush = SolidColor(VaultColors.seal),
+                    decorationBox = { inner ->
+                        Box {
+                            if (draft.isEmpty()) {
+                                Text(
+                                    localizedString(R.string.mirror_placeholder),
+                                    style = TextStyle(
+                                        fontFamily = FontFamily.Serif,
+                                        fontSize = 16.sp,
+                                        color = VaultColors.inkMuted,
+                                    ),
+                                )
+                            }
+                            inner()
+                        }
+                    },
+                )
+                IconButton(
+                    onClick = {
+                        val text = draft
+                        draft = ""
+                        viewModel.sendMirror(text)
+                    },
+                    enabled = canSend && !exhausted,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = if (canSend && !exhausted) VaultColors.seal else VaultColors.line,
+                            shape = CircleShape,
+                        ),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = localizedString(R.string.mirror_send),
+                        tint = if (canSend && !exhausted) VaultColors.paper else VaultColors.inkMuted,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -156,76 +262,38 @@ private fun MirrorChatPane(
     }
 }
 
-/** PaperDeep strip, cream field, circular send — matches iOS Mirror composer. */
 @Composable
-private fun MirrorComposerBar(
-    draft: String,
-    onDraftChange: (String) -> Unit,
-    canSend: Boolean,
-    onSend: () -> Unit,
-    modifier: Modifier = Modifier,
+private fun MirrorQuotaStrip(
+    cloudReady: Boolean,
+    exhausted: Boolean,
+    remaining: Int?,
+    limit: Int,
+    isFree: Boolean,
 ) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .background(VaultColors.paperDeep.copy(alpha = 0.85f))
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        BasicTextField(
-            value = draft,
-            onValueChange = onDraftChange,
-            modifier = Modifier
-                .weight(1f)
-                .background(VaultColors.paper, RoundedCornerShape(8.dp))
-                .border(1.dp, VaultColors.line.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            textStyle = TextStyle(
-                fontFamily = FontFamily.Serif,
-                fontSize = 16.sp,
-                color = VaultColors.ink,
-                lineHeight = 22.sp,
-            ),
-            cursorBrush = SolidColor(VaultColors.seal),
-            maxLines = 5,
-            decorationBox = { inner ->
-                Box {
-                    if (draft.isEmpty()) {
-                        Text(
-                            localizedString(R.string.mirror_placeholder),
-                            style = TextStyle(
-                                fontFamily = FontFamily.Serif,
-                                fontSize = 16.sp,
-                                color = VaultColors.inkMuted,
-                            ),
-                        )
-                    }
-                    inner()
-                }
-            },
-        )
-        // Box+clickable avoids IconButton's 48.dp min size misaligning the 40.dp seal.
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(if (canSend) VaultColors.seal else VaultColors.line)
-                .clickable(
-                    enabled = canSend,
-                    role = Role.Button,
-                    onClick = onSend,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.Send,
-                contentDescription = localizedString(R.string.mirror_send),
-                tint = if (canSend) VaultColors.paper else VaultColors.inkMuted,
-                modifier = Modifier.size(18.dp),
-            )
-        }
+    val status = when {
+        !cloudReady -> localizedString(R.string.mirror_mode_needs_key)
+        remaining == null -> localizedString(R.string.mirror_quota_unlimited)
+        exhausted && isFree -> localizedString(R.string.mirror_quota_exhausted_free, limit)
+        exhausted && !isFree -> localizedString(R.string.mirror_quota_exhausted_plus, limit)
+        isFree -> localizedString(R.string.mirror_quota_remaining_lifetime, remaining, limit)
+        else -> localizedString(R.string.mirror_quota_remaining_daily, remaining, limit)
     }
+    Text(
+        text = status,
+        style = MaterialTheme.typography.labelLarge,
+        fontSize = 12.sp,
+        color = if (exhausted || !cloudReady) VaultColors.seal else VaultColors.inkMuted,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (exhausted || !cloudReady) {
+                    VaultColors.seal.copy(alpha = 0.08f)
+                } else {
+                    VaultColors.paperDeep.copy(alpha = 0.45f)
+                },
+            )
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+    )
 }
 
 @Composable

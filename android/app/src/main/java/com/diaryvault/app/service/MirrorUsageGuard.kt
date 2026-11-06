@@ -52,6 +52,17 @@ object MirrorUsageGuard {
         return prefs.getInt(KEY_COUNT, 0).coerceAtLeast(0)
     }
 
+    /** Remaining requests, or null when the effective limit is unlimited (`0`). */
+    fun remaining(
+        context: Context,
+        isAuthorPlus: Boolean,
+        isAuthorPro: Boolean = false,
+    ): Int? {
+        val limit = effectiveLimit(isAuthorPlus, isAuthorPro)
+        if (limit <= 0) return null
+        return (limit - usageCount(context, isAuthorPlus, isAuthorPro)).coerceAtLeast(0)
+    }
+
     fun isExhausted(
         context: Context,
         isAuthorPlus: Boolean,
@@ -74,7 +85,7 @@ object MirrorUsageGuard {
             val key = accountKey(context)
             val count = lifetimeCount(context, key)
             if (count >= limit) {
-                throw MirrorAIError.RateLimited(limit, false)
+                throw MirrorAIError.RateLimited(limit, isAuthorPlus = false, isAuthorPro = false)
             }
             setLifetimeCount(context, key, count + 1)
             return
@@ -89,7 +100,11 @@ object MirrorUsageGuard {
             prefs.edit().putString(KEY_DAY, today).apply()
         }
         if (count >= limit) {
-            throw MirrorAIError.RateLimited(limit, isAuthorPlus)
+            throw MirrorAIError.RateLimited(
+                limit,
+                isAuthorPlus = isAuthorPlus && !isAuthorPro,
+                isAuthorPro = isAuthorPro,
+            )
         }
         prefs.edit().putInt(KEY_COUNT, count + 1).apply()
     }

@@ -258,41 +258,45 @@ Cloud Mirror only (set `DIARY_AI_API_KEY` in the scheme). Defaults: **Free = 40 
 
 ### Enable cloud Mirror AI
 
-By default the Mirror tab uses a **local mock**. To call a real cloud chat API (**no secrets in git**):
+**Working provider (product pref): xAI Grok** — OpenAI-compatible `POST {base}/v1/chat/completions`, default host `https://api.x.ai`, model `grok-4.7`. There is **no** Firebase Functions Mirror proxy in-repo yet; keys stay local (never commit).
 
-1. In Xcode → **Product → Scheme → Edit Scheme… → Run → Arguments → Environment Variables**, add:
+#### Android (near-term runnable)
+
+1. Get a key at https://console.x.ai → API Keys.
+2. Append to gitignored `android/local.properties` (keep existing `sdk.dir`):
+
+```properties
+XAI_API_KEY=xai-your-key-here
+```
+
+(`DIARY_AI_API_KEY` also works. Optional: `DIARY_AI_BASE_URL=https://api.x.ai`, `DIARY_AI_MODEL=grok-4.7`.)
+
+3. Sync Gradle → rebuild Debug → Mirror → send. Without a key the app builds and Mirror shows a clear error (no mock replies). See `android/README.md` and `android/local.properties.example`.
+
+#### iOS (Xcode scheme env)
+
+1. **Product → Scheme → Edit Scheme… → Run → Arguments → Environment Variables**, add:
 
    | Variable | Required | Example / default |
    |----------|----------|-------------------|
-   | `DIARY_AI_API_KEY` | **Yes** (to leave mock) | Anthropic `sk-ant-…` or OpenAI-compatible key (scheme-local only) |
-   | `DIARY_AI_PROVIDER` | No | `openai` (default) or `anthropic`. Auto-detects `anthropic` if `DIARY_AI_BASE_URL` contains `anthropic`. |
-   | `DIARY_AI_BASE_URL` | No | OpenAI: `https://api.openai.com` · Anthropic: `https://api.anthropic.com` |
-   | `DIARY_AI_MODEL` | No | OpenAI: `gpt-4o-mini` · Anthropic: `claude-sonnet-4-5` |
+   | `DIARY_AI_API_KEY` or `XAI_API_KEY` | **Yes** (to leave mock) | xAI key (scheme-local only) |
+   | `DIARY_AI_PROVIDER` | No | `openai` / `xai` (default) or `anthropic` |
+   | `DIARY_AI_BASE_URL` | No | xAI: `https://api.x.ai` · Anthropic: `https://api.anthropic.com` |
+   | `DIARY_AI_MODEL` | No | xAI: `grok-4.7` · Anthropic: `claude-sonnet-4-5` |
    | `DIARY_AI_MAX_TOKENS` | No | `400` |
    | `DIARY_AI_MAX_CONTEXT_ENTRIES` | No | `8` |
-   | `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT` | No | `40` (Free Mirror lifetime hard cap; alias `DIARY_AI_FREE_DAILY_REQUEST_LIMIT`) |
-      | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `8` (Author Plus daily Mirror hard cap; `0` = unlimited for Plus) |
-   | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `16` (Author Pro daily Mirror hard cap; `0` = unlimited for Pro) |
+   | `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT` | No | `40` (Free Mirror lifetime; alias `DIARY_AI_FREE_DAILY_REQUEST_LIMIT`) |
+   | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `8` (Author Plus daily; `0` = unlimited for Plus) |
+   | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `16` (Author Pro daily; `0` = unlimited for Pro) |
 
 2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
-3. Restart the app. Settings → AI should show **Cloud API** and the resolved provider.
+3. Restart the app.
 
-**Anthropic (Claude)** — exact Xcode scheme env vars for Silas:
+**Anthropic (Claude)** remains available as an alternate OpenAI-incompatible path (`DIARY_AI_PROVIDER=anthropic`) but is region-blocked for this product — prefer xAI.
 
-```text
-DIARY_AI_API_KEY=<your-anthropic-key>   # never commit
-DIARY_AI_PROVIDER=anthropic
-DIARY_AI_MODEL=claude-sonnet-4-5        # optional (this is the default when provider=anthropic)
-DIARY_AI_BASE_URL=https://api.anthropic.com   # optional
-```
+Same **mirror-style** system prompt + diary excerpts (**RAG-lite**) + usage guards. Data residency narrative: **Taiwan (TW)**.
 
-The Anthropic client `POST`s to `{baseURL}/v1/messages` with headers `x-api-key` + `anthropic-version: 2023-06-01`.
-
-**OpenAI-compatible** (Groq / DeepSeek / OpenAI / xAI, default) — `POST`s to `{baseURL}/v1/chat/completions` with `Authorization: Bearer …`. Groq host quirk: set `DIARY_AI_BASE_URL=https://api.groq.com/openai` (app appends `/v1/chat/completions`).
-
-Same **mirror-style** system prompt + diary excerpts (**RAG-lite**) + usage guards for both providers. Data residency narrative: **Taiwan (TW)**.
-
-Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-billing.md` and `account-and-billing-plan.md` (workspace).
+Cost / billing notes: see project docs `ai-cost-and-billing.md` and `account-and-billing-plan.md` (workspace).
 
 ## What works in this scaffold
 
@@ -302,7 +306,7 @@ Cost / billing notes for later App Store pricing: see project docs `ai-cost-and-
 | **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; **Sign in with Apple** optional backup (paid team); DEBUG local session; Settings has the same |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
 | Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in; delete is soft-delete (`deleted` + `deletedAt`), Vault hides deleted rows |
-| Mirror chat | **Mock** by default; **cloud** (OpenAI-compatible or Anthropic) when `DIARY_AI_API_KEY` is set |
+| Mirror chat | **Android**: live **xAI Grok** when `XAI_API_KEY` / `DIARY_AI_API_KEY` is in `local.properties` (clear error if missing). **iOS**: mock until scheme key set; same OpenAI-compatible / Anthropic clients |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, Free lifetime / Plus–Pro daily Mirror + vault upload quotas |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
