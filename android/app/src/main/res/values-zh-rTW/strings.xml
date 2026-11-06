@@ -17,7 +17,6 @@
     <string name="onboarding_privacy_point1">日記留在你的金庫；可隨時匯出、帶走。</string>
     <string name="onboarding_privacy_point2">AI 只為更理解你而學習——不拿去訓練公開模型。</string>
     <string name="onboarding_privacy_point3">溫和提醒可關閉。鏡子口吻：反映＋提問。</string>
-    <string name="onboarding_privacy_residency">資料落地敘事：台灣（Taiwan）。AI 僅雲端 API——MVP 不含裝置端模型。</string>
     <string name="onboarding_name_title">我們該怎麼稱呼你？</string>
     <string name="onboarding_name_body">可選。只用於你的金庫內。</string>
     <string name="onboarding_name_placeholder">你的名字</string>

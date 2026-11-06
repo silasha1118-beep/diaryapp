@@ -12,16 +12,17 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.ui.theme.VaultColors
+import com.diaryvault.app.ui.theme.VaultSerifFamily
 
 /**
  * Quiet language chooser for onboarding — plain text labels, not pill chips.
  * Selected = ink + medium weight; unselected = muted. Separators are hairline dots.
+ * Uses [VaultSerifFamily] so zh-Hans matches zh-Hant / EN (no SC system-sans fallback).
  */
 @Composable
 fun LanguageStrip(
@@ -40,13 +41,14 @@ fun LanguageStrip(
                     "·",
                     color = VaultColors.line,
                     fontSize = 13.sp,
+                    fontFamily = VaultSerifFamily,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
             }
             val selectedNow = lang == selected
             Text(
                 text = localizedString(lang.shortLabelRes),
-                fontFamily = FontFamily.Serif,
+                fontFamily = VaultSerifFamily,
                 fontWeight = if (selectedNow) FontWeight.SemiBold else FontWeight.Normal,
                 fontSize = 14.sp,
                 color = if (selectedNow) VaultColors.ink else VaultColors.inkMuted,

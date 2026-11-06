@@ -17,7 +17,6 @@
     <string name="onboarding_privacy_point1">日记留在你的金库；可随时导出、带走。</string>
     <string name="onboarding_privacy_point2">AI 只为更理解你而学习——不拿去训练公开模型。</string>
     <string name="onboarding_privacy_point3">温和提醒可关闭。镜子口吻：反映＋提问。</string>
-    <string name="onboarding_privacy_residency">数据落地叙事：台湾（Taiwan）。AI 仅云端 API——MVP 不含设备端模型。</string>
     <string name="onboarding_name_title">我们该怎么称呼你？</string>
     <string name="onboarding_name_body">可选。只用于你的金库内。</string>
     <string name="onboarding_name_placeholder">你的名字</string>
