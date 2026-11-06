@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.diaryvault.app.auth.PhoneNumberNormalizer
 import com.diaryvault.app.ui.theme.VaultColors
 
 /** Shared dial + national-number row height so borders align. */
@@ -273,17 +274,5 @@ fun AuthOutlinedField(
 }
 
 /** "+852 Hong Kong" / "+886 台灣" → "+852" / "+886". */
-fun dialCodeFromLabel(label: String): String {
-    val digits = label.filter { it.isDigit() }
-    val code = when {
-        digits.startsWith("886") -> "886"
-        digits.startsWith("852") -> "852"
-        digits.startsWith("86") -> "86"
-        digits.startsWith("60") -> "60"
-        digits.startsWith("65") -> "65"
-        digits.startsWith("66") -> "66"
-        digits.startsWith("81") -> "81"
-        else -> digits.take(3).ifEmpty { "886" }
-    }
-    return "+$code"
-}
+fun dialCodeFromLabel(label: String): String =
+    PhoneNumberNormalizer.dialFromLabel(label).code

@@ -33,13 +33,20 @@ class AliyunSmsAuthProvider(
         resend: Boolean,
     ): SMSCodeSession {
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
-        if (!normalized.startsWith("+86") || !PhoneNumberNormalizer.isPlausibleE164(normalized)) {
+        // Use isChinaMainland — raw startsWith("+86") would also match Taiwan +886.
+        if (!RoutingSMSAuthProvider.isChinaMainland(normalized) ||
+            !PhoneNumberNormalizer.isPlausibleE164(normalized)
+        ) {
             throw SMSAuthError.InvalidPhone
         }
 
         // Second line of defense if RoutingSMSAuthProvider is ever constructed without
         // preferFirebaseForChinaMainland (e.g. a future Tencent-only wiring).
         if (BuildConfig.DEBUG) {
+            Log.i(
+                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+                "send provider=FirebasePhone (Aliyun DEBUG skip) e164=$normalized",
+            )
             return sendViaFirebaseFallback(
                 activity,
                 normalized,
@@ -102,6 +109,10 @@ class AliyunSmsAuthProvider(
         val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
         // Stub / Firebase sessions must not hit verifyAliyunSmsOtp with a Phone Auth id.
         if (session.path == SmsAuthPath.FIREBASE) {
+            Log.i(
+                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+                "verify provider=FirebasePhone (via Aliyun wrapper) e164=${session.phoneE164}",
+            )
             return firebaseFallback.verify(trimmed, session)
         }
         if (session.path == SmsAuthPath.STUB || session.verificationID.startsWith("stub-")) {
@@ -112,9 +123,16 @@ class AliyunSmsAuthProvider(
         }
         if (BuildConfig.DEBUG) {
             // Should not happen if send skipped Aliyun; never verify CF OTP in DEBUG.
-            Log.w(TAG, "DEBUG Aliyun session unexpected — verifying via Firebase Phone Auth")
+            Log.w(
+                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+                "DEBUG Aliyun session unexpected — verifying via Firebase Phone Auth",
+            )
             return firebaseFallback.verify(trimmed, session)
         }
+        Log.i(
+            RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+            "verify provider=ChinaCF/Aliyun e164=${session.phoneE164} codeLen=${trimmed.length}",
+        )
 
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.isConfigured) {

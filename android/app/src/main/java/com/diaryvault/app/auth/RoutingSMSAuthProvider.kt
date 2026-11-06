@@ -36,13 +36,14 @@ class RoutingSMSAuthProvider(
         val forceFirebase = preferFirebaseForChinaMainland || BuildConfig.DEBUG
         if (forceFirebase) {
             Log.i(
-                TAG,
-                "pick +86 → Firebase Phone Auth " +
-                    "(DEBUG=${BuildConfig.DEBUG} preferFirebase=$preferFirebaseForChinaMainland)",
+                VAULT_AUTH_TAG,
+                "send provider=FirebasePhone (+86 DEBUG force) " +
+                    "DEBUG=${BuildConfig.DEBUG} preferFirebase=$preferFirebaseForChinaMainland " +
+                    "e164=$normalized",
             )
             return other
         }
-        Log.i(TAG, "pick +86 → China CF gateway (release)")
+        Log.i(VAULT_AUTH_TAG, "send provider=ChinaCF (release +86) e164=$normalized")
         return chinaMainland
     }
 
@@ -54,8 +55,31 @@ class RoutingSMSAuthProvider(
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
         // Always verify on the backend that produced the session — never cross China CF
-        // sessionId with Firebase verificationId (or vice versa).
+        // sessionId with Firebase Phone Auth verificationId (or vice versa).
         val normalizedCode = PhoneNumberNormalizer.normalizeOtpDigits(code)
+        val providerLabel = when (session.path) {
+            SmsAuthPath.FIREBASE -> "FirebasePhone"
+            SmsAuthPath.ALIYUN -> "ChinaCF/Aliyun"
+            SmsAuthPath.STUB -> "Stub"
+        }
+        Log.i(
+            VAULT_AUTH_TAG,
+            "verify provider=$providerLabel path=${session.path} " +
+                "e164=${session.phoneE164} codeLen=${normalizedCode.length} " +
+                "idLen=${session.verificationID.length} auto=${session.autoVerified} " +
+                "DEBUG=${BuildConfig.DEBUG}",
+        )
+        if (BuildConfig.DEBUG && session.path != SmsAuthPath.FIREBASE) {
+            Log.e(
+                VAULT_AUTH_TAG,
+                "DEBUG OTP expected Firebase path, got ${session.path} — " +
+                    "wrong provider would reject Console test codes. Reinstall Debug APK.",
+            )
+            throw SMSAuthError.Underlying(
+                "DEBUG build expected Firebase OTP, got ${session.path}. " +
+                    "Uninstall the app (or clear data), then install the Debug build again.",
+            )
+        }
         return when (session.path) {
             SmsAuthPath.FIREBASE -> other.verify(normalizedCode, session)
             SmsAuthPath.ALIYUN, SmsAuthPath.STUB -> {
@@ -74,11 +98,16 @@ class RoutingSMSAuthProvider(
     }
 
     companion object {
-        private const val TAG = "RoutingSMSAuth"
+        /** Same tag as [com.diaryvault.app.VaultViewModel] send/verify logs. */
+        const val VAULT_AUTH_TAG = "VaultAuth"
 
+        /**
+         * Mainland China mobiles only. Must **not** treat `+886` (Taiwan) as `+86`.
+         * `+852` / `+853` do not start with `+86`.
+         */
         fun isChinaMainland(phoneE164: String): Boolean {
             val n = PhoneNumberNormalizer.normalizeToE164(phoneE164)
-            return n.startsWith("+86") && !n.startsWith("+860") // defensive; +86 only
+            return n.startsWith("+86") && !n.startsWith("+886")
         }
     }
 }

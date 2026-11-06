@@ -106,6 +106,8 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 // Apply only when Silas has placed the real (gitignored) google-services.json —

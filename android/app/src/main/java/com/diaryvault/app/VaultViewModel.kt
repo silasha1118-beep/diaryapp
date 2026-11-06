@@ -194,8 +194,17 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             _authBusy.value = true
             _authError.value = null
             try {
-                completePhoneSignIn(smsProvider.verify(code, session))
+                val normalized = PhoneNumberNormalizer.normalizeOtpDigits(code)
+                android.util.Log.i(
+                    "VaultAuth",
+                    "verifyPhoneCode path=${session.path} e164=${session.phoneE164} " +
+                        "codeLen=${normalized.length} idLen=${session.verificationID.length} " +
+                        "auto=${session.autoVerified} providerKind=$smsProviderKind",
+                )
+                completePhoneSignIn(smsProvider.verify(normalized, session))
+                android.util.Log.i("VaultAuth", "verifyPhoneCode ok path=${session.path}")
             } catch (e: Exception) {
+                android.util.Log.e("VaultAuth", "verifyPhoneCode failed: ${e.message}", e)
                 _authError.value = mapAuthError(e)
             } finally {
                 _authBusy.value = false
@@ -245,19 +254,23 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun resolveE164(phoneRaw: String, dialLabel: String?): String {
-        val trimmed = phoneRaw.trim()
+        val trimmed = PhoneNumberNormalizer.normalizePhoneInput(phoneRaw.trim())
         if (trimmed.startsWith("+")) return PhoneNumberNormalizer.normalizeToE164(trimmed)
         if (dialLabel != null) {
             val dial = PhoneNumberNormalizer.dialFromLabel(dialLabel)
             return PhoneNumberNormalizer.composeE164(dial, trimmed)
         }
-        val digits = trimmed.filter { it.isDigit() }
-        return "+$digits"
+        return PhoneNumberNormalizer.normalizeToE164(trimmed)
     }
 
     private fun mapAuthError(e: Exception): String = when (e) {
         is SMSAuthError.InvalidPhone -> string(R.string.auth_phone_invalid)
-        is SMSAuthError.InvalidCode -> string(R.string.auth_otp_error)
+        // DEBUG: Firebase still onCodeSent when the number was removed from Console
+        // "Phone numbers for testing" (live-SMS work) — fixed 123456 then never matches.
+        is SMSAuthError.InvalidCode ->
+            if (BuildConfig.DEBUG) string(R.string.auth_otp_error_debug_test_list)
+            else string(R.string.auth_otp_error)
+        is SMSAuthError.SessionExpired -> string(R.string.auth_otp_session_expired)
         is SMSAuthError.RateLimited -> string(R.string.auth_sms_rate_limited)
         is SMSAuthError.BillingRequired -> string(R.string.auth_sms_billing_required)
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)
