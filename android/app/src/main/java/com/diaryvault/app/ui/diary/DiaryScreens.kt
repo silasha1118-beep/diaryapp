@@ -38,7 +38,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -241,7 +240,7 @@ private fun DiaryListScreen(
                     )
                 }
                 items(entries, key = { it.id }) { item ->
-                    // Reveal Delete on swipe; tap + confirm soft-deletes (never full-swipe auto-delete).
+                    // Reveal Delete on swipe; tap soft-deletes immediately (never full-swipe auto-delete).
                     DiarySwipeRow(
                         entry = item,
                         contentInset = horizontalInset,
@@ -268,7 +267,6 @@ private fun DiarySwipeRow(
     val actionPx = with(density) { actionWidth.toPx() }
     val scope = rememberCoroutineScope()
     var offsetX by remember(entry.id) { mutableFloatStateOf(0f) }
-    var showConfirm by remember(entry.id) { mutableStateOf(false) }
 
     fun settleReveal(open: Boolean) {
         val target = if (open) -actionPx else 0f
@@ -289,7 +287,7 @@ private fun DiarySwipeRow(
             .fillMaxWidth()
             .semantics { contentDescription = swipeHint },
     ) {
-        // Seal Delete action — revealed behind content; tap only (full swipe never deletes).
+        // Seal Delete action — revealed behind content; tap soft-deletes (full swipe never deletes).
         Box(
             Modifier
                 .matchParentSize()
@@ -300,7 +298,10 @@ private fun DiarySwipeRow(
                 Modifier
                     .width(actionWidth)
                     .fillMaxHeight()
-                    .clickable { showConfirm = true },
+                    .clickable {
+                        settleReveal(false)
+                        onDelete()
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -348,31 +349,6 @@ private fun DiarySwipeRow(
                 modifier = Modifier.padding(start = contentInset),
             )
         }
-    }
-
-    if (showConfirm) {
-        AlertDialog(
-            onDismissRequest = { showConfirm = false },
-            title = { Text(localizedString(R.string.diary_delete_confirm_title)) },
-            text = { Text(localizedString(R.string.diary_delete_confirm_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showConfirm = false
-                        settleReveal(false)
-                        onDelete()
-                    },
-                ) {
-                    Text(deleteLabel, color = VaultColors.seal)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showConfirm = false }) {
-                    Text(localizedString(R.string.common_cancel))
-                }
-            },
-            containerColor = VaultColors.paper,
-        )
     }
 }
 

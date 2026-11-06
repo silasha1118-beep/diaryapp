@@ -8,8 +8,6 @@
     <string name="common_edit">编辑</string>
     <string name="common_delete">删除</string>
     <string name="diary_swipe_hint">向左滑后点「删除」</string>
-    <string name="diary_delete_confirm_title">删除这篇日记？</string>
-    <string name="diary_delete_confirm_body">它会先从金库隐藏。30 天内可在设置还原。</string>
     <string name="tab_vault">金库</string>
     <string name="tab_mirror">镜子</string>
     <string name="tab_settings">设置</string>

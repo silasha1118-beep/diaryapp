@@ -8,8 +8,6 @@
     <string name="common_edit">編輯</string>
     <string name="common_delete">刪除</string>
     <string name="diary_swipe_hint">向左滑後點「刪除」</string>
-    <string name="diary_delete_confirm_title">刪除這則日記？</string>
-    <string name="diary_delete_confirm_body">它會先從金庫隱藏。30 天內可在設定還原。</string>
     <string name="tab_vault">金庫</string>
     <string name="tab_mirror">鏡子</string>
     <string name="tab_settings">設定</string>
