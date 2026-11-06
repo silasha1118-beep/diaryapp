@@ -11,23 +11,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,8 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
@@ -85,7 +85,7 @@ fun SettingsScreen(
     var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
     var dialExpanded by remember { mutableStateOf(false) }
     var exportReady by remember { mutableStateOf(false) }
-    var langExpanded by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     val dialOptionRes = listOf(
         R.string.auth_dial_tw,
@@ -185,7 +185,6 @@ fun SettingsScreen(
             if (!linkedPhone) {
                 SettingsCard(
                     header = localizedString(R.string.settings_section_link_phone),
-                    footer = localizedString(R.string.settings_link_phone_note),
                 ) {
                     Text(
                         localizedString(R.string.settings_link_phone_banner),
@@ -248,7 +247,6 @@ fun SettingsScreen(
             // 3. 同步
             SettingsCard(
                 header = localizedString(R.string.settings_section_cloud),
-                footer = localizedString(R.string.settings_cloud_footer),
             ) {
                 SettingsRow(
                     localizedString(R.string.settings_cloud_status),
@@ -279,7 +277,6 @@ fun SettingsScreen(
             // 4. 訂閱
             SettingsCard(
                 header = localizedString(R.string.settings_section_billing),
-                footer = localizedString(R.string.settings_billing_footer),
             ) {
                 SettingsRow(localizedString(R.string.settings_billing_plan), planName)
                 SettingsDivider()
@@ -295,7 +292,6 @@ fun SettingsScreen(
             // 5. 隱私與資料
             SettingsCard(
                 header = localizedString(R.string.settings_section_data),
-                footer = localizedString(R.string.settings_data_footer),
             ) {
                 SettingsActionRow(
                     title = localizedString(R.string.settings_data_export),
@@ -318,58 +314,20 @@ fun SettingsScreen(
                 )
             }
 
-            // 6. 語言
+            // 6. 語言 — tap row → dialog choices (no nested ExposedDropdown frames)
             SettingsCard(
                 header = localizedString(R.string.settings_section_language),
-                footer = localizedString(R.string.settings_language_footer),
             ) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        localizedString(R.string.settings_language),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = VaultColors.ink,
-                        modifier = Modifier.weight(1f),
-                    )
-                    ExposedDropdownMenuBox(
-                        expanded = langExpanded,
-                        onExpandedChange = { langExpanded = it },
-                    ) {
-                        Text(
-                            text = languageDisplayName(language),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = VaultColors.inkMuted,
-                            modifier = Modifier
-                                .menuAnchor()
-                                .clickable { langExpanded = true }
-                                .padding(vertical = 4.dp),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = langExpanded,
-                            onDismissRequest = { langExpanded = false },
-                        ) {
-                            AppLanguage.entries.forEach { lang ->
-                                DropdownMenuItem(
-                                    text = { Text(languageDisplayName(lang)) },
-                                    onClick = {
-                                        viewModel.setLanguage(lang)
-                                        langExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
+                SettingsNavRow(
+                    title = localizedString(R.string.settings_language),
+                    value = languageDisplayName(language),
+                    onClick = { showLanguageDialog = true },
+                )
             }
 
             // 7. 建議
             SettingsCard(
                 header = localizedString(R.string.settings_section_advice),
-                footer = localizedString(R.string.settings_reminders_footer),
             ) {
                 Row(
                     Modifier
@@ -409,19 +367,11 @@ fun SettingsScreen(
                     value = if (recentlyDeletedCount > 0) recentlyDeletedCount.toString() else "",
                     onClick = onOpenRecentlyDeleted,
                 )
-                SettingsDivider()
-                Text(
-                    localizedString(R.string.settings_legacy_stub),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = VaultColors.inkMuted,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
             }
 
-            // 9. 法律資訊
+            // 9. 法律資訊 — privacy / terms stay as primary actions
             SettingsCard(
                 header = localizedString(R.string.settings_section_legal),
-                footer = localizedString(R.string.settings_legal_footer),
             ) {
                 SettingsActionRow(
                     title = localizedString(R.string.settings_legal_privacy),
@@ -438,6 +388,74 @@ fun SettingsScreen(
 
         }
     }
+
+    if (showLanguageDialog) {
+        LanguagePickerDialog(
+            selected = language,
+            onSelect = { lang ->
+                viewModel.setLanguage(lang)
+                showLanguageDialog = false
+            },
+            onDismiss = { showLanguageDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun LanguagePickerDialog(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                localizedString(R.string.settings_language),
+                style = MaterialTheme.typography.titleMedium,
+                color = VaultColors.ink,
+            )
+        },
+        text = {
+            Column(Modifier = Modifier.selectableGroup()) {
+                AppLanguage.entries.forEach { lang ->
+                    val checked = lang == selected
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = checked,
+                                onClick = { onSelect(lang) },
+                                role = Role.RadioButton,
+                            )
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        RadioButton(
+                            selected = checked,
+                            onClick = null,
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = VaultColors.seal,
+                                unselectedColor = VaultColors.inkMuted,
+                            ),
+                        )
+                        Text(
+                            languageDisplayName(lang),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = VaultColors.ink,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(localizedString(R.string.common_cancel), color = VaultColors.seal)
+            }
+        },
+        containerColor = VaultColors.paper,
+    )
 }
 
 @Composable
@@ -450,23 +468,8 @@ private fun languageDisplayName(language: AppLanguage): String = when (language)
 }
 
 @Composable
-private fun creamFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = VaultColors.seal,
-    unfocusedBorderColor = VaultColors.line,
-    focusedContainerColor = VaultColors.paper,
-    unfocusedContainerColor = VaultColors.paper,
-    disabledContainerColor = VaultColors.paper,
-    cursorColor = VaultColors.seal,
-    focusedTextColor = VaultColors.ink,
-    unfocusedTextColor = VaultColors.ink,
-    focusedPlaceholderColor = VaultColors.inkMuted,
-    unfocusedPlaceholderColor = VaultColors.inkMuted,
-)
-
-@Composable
 private fun SettingsCard(
     header: String,
-    footer: String = "",
     content: @Composable () -> Unit,
 ) {
     Column(
@@ -487,14 +490,6 @@ private fun SettingsCard(
                 .background(CardBg, RoundedCornerShape(CardRadius)),
         ) {
             content()
-        }
-        if (footer.isNotEmpty()) {
-            Text(
-                footer,
-                style = MaterialTheme.typography.bodyMedium,
-                color = VaultColors.inkMuted,
-                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp),
-            )
         }
     }
 }
