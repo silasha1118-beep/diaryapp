@@ -5,7 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -160,20 +162,91 @@ fun AuthDialPhoneRow(
     }
 }
 
-/** Matched OutlinedTextField chrome for OTP / standalone fields on the auth gate. */
+/**
+ * Cream OTP / standalone field matching [AuthDialPhoneRow] chrome.
+ *
+ * Avoids Material3 [OutlinedTextField]: MIUI force-dark + translucent containers made the
+ * verification box near-black on Redmi (unreadable ink placeholder). Opaque paper fill +
+ * thin line border keeps digits/placeholders readable on light cream brand screens.
+ */
+@Composable
+fun AuthCreamField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    placeholder: String? = null,
+    label: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    shapeCorner: Dp = 12.dp,
+) {
+    val shape = RoundedCornerShape(shapeCorner)
+    val fill = VaultColors.paper
+    val textStyle = MaterialTheme.typography.bodyLarge.copy(
+        color = if (enabled) VaultColors.ink else VaultColors.inkMuted,
+        fontSize = 16.sp,
+        lineHeight = 20.sp,
+    )
+    Column(modifier.fillMaxWidth()) {
+        if (label != null) {
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = VaultColors.inkMuted,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(AuthPhoneFieldHeight)
+                .clip(shape)
+                .border(1.dp, VaultColors.line, shape)
+                .background(fill, shape)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            if (value.isEmpty() && placeholder != null) {
+                Text(
+                    placeholder,
+                    style = textStyle.copy(color = VaultColors.inkMuted, fontSize = 14.sp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                enabled = enabled,
+                singleLine = true,
+                textStyle = textStyle,
+                cursorBrush = SolidColor(VaultColors.seal),
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/** @deprecated Prefer [AuthCreamField] — kept for any non-auth call sites. */
 @Composable
 fun authOutlinedFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = VaultColors.seal,
+    focusedBorderColor = VaultColors.line,
     unfocusedBorderColor = VaultColors.line,
+    disabledBorderColor = VaultColors.line,
     focusedTextColor = VaultColors.ink,
     unfocusedTextColor = VaultColors.ink,
+    disabledTextColor = VaultColors.inkMuted,
     cursorColor = VaultColors.seal,
-    focusedContainerColor = VaultColors.paper.copy(alpha = 0.6f),
-    unfocusedContainerColor = VaultColors.paper.copy(alpha = 0.45f),
+    focusedContainerColor = VaultColors.paper,
+    unfocusedContainerColor = VaultColors.paper,
+    disabledContainerColor = VaultColors.paper,
     focusedPlaceholderColor = VaultColors.inkMuted,
     unfocusedPlaceholderColor = VaultColors.inkMuted,
+    disabledPlaceholderColor = VaultColors.inkMuted,
     focusedLabelColor = VaultColors.inkMuted,
     unfocusedLabelColor = VaultColors.inkMuted,
+    disabledLabelColor = VaultColors.inkMuted,
 )
 
 @Composable
@@ -187,22 +260,15 @@ fun AuthOutlinedField(
     keyboardType: KeyboardType = KeyboardType.Text,
     shapeCorner: Dp = 12.dp,
 ) {
-    OutlinedTextField(
+    AuthCreamField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         enabled = enabled,
-        singleLine = true,
-        label = label?.let { { Text(it) } },
-        placeholder = placeholder?.let { { Text(it) } },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = authOutlinedFieldColors(),
-        shape = RoundedCornerShape(shapeCorner),
-        textStyle = MaterialTheme.typography.bodyLarge.copy(
-            color = VaultColors.ink,
-            fontSize = 16.sp,
-            lineHeight = 20.sp,
-        ),
+        placeholder = placeholder,
+        label = label,
+        keyboardType = keyboardType,
+        shapeCorner = shapeCorner,
     )
 }
 

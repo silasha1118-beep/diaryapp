@@ -137,7 +137,7 @@
     <string name="auth_sms_recaptcha_unavailable">Security check needs Google Play or a browser. On emulator: add this number under Firebase Console → Authentication → Phone → Phone numbers for testing and enter the fixed test code, or use a real phone.</string>
     <string name="auth_sms_recaptcha_browser_failed">The browser security page failed (or Chrome stopped responding). Close that page, return here, and try again. Prefer a real phone with Google Play — emulator Chrome is unreliable.</string>
     <string name="auth_sms_timed_out">Request timed out. Close any security browser page if it’s still open, then try again — or use a real phone with Google Play.</string>
-    <string name="auth_sms_sent_hint">If you don’t receive the code, you can try again later.</string>
+    <string name="auth_sms_sent_hint">Code requested. If no SMS arrives within a minute, check spam/junk, wait for the timer, then resend.</string>
     <string name="auth_sms_empty_verification">Verification didn’t finish. Please try sending the code again.</string>
     <string name="auth_sms_generic_failure">Something went wrong sending the code. Please try again later.</string>
     <string name="auth_sms_sending_security">Verifying this device…</string>

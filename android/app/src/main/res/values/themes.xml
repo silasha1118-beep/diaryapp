@@ -5,5 +5,7 @@
         <item name="android:navigationBarColor">#FFF3EEE6</item>
         <item name="android:windowBackground">#FFF3EEE6</item>
         <item name="android:windowLightStatusBar">true</item>
+        <!-- MIUI / system dark mode must not invert cream auth fields into black boxes. -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>

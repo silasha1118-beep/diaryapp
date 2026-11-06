@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -43,8 +44,8 @@ import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.auth.SmsAuthPath
 import com.diaryvault.app.config.AuthConfig
+import com.diaryvault.app.ui.components.AuthCreamField
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
-import com.diaryvault.app.ui.components.AuthOutlinedField
 import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.dialCodeFromLabel
 import com.diaryvault.app.ui.components.localizedString
@@ -165,7 +166,9 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
 
             if (sent) {
                 Spacer(Modifier.height(16.dp))
-                AuthOutlinedField(
+                // Label sits above the cream box (same rhythm as 手機號碼), not as a floating
+                // OutlinedTextField label that MIUI force-dark turned into a near-black field.
+                AuthCreamField(
                     value = code,
                     onValueChange = {
                         code = it.filter { ch -> ch.isDigit() }.take(6)
@@ -201,6 +204,8 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
             }
 
             Spacer(Modifier.height(if (compact) 18.dp else 24.dp))
+            // Theme typography hardcodes ink — must set label color explicitly or seal CTA
+            // becomes illegible (dark-on-dark on Redmi). White on seal matches Settings link CTA.
             Button(
                 onClick = {
                     if (!sent) {
@@ -215,14 +220,16 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = VaultColors.seal,
-                    contentColor = VaultColors.paper,
+                    contentColor = Color.White,
+                    disabledContainerColor = VaultColors.seal.copy(alpha = 0.35f),
+                    disabledContentColor = Color.White.copy(alpha = 0.85f),
                 ),
                 shape = RoundedCornerShape(12.dp),
             ) {
                 if (busy) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = VaultColors.paper,
+                        color = Color.White,
                         strokeWidth = 2.dp,
                     )
                 } else {
@@ -230,6 +237,8 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                         localizedString(
                             if (sent) R.string.auth_otp_verify else R.string.auth_phone_send,
                         ),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
             }

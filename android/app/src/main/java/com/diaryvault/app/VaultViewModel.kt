@@ -156,7 +156,17 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                 val e164 = resolveE164(phoneRaw, dialLabel)
                 // Do NOT hop to Dispatchers.IO: Firebase PhoneAuthClient launches
                 // Play Integrity / reCAPTCHA via the Activity and must stay on Main.
+                android.util.Log.i(
+                    "VaultAuth",
+                    "sendPhoneCode e164=$e164 resend=$resend dial=$dialLabel " +
+                        "providerKind=$smsProviderKind",
+                )
                 val session = smsProvider.sendCode(activity, e164, resend = resend)
+                android.util.Log.i(
+                    "VaultAuth",
+                    "sendPhoneCode ok path=${session.path} auto=${session.autoVerified} " +
+                        "idLen=${session.verificationID.length} e164=${session.phoneE164}",
+                )
                 if (session.autoVerified) {
                     completePhoneSignIn(smsProvider.verify("", session))
                 } else if (session.verificationID.isBlank()) {
@@ -165,6 +175,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                     _otpSession.value = session
                 }
             } catch (e: Exception) {
+                android.util.Log.e("VaultAuth", "sendPhoneCode failed: ${e.message}", e)
                 _authError.value = mapAuthError(e)
             } finally {
                 _authBusy.value = false
