@@ -2,6 +2,7 @@ package com.diaryvault.app.ui.mirror
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,6 +59,7 @@ import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
+import kotlinx.coroutines.flow.first
 
 /**
  * Mirror tab — opens straight into chat (iOS `MirrorChatView`).
@@ -86,11 +90,12 @@ private fun MirrorChatPane(
     val limit = remember(quotaTick, billingActive) { viewModel.mirrorQuotaLimit() }
     val cloudReady = viewModel.useCloudClient
 
-    LaunchedEffect(messages.size, thinking, error) {
-        val extra = (if (thinking) 1 else 0) + (if (error != null) 1 else 0)
-        // +1 for the intro item
-        val target = messages.size + extra
-        if (target >= 0) listState.animateScrollToItem(target)
+    // Pin the latest row just above the composer (iOS ScrollViewReader anchor: .bottom).
+    // animateScrollToItem alone puts the row at the *top* of the viewport and leaves a
+    // large blank under the last bubble after the assistant replies.
+    val lastMessageId = messages.lastOrNull()?.id
+    LaunchedEffect(messages.size, lastMessageId, thinking, error) {
+        listState.scrollLatestToBottom()
     }
 
     Scaffold(
@@ -294,6 +299,34 @@ private fun MirrorQuotaStrip(
             )
             .padding(horizontal = 20.dp, vertical = 10.dp),
     )
+}
+
+/**
+ * Scroll so the last LazyColumn item’s bottom sits on the viewport bottom (flush with
+ * the composer). Short threads that don’t fill the viewport stay top-aligned — same
+ * behavior as iOS `scrollTo(..., anchor: .bottom)`.
+ */
+private suspend fun LazyListState.scrollLatestToBottom() {
+    // Wait until composition has produced at least the intro row.
+    snapshotFlow { layoutInfo.totalItemsCount }.first { it > 0 }
+    val lastIndex = layoutInfo.totalItemsCount - 1
+    if (lastIndex < 0) return
+    // Bring the last row into view (may leave blank under it when the row is short).
+    animateScrollToItem(lastIndex)
+    // After layout, nudge so the row bottom meets the viewport bottom when possible.
+    snapshotFlow {
+        layoutInfo.visibleItemsInfo.any { it.index == lastIndex } ||
+            layoutInfo.visibleItemsInfo.isNotEmpty()
+    }.first { it }
+    val info = layoutInfo
+    val item = info.visibleItemsInfo.lastOrNull { it.index == lastIndex }
+        ?: info.visibleItemsInfo.lastOrNull()
+        ?: return
+    val viewportBottom = info.viewportEndOffset - info.afterContentPadding
+    val delta = (item.offset + item.size) - viewportBottom
+    if (kotlin.math.abs(delta) > 1) {
+        animateScrollBy(delta.toFloat())
+    }
 }
 
 @Composable

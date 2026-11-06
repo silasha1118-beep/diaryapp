@@ -21,6 +21,7 @@ import com.diaryvault.app.config.FirebaseBootstrap
 import com.diaryvault.app.config.UploadQuotaConfig
 import com.diaryvault.app.data.AppPreferences
 import com.diaryvault.app.data.DiaryStore
+import com.diaryvault.app.data.MirrorChatStore
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.DiaryMediaAttachment
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -46,6 +48,7 @@ import kotlinx.coroutines.withContext
 class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = AppPreferences(application)
     private val store = DiaryStore(application, viewModelScope)
+    private val mirrorChatStore = MirrorChatStore(application)
     private val accountSession = AccountSession(application)
     private val billingStub = BillingStub()
     private val isAuthorPlusEntitled: Boolean
@@ -101,6 +104,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val _mirrorQuotaTick = MutableStateFlow(0)
     val mirrorQuotaTick: StateFlow<Int> = _mirrorQuotaTick.asStateFlow()
 
+    private var mirrorAccountKey: String = MirrorChatStore.accountKey(accountSession.userId)
+
     val useCloudClient: Boolean get() = AIConfig.useCloudClient
     val isAnthropicProvider: Boolean get() = AIConfig.provider == AIProvider.ANTHROPIC
     val aiModelLabel: String get() = if (useCloudClient) AIConfig.model else "mock"
@@ -146,6 +151,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         FirebaseBootstrap.configureIfNeeded(application)
         refreshAccountState()
         store.bindCloudSync()
+        reloadMirrorMessagesForCurrentAccount()
         viewModelScope.launch {
             accountSession.firebaseAuthUID.collect { uid ->
                 _hasLiveFirebaseAuth.value = !uid.isNullOrBlank()
@@ -156,10 +162,28 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         viewModelScope.launch {
-            accountSession.userIdFlow.collect {
-                refreshAccountState()
-            }
+            accountSession.userIdFlow
+                .map { MirrorChatStore.accountKey(it) }
+                .distinctUntilChanged()
+                .collect { key ->
+                    refreshAccountState()
+                    if (key != mirrorAccountKey) {
+                        mirrorAccountKey = key
+                        reloadMirrorMessagesForCurrentAccount()
+                    }
+                }
         }
+    }
+
+    private fun reloadMirrorMessagesForCurrentAccount() {
+        mirrorAccountKey = MirrorChatStore.accountKey(accountSession.userId)
+        _mirrorMessages.value = mirrorChatStore.load(mirrorAccountKey)
+        _mirrorThinking.value = false
+        _mirrorError.value = null
+    }
+
+    private fun persistMirrorMessages(messages: List<MirrorMessage>) {
+        mirrorChatStore.save(mirrorAccountKey, messages)
     }
 
     /**
@@ -275,6 +299,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         _hasLiveFirebaseAuth.value = false
         _billingActive.value = false
         _otpSession.value = null
+        // userIdFlow collector swaps account key + reloads that account's Mirror thread.
     }
 
     private fun refreshAccountState() {
@@ -474,7 +499,9 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val userMsg = MirrorMessage(role = MirrorRole.User, text = trimmed)
-        _mirrorMessages.value = _mirrorMessages.value + userMsg
+        val withUser = _mirrorMessages.value + userMsg
+        _mirrorMessages.value = withUser
+        persistMirrorMessages(withUser)
         _mirrorThinking.value = true
         _mirrorError.value = null
 
@@ -492,7 +519,9 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                         else string(resId, *args)
                     }
                 }
-                _mirrorMessages.value = _mirrorMessages.value + reply
+                val withReply = _mirrorMessages.value + reply
+                _mirrorMessages.value = withReply
+                persistMirrorMessages(withReply)
             } catch (e: Exception) {
                 _mirrorError.value = when (e) {
                     is MirrorAIError.RateLimited -> when {
