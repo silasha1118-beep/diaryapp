@@ -6,6 +6,9 @@
  *
  * Project must be diaryappsilas (same as iOS + Android).
  * Authorized domains must include localhost (for local serve) and your Hosting domain.
+ *
+ * Operator OTP-free login also needs Cloud Functions secret ADMIN_VAULT_PASSWORD
+ * and published Firestore/Storage rules with vaultAdmin — see README.md.
  */
 window.DIARY_FIREBASE_CONFIG = {
   apiKey: "REPLACE_ME",

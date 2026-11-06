@@ -24,6 +24,9 @@ import {
 } from "./aliyunSms";
 import { createOtpSession, generateOtpCode, verifyOtpSession } from "./otpStore";
 
+// Operator Vault admin (password → custom token). Re-exported for deploy.
+export { mintAdminVaultSession, listAdminVaultAccounts } from "./adminVault";
+
 admin.initializeApp();
 
 setGlobalOptions({

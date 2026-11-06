@@ -77,6 +77,6 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
 
 ## Admin / Vault-like viewer
 
-- **In-repo viewer:** [`admin/`](admin/) — phone OTP → Vault-style list (title, preview, time, Active/Deleted, media, platform). Owner-only via existing Firestore rules.
+- **In-repo viewer:** [`admin/`](admin/) — **operator password** (OTP-free, all Auth accounts) via Cloud Functions `mintAdminVaultSession` + claim `vaultAdmin`, or alternate customer phone OTP (one account). Media: Storage `getDownloadURL` for image / voice / video on each entry. Soft-delete filters: All / Active / Deleted. Setup: [`admin/README.md`](admin/README.md).
+- **Rules:** Firestore + Storage allow `request.auth.token.vaultAdmin == true` to **read** any user’s entries and media (writes stay owner-only).
 - **Console:** sort `entries` by `createdAt`; scan `label` / `status` / `hasMedia` / `sourcePlatform`.
-- Cross-user admin later: **Firebase Admin SDK** + `collectionGroup('entries')` filtered by `ownerUid` (bypasses rules).
