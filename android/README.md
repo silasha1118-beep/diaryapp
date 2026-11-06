@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA); other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
+Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA) when secrets are set — see [`../firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md); missing Aliyun → Firebase Phone Auth fallback; other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
@@ -106,7 +106,7 @@ Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number
 6. OTP field = Firebase returned a verification id. Enter the SMS / test code (or tap **Resend** after 60s).
 7. If Send shows a red browser-security error: close any Chrome / Custom Tab page, return to the app, and retry — or switch to a real device. Do not stay on the blank Firebase web error.
 
-> DA-42 / dual SMS: **DEBUG `+86` uses Firebase Phone Auth** (Console test numbers, e.g. `123456`). **Release `+86` → Aliyun** when Cloud Functions + secrets are set; if Aliyun keys are missing the app falls back to Firebase (not a local stub). See [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md). **HK `+852` / TW `+886`** stay on Firebase.
+> DA-101 / dual SMS: **`+86` → Aliyun** when Cloud Functions + secrets are set (company Aliyun account); if keys are missing the app falls back to Firebase Phone Auth (Console test numbers, e.g. `123456`). **HK `+852` / TW `+886`** stay on Firebase. Setup: [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md).
 
 ## Optional: cloud Mirror AI
 
@@ -123,7 +123,7 @@ android/
   app/google-services.json.example
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
-    auth/        # SMS OTP (DEBUG +86 → Firebase; release +86 → Aliyun CF / Firebase fallback)
+    auth/        # SMS OTP (+86 → Aliyun CF / Firebase fallback; other dials → Firebase)
     config/      # AuthConfig, FirebaseBootstrap, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
     sync/        # DiaryCloudSync (Firestore schema parity with iOS)

@@ -1,31 +1,23 @@
 package com.diaryvault.app.auth
 
 import android.app.Activity
-import com.diaryvault.app.BuildConfig
 
 /**
  * Dial-based SMS routing:
- * - **+86** (China mainland) → [chinaMainland] (Aliyun via Cloud Functions) in **release**
- *   when Aliyun is configured
- * - **DEBUG** (or when Aliyun keys are missing — see [AliyunSmsAuthProvider]) → Firebase Phone Auth
- *   so Firebase Console **test phone numbers** work for +86
+ * - **+86** (China mainland) → [chinaMainland] (Aliyun via Cloud Functions)
+ *   When Aliyun keys / Functions are missing, [AliyunSmsAuthProvider] falls back to
+ *   Firebase Phone Auth so Console **test phone numbers** still work.
  * - all other country codes → [other] (Firebase Phone Auth)
  */
 class RoutingSMSAuthProvider(
     private val chinaMainland: SMSAuthProviding,
     private val other: SMSAuthProviding,
-    /**
-     * When true, never call Aliyun for +86 — use Firebase Phone Auth (Console test numbers).
-     * Default: DEBUG builds. Release keeps Aliyun unless the Aliyun provider itself falls back.
-     */
-    private val preferFirebaseForChinaMainland: Boolean = BuildConfig.DEBUG,
 ) : SMSAuthProviding {
 
     private fun pick(phoneE164: String): SMSAuthProviding {
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
-        if (!isChinaMainland(normalized)) return other
-        if (preferFirebaseForChinaMainland) return other
-        return chinaMainland
+        if (isChinaMainland(normalized)) return chinaMainland
+        return other
     }
 
     override suspend fun sendCode(
