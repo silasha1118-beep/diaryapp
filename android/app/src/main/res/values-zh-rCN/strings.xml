@@ -128,6 +128,9 @@
     <string name="auth_otp_placeholder">六位数字</string>
     <string name="auth_otp_verify">验证并继续</string>
     <string name="auth_otp_error">验证码不符，请再试一次。</string>
+    <string name="auth_otp_error_debug_test_list">验证码不符。Debug 固定码（如 123456）仅对 Firebase Console → Authentication → Phone → Phone numbers for testing 列表中的号码有效。若为测真短信已删除，请加回该号，或改用短信里的真实验证码。</string>
+    <string name="auth_otp_session_expired">验证已过期。请点重新发送，再输入新验证码。</string>
+    <string name="auth_sms_sent_hint_debug">倒计时只表示 Firebase 已接受发送。控制台固定码仅在号码仍位于「Phone numbers for testing」时有效；若为测真短信已删除，请加回，或等待真实短信。</string>
     <string name="auth_phone_change_number">改用其他号码</string>
     <string name="auth_phone_resend">重新发送验证码</string>
     <string name="auth_phone_resend_in">%1$d 秒后可重发</string>

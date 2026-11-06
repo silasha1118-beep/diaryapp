@@ -128,6 +128,9 @@
     <string name="auth_otp_placeholder">6-digit code</string>
     <string name="auth_otp_verify">Verify and continue</string>
     <string name="auth_otp_error">That code did not match. Try again.</string>
+    <string name="auth_otp_error_debug_test_list">That code did not match. Debug fixed codes (e.g. 123456) only work if this number is under Firebase Console → Authentication → Phone → Phone numbers for testing. If you removed it to test live SMS, add it back — or enter the real SMS code.</string>
+    <string name="auth_otp_session_expired">Verification expired. Tap resend, then enter the new code.</string>
+    <string name="auth_sms_sent_hint_debug">Countdown means Firebase accepted the send. Fixed Console codes work only while this number is on “Phone numbers for testing”. Removed for live SMS? Re-add it, or wait for a real text.</string>
     <string name="auth_phone_change_number">Use a different number</string>
     <string name="auth_phone_resend">Resend code</string>
     <string name="auth_phone_resend_in">Resend in %1$d s</string>

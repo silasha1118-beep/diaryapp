@@ -62,6 +62,10 @@ data class SMSAuthUser(
 sealed class SMSAuthError(message: String) : Exception(message) {
     data object InvalidPhone : SMSAuthError("Invalid phone number")
     data object InvalidCode : SMSAuthError("Invalid verification code")
+    /** Firebase verificationId expired / consumed (often Instant Verification raced onCodeSent). */
+    data object SessionExpired : SMSAuthError(
+        "Verification session expired. Request a new code.",
+    )
     data class NotConfigured(val detail: String) : SMSAuthError(detail)
     data object RateLimited : SMSAuthError("Too many attempts; try again later")
     /**
@@ -243,6 +247,9 @@ class FirebasePhoneSMSAuthProvider(
 
         applySMSLanguageCode()
         val mode = prepareAppVerification(activity)
+        // Drop any Instant Verification credential from a prior send so verify()
+        // cannot sign in with a stale auto credential against a new onCodeSent session.
+        pendingAutoCredential.set(null)
 
         Log.i(
             TAG,
@@ -420,9 +427,25 @@ class FirebasePhoneSMSAuthProvider(
                 override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                     // Instant verification / SMS Retriever — no SMS for the user to type.
                     val smsPresent = credential.smsCode != null
-                    Log.i(TAG, "onVerificationCompleted auto smsCodePresent=$smsPresent")
+                    val alreadyResumed = resumed.get()
+                    Log.i(
+                        TAG,
+                        "onVerificationCompleted auto smsCodePresent=$smsPresent " +
+                            "alreadyResumed=$alreadyResumed (onCodeSent may have won)",
+                    )
                     pendingAutoCredential.set(credential)
                     lastPhoneE164.set(normalized)
+                    if (alreadyResumed) {
+                        // Late Instant Verification after onCodeSent: keep credential for
+                        // verify(); do not change the OTP UI session (verificationId may
+                        // already be burned for getCredential + typed code).
+                        Log.w(
+                            TAG,
+                            "Late Instant Verification after onCodeSent — " +
+                                "holding pendingAutoCredential for verify()",
+                        )
+                        return
+                    }
                     cleanupLifecycle()
                     resumeOnce {
                         cont.resume(
@@ -492,10 +515,20 @@ class FirebasePhoneSMSAuthProvider(
                 }
             }
 
+            // DEBUG: timeout 0 disables Instant Verification + SMS auto-retrieval so
+            // Console test numbers stay on the typed-code path (onCodeSent → 123456).
+            // On Xiaomi/MIUI, late Instant Verification after onCodeSent can burn the
+            // verificationId and make getCredential(id, "123456") return invalid-code.
+            // Release keeps 60s so live +852 SMS can auto-retrieve.
+            val autoRetrieveSeconds = if (BuildConfig.DEBUG) 0L else 60L
+            Log.i(
+                TAG,
+                "PhoneAuthOptions timeout=${autoRetrieveSeconds}s " +
+                    "(0=disable Instant Verification / auto-retrieve) DEBUG=${BuildConfig.DEBUG}",
+            )
             val builder = PhoneAuthOptions.newBuilder(FirebaseAuth.getInstance())
                 .setPhoneNumber(normalized)
-                // Auto-retrieval window (not the coroutine wall-clock timeout).
-                .setTimeout(60L, TimeUnit.SECONDS)
+                .setTimeout(autoRetrieveSeconds, TimeUnit.SECONDS)
                 .setActivity(activity)
                 .setCallbacks(callbacks)
 
@@ -548,19 +581,57 @@ class FirebasePhoneSMSAuthProvider(
             )
         }
 
-        // Auto-retrieval credential is only valid for the same send that set autoVerified.
-        // Never consume a stale pending credential against a typed-code session.
+        val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
+
+        // Auto-retrieval / Instant Verification for the same send that set autoVerified.
         if (session.autoVerified) {
             pendingAutoCredential.getAndSet(null)?.let { auto ->
-                Log.i(TAG, "verify via pending auto credential")
+                Log.i(TAG, "verify via pending auto credential (autoVerified session)")
                 return signIn(auto, session.phoneE164)
             }
             throw SMSAuthError.Underlying("Auto-verification expired. Request a new code.")
         }
-        pendingAutoCredential.set(null)
 
-        val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
-        if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
+        // Late Instant Verification / SMS Retriever after onCodeSent: prefer that
+        // credential when its smsCode matches the typed code, or when Instant
+        // Verification completed with no smsCode (typed getCredential often fails then).
+        val pending = pendingAutoCredential.getAndSet(null)
+        if (pending != null) {
+            val autoCode = pending.smsCode?.let { PhoneNumberNormalizer.normalizeOtpDigits(it) }
+            when {
+                autoCode != null && autoCode == trimmed -> {
+                    Log.i(TAG, "verify via late pending auto credential (smsCode matched typed)")
+                    return signIn(pending, session.phoneE164)
+                }
+                autoCode == null -> {
+                    Log.w(
+                        TAG,
+                        "verify: late Instant Verification (no smsCode) — " +
+                            "signing in with pending credential; typed getCredential often burned",
+                    )
+                    try {
+                        return signIn(pending, session.phoneE164)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "late Instant Verification sign-in failed: ${e.message}", e)
+                        // Fall through to typed path as last resort.
+                    }
+                }
+                else -> {
+                    Log.w(
+                        TAG,
+                        "verify: pending auto smsCode did not match typed " +
+                            "(autoLen=${autoCode.length} typedLen=${trimmed.length}) — " +
+                            "using typed getCredential",
+                    )
+                }
+            }
+        }
+
+        return verifyWithTypedCode(trimmed, session)
+    }
+
+    private suspend fun verifyWithTypedCode(trimmed: String, session: SMSCodeSession): SMSAuthUser {
+        if (trimmed.length < 4 || trimmed.any { it !in '0'..'9' }) throw SMSAuthError.InvalidCode
 
         // Must use the verificationId from the same onCodeSent that filled otpSession.
         // Prefs are last-resort recovery only when the session id is blank (should be rare).
@@ -586,7 +657,7 @@ class FirebasePhoneSMSAuthProvider(
         }
         Log.i(
             TAG,
-            "verifyCredential verificationIdLen=${verificationID.length} " +
+            "verifyCredential provider=FirebasePhone verificationIdLen=${verificationID.length} " +
                 "prefix=${verificationID.take(6)}… codeLen=${trimmed.length} " +
                 "fromSession=${fromSession.isNotEmpty() && fromSession != "auto"} " +
                 "e164=${session.phoneE164}",
@@ -646,8 +717,10 @@ class FirebasePhoneSMSAuthProvider(
             code.contains("INVALID_PHONE", ignoreCase = true) ||
                 lowered.contains("invalid format") ||
                 lowered.contains("invalid phone") -> return SMSAuthError.InvalidPhone
+            code.contains("SESSION_EXPIRED", ignoreCase = true) ||
+                lowered.contains("session expired") ||
+                lowered.contains("code has expired") -> return SMSAuthError.SessionExpired
             code.contains("INVALID_VERIFICATION", ignoreCase = true) ||
-                code.contains("SESSION_EXPIRED", ignoreCase = true) ||
                 lowered.contains("verification code") ||
                 lowered.contains("invalid code") -> return SMSAuthError.InvalidCode
             code.contains("BILLING_NOT_ENABLED", ignoreCase = true) ||

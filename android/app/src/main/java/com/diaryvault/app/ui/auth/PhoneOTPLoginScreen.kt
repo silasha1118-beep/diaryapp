@@ -158,7 +158,8 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 onDialSelected = { dialCode = it },
                 phone = phone,
                 onPhoneChange = {
-                    phone = it.filter { ch -> ch.isDigit() || ch == '+' }
+                    // ASCII-normalize full-width MIUI digits so E.164 matches Console test list.
+                    phone = PhoneNumberNormalizer.normalizePhoneInput(it)
                     viewModel.clearAuthError()
                 },
                 phonePlaceholder = localizedString(R.string.auth_phone_placeholder),
@@ -184,7 +185,13 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 if (session?.path == SmsAuthPath.FIREBASE || session?.path == SmsAuthPath.ALIYUN) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        localizedString(R.string.auth_sms_sent_hint),
+                        localizedString(
+                            when {
+                                BuildConfig.DEBUG && session?.path == SmsAuthPath.FIREBASE ->
+                                    R.string.auth_sms_sent_hint_debug
+                                else -> R.string.auth_sms_sent_hint
+                            },
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
                     )

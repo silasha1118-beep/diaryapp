@@ -2,6 +2,9 @@ package com.diaryvault.app.auth
 
 /**
  * First-market dial codes + E.164 helpers — mirrors iOS `PhoneNumberNormalizer`.
+ *
+ * Kotlin [Char.isDigit] is true for full-width / other Unicode digits (common on MIUI IMEs).
+ * Firebase Phone Auth and Console test lists expect ASCII `0-9` in E.164 and OTP codes.
  */
 object PhoneNumberNormalizer {
     enum class RegionDial(val code: String, val labelResHint: String) {
@@ -16,25 +19,17 @@ object PhoneNumberNormalizer {
 
         companion object {
             fun fromCode(raw: String): RegionDial? {
-                val digits = "+" + raw.filter { it.isDigit() }
+                val digits = "+" + asciiDigitsOnly(raw)
                 return entries.firstOrNull { it.code == digits || raw.startsWith(it.code) }
             }
         }
     }
 
-    fun normalizeToE164(raw: String): String {
-        val trimmed = raw.trim()
-        if (trimmed.startsWith("+")) {
-            return "+" + trimmed.drop(1).filter { it.isDigit() }
-        }
-        return "+" + trimmed.filter { it.isDigit() }
-    }
-
     /**
-     * OTP entry may use full-width digits (MIUI / CN IMEs). Firebase and CF gateways
-     * expect ASCII `0-9` — map both so Console test codes like `123456` verify.
+     * Map ASCII + full-width digits to ASCII `0-9`; drop everything else
+     * (spaces, ZWSP, dashes, non-digit Unicode).
      */
-    fun normalizeOtpDigits(raw: String): String =
+    fun asciiDigitsOnly(raw: String): String =
         buildString(raw.length) {
             for (ch in raw) {
                 when (ch) {
@@ -44,14 +39,32 @@ object PhoneNumberNormalizer {
             }
         }
 
+    /**
+     * OTP entry may use full-width digits (MIUI / CN IMEs). Firebase and CF gateways
+     * expect ASCII `0-9` — map both so Console test codes like `123456` verify.
+     */
+    fun normalizeOtpDigits(raw: String): String = asciiDigitsOnly(raw)
+
+    /** Phone field input: keep a leading `+`, ASCII-normalize digits, drop other chars. */
+    fun normalizePhoneInput(raw: String): String {
+        val hasPlus = raw.trimStart().startsWith("+") || raw.any { it == '+' || it == '\uFF0B' }
+        val digits = asciiDigitsOnly(raw)
+        return if (hasPlus) "+$digits" else digits
+    }
+
+    fun normalizeToE164(raw: String): String {
+        val digits = asciiDigitsOnly(raw.trim())
+        return "+$digits"
+    }
+
     fun composeE164(dial: RegionDial, nationalNumber: String): String {
-        val digits = nationalNumber.filter { it.isDigit() }
+        val digits = asciiDigitsOnly(nationalNumber)
         val national = if (digits.startsWith("0")) digits.drop(1) else digits
         return dial.code + national
     }
 
     fun nationalDigits(nationalNumber: String): String {
-        val digits = nationalNumber.filter { it.isDigit() }
+        val digits = asciiDigitsOnly(nationalNumber)
         return if (digits.startsWith("0")) digits.drop(1) else digits
     }
 
@@ -69,7 +82,7 @@ object PhoneNumberNormalizer {
 
     fun isPlausibleE164(e164: String): Boolean {
         if (!e164.startsWith("+")) return false
-        val digits = e164.drop(1).filter { it.isDigit() }
+        val digits = asciiDigitsOnly(e164)
         return digits.length in 8..15
     }
 
@@ -83,17 +96,16 @@ object PhoneNumberNormalizer {
 
     /** Parse dial label like "+886 台灣" / "+886 Taiwan" into RegionDial. */
     fun dialFromLabel(label: String): RegionDial {
-        val code = "+" + label.filter { it.isDigit() }.take(3).let { digits ->
-            when {
-                digits.startsWith("886") -> "886"
-                digits.startsWith("852") -> "852"
-                digits.startsWith("86") -> "86"
-                digits.startsWith("60") -> "60"
-                digits.startsWith("65") -> "65"
-                digits.startsWith("66") -> "66"
-                digits.startsWith("81") -> "81"
-                else -> digits
-            }
+        val digits = asciiDigitsOnly(label)
+        val code = when {
+            digits.startsWith("886") -> "886"
+            digits.startsWith("852") -> "852"
+            digits.startsWith("86") -> "86"
+            digits.startsWith("60") -> "60"
+            digits.startsWith("65") -> "65"
+            digits.startsWith("66") -> "66"
+            digits.startsWith("81") -> "81"
+            else -> digits.take(3)
         }
         return RegionDial.fromCode("+$code") ?: RegionDial.TW
     }
