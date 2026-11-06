@@ -1,9 +1,11 @@
 package com.diaryvault.app.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,8 +23,8 @@ import com.diaryvault.app.ui.theme.VaultSerifFamily
 
 /**
  * Quiet language chooser for onboarding — plain text labels, not pill chips.
- * Selected = ink + medium weight; unselected = muted. Separators are hairline dots.
- * Uses [VaultSerifFamily] so zh-Hans matches zh-Hant / EN (no SC system-sans fallback).
+ * All five supported locales; scrolls horizontally on narrow widths (Redmi 9C)
+ * so nothing clips. Selected = ink + medium weight; unselected = muted.
  */
 @Composable
 fun LanguageStrip(
@@ -31,7 +33,7 @@ fun LanguageStrip(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -40,9 +42,9 @@ fun LanguageStrip(
                 Text(
                     "·",
                     color = VaultColors.line,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontFamily = VaultSerifFamily,
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 5.dp),
                 )
             }
             val selectedNow = lang == selected
@@ -50,7 +52,7 @@ fun LanguageStrip(
                 text = localizedString(lang.shortLabelRes),
                 fontFamily = VaultSerifFamily,
                 fontWeight = if (selectedNow) FontWeight.SemiBold else FontWeight.Normal,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 color = if (selectedNow) VaultColors.ink else VaultColors.inkMuted,
                 modifier = Modifier
                     .semantics {
@@ -58,7 +60,7 @@ fun LanguageStrip(
                         this.selected = selectedNow
                     }
                     .clickable { onSelect(lang) }
-                    .padding(vertical = 6.dp, horizontal = 2.dp),
+                    .padding(vertical = 6.dp, horizontal = 1.dp),
             )
         }
     }

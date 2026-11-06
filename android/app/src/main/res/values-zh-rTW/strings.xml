@@ -103,9 +103,13 @@
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">簡中</string>
     <string name="lang_en">EN</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_th">ไทย</string>
     <string name="lang_zh_hant_full">繁體中文</string>
     <string name="lang_zh_hans_full">简体中文</string>
     <string name="lang_en_full">English</string>
+    <string name="lang_ja_full">日本語</string>
+    <string name="lang_th_full">ไทย</string>
     <string name="auth_tagline">寫下今日，留給未來的自己</string>
     <string name="auth_headline">登入，讓金庫真正屬於你。</string>
     <string name="auth_body">使用手機號碼與簡訊驗證碼登入。登入後文字日記會同步到帳號。</string>

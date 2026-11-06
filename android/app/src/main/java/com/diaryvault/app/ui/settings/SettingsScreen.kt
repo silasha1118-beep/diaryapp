@@ -431,6 +431,8 @@ private fun languageDisplayName(language: AppLanguage): String = when (language)
     AppLanguage.ZhHant -> localizedString(R.string.lang_zh_hant_full)
     AppLanguage.ZhHans -> localizedString(R.string.lang_zh_hans_full)
     AppLanguage.English -> localizedString(R.string.lang_en_full)
+    AppLanguage.Japanese -> localizedString(R.string.lang_ja_full)
+    AppLanguage.Thai -> localizedString(R.string.lang_th_full)
 }
 
 @Composable

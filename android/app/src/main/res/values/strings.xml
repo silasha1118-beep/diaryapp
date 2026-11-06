@@ -103,9 +103,13 @@
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">簡中</string>
     <string name="lang_en">EN</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_th">ไทย</string>
     <string name="lang_zh_hant_full">繁體中文</string>
     <string name="lang_zh_hans_full">简体中文</string>
     <string name="lang_en_full">English</string>
+    <string name="lang_ja_full">日本語</string>
+    <string name="lang_th_full">ไทย</string>
     <string name="auth_tagline">Write today for your future self</string>
     <string name="auth_headline">Sign in to keep your vault yours.</string>
     <string name="auth_body">Use your phone number and a one-time SMS code. Signed-in text diaries sync to your account.</string>

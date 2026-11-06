@@ -158,4 +158,6 @@ fun localeFor(language: AppLanguage): Locale = when (language) {
     AppLanguage.ZhHant -> Locale.TRADITIONAL_CHINESE
     AppLanguage.ZhHans -> Locale.SIMPLIFIED_CHINESE
     AppLanguage.English -> Locale.ENGLISH
+    AppLanguage.Japanese -> Locale.JAPANESE
+    AppLanguage.Thai -> Locale.forLanguageTag("th")
 }
