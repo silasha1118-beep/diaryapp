@@ -1,24 +1,28 @@
 package com.diaryvault.app.ui.components
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.ui.theme.VaultColors
-// localizedString resolves in-app language overrides
 
+/**
+ * Quiet language chooser for onboarding — plain text labels, not pill chips.
+ * Selected = ink + medium weight; unselected = muted. Separators are hairline dots.
+ */
 @Composable
 fun LanguageStrip(
     selected: AppLanguage,
@@ -27,36 +31,33 @@ fun LanguageStrip(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppLanguage.entries.forEach { lang ->
-            val selectedNow = lang == selected
-            val bg by animateColorAsState(
-                if (selectedNow) VaultColors.ink else VaultColors.paper.copy(alpha = 0f),
-                label = "langBg",
-            )
-            val fg by animateColorAsState(
-                if (selectedNow) VaultColors.paper else VaultColors.inkMuted,
-                label = "langFg",
-            )
-            Surface(
-                color = bg,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .then(
-                        if (!selectedNow) Modifier.border(1.dp, VaultColors.line, RoundedCornerShape(50))
-                        else Modifier,
-                    )
-                    .clickable { onSelect(lang) },
-            ) {
+        AppLanguage.entries.forEachIndexed { index, lang ->
+            if (index > 0) {
                 Text(
-                    text = localizedString(lang.shortLabelRes),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = fg,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    "·",
+                    color = VaultColors.line,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp),
                 )
             }
+            val selectedNow = lang == selected
+            Text(
+                text = localizedString(lang.shortLabelRes),
+                fontFamily = FontFamily.Serif,
+                fontWeight = if (selectedNow) FontWeight.SemiBold else FontWeight.Normal,
+                fontSize = 14.sp,
+                color = if (selectedNow) VaultColors.ink else VaultColors.inkMuted,
+                modifier = Modifier
+                    .semantics {
+                        role = Role.Tab
+                        this.selected = selectedNow
+                    }
+                    .clickable { onSelect(lang) }
+                    .padding(vertical = 6.dp, horizontal = 2.dp),
+            )
         }
     }
 }
