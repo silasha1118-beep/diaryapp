@@ -64,6 +64,13 @@ sealed class SMSAuthError(message: String) : Exception(message) {
     data object InvalidCode : SMSAuthError("Invalid verification code")
     data class NotConfigured(val detail: String) : SMSAuthError(detail)
     data object RateLimited : SMSAuthError("Too many attempts; try again later")
+    /**
+     * Firebase Phone Auth live SMS requires Blaze (pay-as-you-go). Spark projects
+     * may still return `onCodeSent` for Console **test** numbers, but carrier SMS fails.
+     */
+    data object BillingRequired : SMSAuthError(
+        "Firebase project must be on the Blaze plan to send live SMS.",
+    )
     data object RegionNotAllowed : SMSAuthError("SMS is not allowed for this phone region")
     data object AppVerificationFailed : SMSAuthError(
         "App verification failed (Play Integrity / reCAPTCHA).",
@@ -454,7 +461,8 @@ class FirebasePhoneSMSAuthProvider(
                         TAG,
                         "onCodeSent e164=$normalized verificationIdLen=${verificationId.length} " +
                             "prefix=${verificationId.take(6)}… " +
-                            "(no SMS if number is on Firebase Phone numbers for testing)",
+                            "carrier SMS only if: NOT on Phone numbers for testing, " +
+                            "Blaze billing, SMS region allowed (HK=+852), SHA-1/SHA-256 match",
                     )
                     forceResendToken.set(token)
                     lastPhoneE164.set(normalized)
@@ -631,13 +639,24 @@ class FirebasePhoneSMSAuthProvider(
                 code.contains("SESSION_EXPIRED", ignoreCase = true) ||
                 lowered.contains("verification code") ||
                 lowered.contains("invalid code") -> return SMSAuthError.InvalidCode
+            code.contains("BILLING_NOT_ENABLED", ignoreCase = true) ||
+                lowered.contains("billing not enabled") ||
+                lowered.contains("upgrade to blaze") ||
+                lowered.contains("blaze plan") ||
+                (lowered.contains("billing") &&
+                    (lowered.contains("required") ||
+                        lowered.contains("enable") ||
+                        lowered.contains("upgrade"))) ->
+                return SMSAuthError.BillingRequired
             code.contains("TOO_MANY", ignoreCase = true) ||
                 code.contains("QUOTA", ignoreCase = true) ||
                 lowered.contains("too many") ||
-                lowered.contains("quota") ||
-                lowered.contains("billing") -> return SMSAuthError.RateLimited
+                lowered.contains("quota") -> return SMSAuthError.RateLimited
             code.contains("OPERATION_NOT_ALLOWED", ignoreCase = true) -> {
                 if (looksLikeRegionBlock(lowered)) return SMSAuthError.RegionNotAllowed
+                if (lowered.contains("billing") || lowered.contains("blaze")) {
+                    return SMSAuthError.BillingRequired
+                }
                 return SMSAuthError.NotConfigured(
                     "Phone sign-in is disabled. Enable Authentication → Sign-in method → Phone.",
                 )

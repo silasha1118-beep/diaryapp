@@ -36,20 +36,36 @@ android/app/google-services.json
 
 ### 2. Register SHA-1 **and SHA-256** for Phone Auth (required for live SMS)
 
-Android Phone Auth completes Play Integrity / reCAPTCHA using the **signing certificate** of the APK you install. iOS SHA does **not** cover Android.
+Android Phone Auth completes Play Integrity / reCAPTCHA using the **signing certificate** of the APK you install. iOS SHA does **not** cover Android. Fingerprints must come from the **same PC that built the APK you install** (Silas: Huawei Windows at `C:\dev\diaryapp`).
+
+**Windows（简体 UI / PowerShell）— debug keystore on THIS PC:**
+
+1. 打开 **Windows PowerShell**（或 Android Studio 底部 **终端**）。
+2. 若本机已装 JDK／Android Studio，运行：
+
+```powershell
+keytool -list -v -alias androiddebugkey `
+  -keystore "$env:USERPROFILE\.android\debug.keystore" `
+  -storepass android -keypass android
+```
+
+（默认路径即 `C:\Users\<你的用户名>\.android\debug.keystore`。若从未跑过 debug 构建，先在 Android Studio 对 `C:\dev\diaryapp\android` 执行一次 **运行**／`installDebug` 再取指纹。）
+
+3. 在输出中复制 **SHA1:** 与 **SHA256:** 两行（去掉标签，只留冒号分隔的十六进制）。
+4. 打开 [Firebase Console](https://console.firebase.google.com/) → 项目 **`diaryappsilas`** → ⚙️ **项目设置**（Project settings）→ **您的应用** → Android `com.diaryvault.app` → **添加指纹**（Add fingerprint）→ 分别粘贴 SHA-1 与 SHA-256 → 保存。
+5. **重新安装** debug APK（卸载旧包再 Run，或 `.\gradlew :app:installDebug`），避免沿用旧签名状态。
+
+**macOS / Linux（参考）:**
 
 ```bash
-# Debug keystore (default Android Studio / Gradle debug key)
 keytool -list -v -alias androiddebugkey \
   -keystore ~/.android/debug.keystore \
   -storepass android -keypass android
 ```
 
-If you install via a different machine or CI keystore, fingerprint **that** key — not only the Mac default.
+If you install via a different machine or CI keystore, fingerprint **that** key — not a Mac default when the APK was built on Windows.
 
-Copy **SHA-1** and **SHA-256** → Firebase Console → Project settings → Your apps → Android `com.diaryvault.app` → **Add fingerprint**. Then **reinstall** the debug APK (Firebase config is baked at build time; fingerprints are checked at runtime after Console save, but a clean reinstall avoids stale builds).
-
-Without matching SHA fingerprints, send fails with app-verification / reCAPTCHA / `invalid-app-credential` — the UI now surfaces that as the app-verification error string.
+Without matching SHA fingerprints, send fails with app-verification / reCAPTCHA / `invalid-app-credential` — the UI surfaces that as the app-verification error string.
 
 ### 3. Enable Phone Auth + SMS region allowlist
 
@@ -66,7 +82,7 @@ These are the only project settings that commonly produce **OTP UI with no real 
 | **Blaze billing** | Firebase pricing / upgrade | Since 2024-09, **Spark cannot send Phone Auth SMS**. Upgrade `diaryappsilas` to Blaze (pay-as-you-go). |
 | **SMS region policy** | Auth → Settings → SMS region policy | Default allowlist can be empty — `+852` / `+886` must be allowed. |
 | **Phone numbers for testing** | Auth → Sign-in method → Phone → Phone numbers for testing | Numbers on this list get **`onCodeSent` with no carrier SMS**. Use the fixed test code from Console, or **remove** the number to receive a real text. |
-| **SHA-1 + SHA-256** | Project settings → Android `com.diaryvault.app` | Must match the **keystore that signed the installed APK** (this Mac’s `~/.android/debug.keystore` for `installDebug`). |
+| **SHA-1 + SHA-256** | Project settings → Android `com.diaryvault.app` | Must match the **keystore that signed the installed APK** (Windows: `%USERPROFILE%\.android\debug.keystore` on the build PC). |
 | **App Check enforced** | App Check → Authentication | Enforce without an Android debug token → send fails (red error). Leave unenforced while wiring. |
 | **API key HTTP referrer** | Google Cloud → Credentials → Browser key | reCAPTCHA needs `https://PROJECT_ID.firebaseapp.com` allowed (or unrestricted) for the Auth API key. |
 | **Authorized domains** | Auth → Settings → Authorized domains | Keep default `diaryappsilas.firebaseapp.com` (and `diaryappsilas.web.app`). Removing it breaks the reCAPTCHA fallback handler. |
@@ -94,19 +110,37 @@ cd android
 ./gradlew :app:installDebug
 ```
 
-## How to test live SMS (Silas checklist)
+## How to test live SMS (Silas checklist) — `+852` 真短信
 
-Use a **physical device with Google Play**. Prefer a real `+852` / `+886` number that is **not** on the Console “Phone numbers for testing” list.
+固定测试码能登入 **≠** 已开通运营商短信。Countdown／OTP 页只代表 Firebase `onCodeSent`。要用真实短信登录 `+85284028001`（或你的其他港号），在 **Firebase Console** 按下面点（菜单名以英文 Console 为准；Windows 本机步骤用简体）：
 
-1. Confirm Blaze + region allowlist + SHA fingerprints (tables above).
-2. Confirm `android/app/google-services.json` is present (`com.diaryvault.app`) and `DIARY_SMS_PROVIDER` is empty.
-3. Rebuild + install: `./gradlew :app:installDebug`.
-4. Login → **+852** → national number → **Send**.
-5. **Emulator:** add the number under Console **Phone numbers for testing**, Send, enter the fixed test code (debug builds on emulator skip Integrity/reCAPTCHA so Chrome cannot ANR). **Real SMS:** use a **physical device with Google Play** (preferred) — emulator Chrome Custom Tabs often show “Chrome isn't responding” or a dead `firebaseapp.com` page.
-6. OTP field = Firebase returned a verification id. Enter the SMS / test code (or tap **Resend** after 60s).
-7. If Send shows a red browser-security error: close any Chrome / Custom Tab page, return to the app, and retry — or switch to a real device. Do not stay on the blank Firebase web error.
+### A. Console（必须本人登录；本仓库／云端代理无法代登）
 
-> DA-42 / dual SMS: **DEBUG `+86` uses Firebase Phone Auth** (Console test numbers, e.g. `123456`). **Release `+86` → Aliyun** when Cloud Functions + secrets are set; if Aliyun keys are missing the app falls back to Firebase (not a local stub). See [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md). **HK `+852` / TW `+886`** stay on Firebase.
+1. 打开 [Firebase Console](https://console.firebase.google.com/) → 项目 **`diaryappsilas`**。
+2. **升级 Blaze（按量付费）** — 左下角／项目概览的 **Upgrade**／**升级**。自 2024-09 起 **Spark 无法发送真实 Phone Auth 短信**；测试号仍可假发送。这是唯一可能产生费用、且只有账户所有者能开的步骤。
+3. **Authentication** → **Sign-in method** → **Phone** → 找到 **Phone numbers for testing**（测试电话号码）→ **删除** `+85284028001`（或任意你要收真短信的号码）。留在列表 = 永远不发运营商短信，只认你设的固定码。
+4. **Authentication** → **Settings** → **SMS region policy**（短信地区政策）→ 允许清单加入 **Hong Kong / HK**（以及 TW／CN／MY／SG／TH／JP）→ **Save**。
+5. ⚙️ **Project settings** → **Your apps** → Android `com.diaryvault.app` → 确认已添加 **本机 Windows debug keystore** 的 SHA-1 **与** SHA-256（见上文 §2）。
+6. **App Check**：若对 Authentication **强制执行**且未登记 Android debug token，发送会失败。调试期请保持 Auth **未强制**，或登记 debug token。
+7. （可选）**Authentication** → **Usage**：发送后再看当日 Phone Auth 是否计次。
+
+### B. 本机 Windows（`C:\dev\diaryapp`）
+
+1. 确认 `android\app\google-services.json` 存在且 package 为 `com.diaryvault.app`；`DIARY_SMS_PROVIDER` 留空。
+2. Android Studio 打开 **`android/`** → 连上带 Google Play 的真机（Redmi）→ **运行** debug，或在项目目录：
+
+```powershell
+cd C:\dev\diaryapp\android
+.\gradlew :app:installDebug
+```
+
+3. App → 登录 → 国码 **+852** → 输入号码（已从测试列表移除）→ **发送验证码**。
+4. 应收到运营商短信；输入短信内 6 位码完成登录（不要再输 Console 固定码）。
+5. Logcat 过滤：`VaultAuth|FirebasePhoneSMS`。`onCodeSent` 仍会出现；若号码还在测试列表，日志会提示无运营商短信。
+
+**模拟器：** 仍用 Console 测试号 + 固定码（debug 模拟器会跳过 Integrity／Chrome）。**真短信请用实体机 + Google Play。**
+
+> **+86：** DEBUG 仍走 Firebase 测试号；release 待 Tencent／DA-102 KYC。与本 `+852` 真短信路径无关。
 
 ## Optional: cloud Mirror AI
 
