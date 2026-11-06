@@ -114,7 +114,7 @@
     <string name="auth_headline">Sign in to keep your vault yours.</string>
     <string name="auth_body">Use your phone number and a one-time SMS code. Signed-in text diaries sync to your account.</string>
     <string name="auth_phone_label">Phone number</string>
-    <string name="auth_phone_placeholder">Mobile number (without country code)</string>
+    <string name="auth_phone_placeholder">Mobile number</string>
     <string name="auth_phone_send">Send verification code</string>
     <string name="auth_dial_tw">+886 Taiwan</string>
     <string name="auth_dial_hk">+852 Hong Kong</string>
