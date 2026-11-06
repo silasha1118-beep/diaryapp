@@ -47,9 +47,12 @@ import androidx.compose.ui.unit.dp
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.AppLanguage
+import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
+import java.text.DateFormat
+import java.util.Date
 
 private val CardBg = Color.White
 private val CardRadius = 14.dp
@@ -74,6 +77,7 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
     val lastSyncAt by viewModel.lastCloudSyncAt.collectAsState()
     val lastSyncError by viewModel.lastCloudSyncError.collectAsState()
     val isSyncing by viewModel.isSyncing.collectAsState()
+    val recentlyDeleted by viewModel.recentlyDeletedEntries.collectAsState()
 
     var phoneNational by remember { mutableStateOf("") }
     var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
@@ -388,13 +392,39 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                 }
             }
 
-            // 8. 金庫
-            SettingsCard(header = localizedString(R.string.settings_section_vault)) {
+            // 8. 金庫 — display name + soft-delete restore (30 days); no Developer clutter.
+            SettingsCard(
+                header = localizedString(R.string.settings_section_vault),
+                footer = localizedString(R.string.settings_vault_restore_footer),
+            ) {
                 SettingsRow(
                     localizedString(R.string.settings_name),
                     name.ifBlank { "Silas" },
                     valueColor = VaultColors.ink,
                 )
+                SettingsDivider()
+                Text(
+                    localizedString(R.string.settings_vault_recently_deleted),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    color = VaultColors.ink,
+                    modifier = Modifier.padding(horizontal = 16.dp, top = 14.dp, bottom = 4.dp),
+                )
+                if (recentlyDeleted.isEmpty()) {
+                    Text(
+                        localizedString(R.string.settings_vault_restore_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = VaultColors.inkMuted,
+                        modifier = Modifier.padding(horizontal = 16.dp, top = 4.dp, bottom = 14.dp),
+                    )
+                } else {
+                    recentlyDeleted.forEachIndexed { index, entry ->
+                        if (index > 0) SettingsDivider()
+                        RecentlyDeletedRow(
+                            entry = entry,
+                            onRestore = { viewModel.restoreEntry(entry.id) },
+                        )
+                    }
+                }
                 SettingsDivider()
                 Text(
                     localizedString(R.string.settings_legacy_stub),
@@ -541,4 +571,50 @@ private fun SettingsDivider() {
         thickness = 0.5.dp,
         modifier = Modifier.padding(start = 16.dp),
     )
+}
+
+@Composable
+private fun RecentlyDeletedRow(
+    entry: DiaryEntry,
+    onRestore: () -> Unit,
+) {
+    val deletedAt = entry.deletedAt ?: entry.updatedAt
+    val whenText = DateFormat
+        .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+        .format(Date(deletedAt))
+    val title = entry.title.ifBlank {
+        entry.preview.ifBlank { localizedString(R.string.diary_empty_body_placeholder) }
+    }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = VaultColors.ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                whenText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = VaultColors.inkMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Text(
+            localizedString(R.string.settings_vault_restore),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = VaultColors.seal,
+            modifier = Modifier
+                .clickable(onClick = onRestore)
+                .padding(vertical = 4.dp),
+        )
+    }
 }

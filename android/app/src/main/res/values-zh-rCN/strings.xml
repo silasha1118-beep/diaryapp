@@ -7,7 +7,9 @@
     <string name="common_save">保存</string>
     <string name="common_edit">编辑</string>
     <string name="common_delete">删除</string>
-    <string name="diary_swipe_hint">向左滑可删除</string>
+    <string name="diary_swipe_hint">向左滑后点「删除」</string>
+    <string name="diary_delete_confirm_title">删除这篇日记？</string>
+    <string name="diary_delete_confirm_body">它会先从金库隐藏。30 天内可在设置还原。</string>
     <string name="tab_vault">金库</string>
     <string name="tab_mirror">镜子</string>
     <string name="tab_settings">设置</string>
@@ -99,6 +101,10 @@
     <string name="settings_legacy_footer">仅路线图。本 MVP 骨架刻意省略。</string>
     <string name="settings_section_vault">金库</string>
     <string name="settings_name">显示名称</string>
+    <string name="settings_vault_recently_deleted">最近删除</string>
+    <string name="settings_vault_restore">还原</string>
+    <string name="settings_vault_restore_empty">过去 30 天没有已删除的日记。</string>
+    <string name="settings_vault_restore_footer">软删除的日记会从金库隐藏，30 天内可在此还原。</string>
     <string name="settings_reset_onboarding">重新显示导览</string>
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">简中</string>

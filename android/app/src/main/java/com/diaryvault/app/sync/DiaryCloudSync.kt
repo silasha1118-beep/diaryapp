@@ -7,6 +7,7 @@ import com.diaryvault.app.model.DiaryMediaKind
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
@@ -235,6 +236,9 @@ object DiaryCloudSync {
         if (entry.deleted) {
             val deletedAt = entry.deletedAt ?: entry.updatedAt
             data["deletedAt"] = Timestamp(Date(deletedAt))
+        } else {
+            // Clear stale deletedAt on restore (merge would otherwise leave the old field).
+            data["deletedAt"] = FieldValue.delete()
         }
         return data
     }

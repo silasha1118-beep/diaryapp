@@ -7,7 +7,9 @@
     <string name="common_save">Save</string>
     <string name="common_edit">Edit</string>
     <string name="common_delete">Delete</string>
-    <string name="diary_swipe_hint">Swipe left to delete</string>
+    <string name="diary_swipe_hint">Swipe left, then tap Delete</string>
+    <string name="diary_delete_confirm_title">Delete this entry?</string>
+    <string name="diary_delete_confirm_body">It leaves the vault now. You can restore it from Settings within 30 days.</string>
     <string name="tab_vault">Vault</string>
     <string name="tab_mirror">Mirror</string>
     <string name="tab_settings">Settings</string>
@@ -99,6 +101,10 @@
     <string name="settings_legacy_footer">Roadmap only. Omitted from this MVP scaffold.</string>
     <string name="settings_section_vault">Vault</string>
     <string name="settings_name">Display name</string>
+    <string name="settings_vault_recently_deleted">Recently deleted</string>
+    <string name="settings_vault_restore">Restore</string>
+    <string name="settings_vault_restore_empty">No deleted entries in the last 30 days.</string>
+    <string name="settings_vault_restore_footer">Soft-deleted entries stay hidden from the vault. Restore within 30 days from here.</string>
     <string name="settings_reset_onboarding">Show onboarding again</string>
     <string name="lang_zh_hant">繁中</string>
     <string name="lang_zh_hans">簡中</string>

@@ -148,6 +148,37 @@ class DiaryStore(
         scheduleSynchronize()
     }
 
+    /**
+     * Soft-deleted entries from the last [withinMs] (default 30 days), newest deleted first.
+     * Vault list stays hidden; Settings restore UI reads this.
+     */
+    fun recentlyDeleted(withinMs: Long = RESTORE_WINDOW_MS): List<DiaryEntry> {
+        val cutoff = System.currentTimeMillis() - withinMs
+        return _entries.value
+            .filter { entry ->
+                entry.deleted && (entry.deletedAt ?: entry.updatedAt) >= cutoff
+            }
+            .sortedByDescending { it.deletedAt ?: it.updatedAt }
+    }
+
+    /** Clear soft-delete flags and upsert so Vault + Firestore show the entry again. */
+    fun restore(id: String) {
+        var changed = false
+        val now = System.currentTimeMillis()
+        _entries.value = _entries.value.map { entry ->
+            if (entry.id == id && entry.deleted) {
+                changed = true
+                entry.copy(deleted = false, deletedAt = null, updatedAt = now)
+            } else {
+                entry
+            }
+        }
+        if (!changed) return
+        save()
+        enqueue(PendingCloudOp.Upsert(id))
+        scheduleSynchronize()
+    }
+
     fun bindCloudSync() {
         scheduleSynchronize()
     }
@@ -385,5 +416,6 @@ class DiaryStore(
 
     companion object {
         private const val TAG = "DiaryStore"
+        const val RESTORE_WINDOW_MS: Long = 30L * 24L * 60L * 60L * 1000L
     }
 }
