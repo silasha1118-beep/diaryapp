@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -62,7 +63,11 @@ private fun MainTabs(viewModel: VaultViewModel) {
     VaultBackground {
         Scaffold(
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            // Child tabs own status-bar / top chrome. Zero content insets so nested Scaffolds
+            // + FAB are not double-padded against MIUI 3-button nav (Redmi 9C overlap).
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
+                // NavigationBarDefaults.windowInsets pads above system nav buttons.
                 NavigationBar(containerColor = VaultColors.paper.copy(alpha = 0.94f)) {
                     NavigationBarItem(
                         selected = tab == 0,

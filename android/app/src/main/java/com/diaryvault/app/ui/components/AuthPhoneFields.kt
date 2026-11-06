@@ -81,13 +81,14 @@ fun AuthDialPhoneRow(
         Box(
             Modifier
                 .fillMaxHeight()
-                .width(108.dp),
+                // ~360dp Redmi width: keep dial compact so national number field stays readable.
+                .width(96.dp),
         ) {
             Row(
                 Modifier
                     .fillMaxSize()
                     .clickable(enabled = enabled) { onDialExpandedChange(true) }
-                    .padding(horizontal = 10.dp),
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -102,7 +103,7 @@ fun AuthDialPhoneRow(
                     imageVector = Icons.Filled.ArrowDropDown,
                     contentDescription = null,
                     tint = VaultColors.inkMuted,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
             DropdownMenu(

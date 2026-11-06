@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -54,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -139,9 +143,13 @@ private fun DiaryListScreen(
         localizedString(R.string.diary_subtitle_named, name)
     }
 
+    val compact = LocalConfiguration.current.screenHeightDp < 720
     // Android convention: bottom-right circular Material + FAB (not iOS top square.and.pencil).
+    // contentWindowInsets=0: MainTabs already clears bottom nav; avoid double system-bar padding that
+    // shoved FAB / list into overlapping chrome on short Redmi screens.
     Scaffold(
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreate,
@@ -157,12 +165,14 @@ private fun DiaryListScreen(
             Column(
                 Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .padding(horizontal = 24.dp, vertical = if (compact) 12.dp else 20.dp),
             ) {
                 VaultBrandHeader(
                     title = localizedString(R.string.brand_name),
                     subtitle = subtitle,
+                    compact = compact,
                 )
                 Spacer(Modifier.weight(1f))
                 Column(
@@ -194,11 +204,13 @@ private fun DiaryListScreen(
             }
         } else {
             LazyColumn(
+                modifier = Modifier.statusBarsPadding(),
                 contentPadding = PaddingValues(
                     start = 24.dp,
                     end = 20.dp,
-                    top = padding.calculateTopPadding() + 12.dp,
-                    bottom = padding.calculateBottomPadding() + 88.dp,
+                    top = padding.calculateTopPadding() + if (compact) 8.dp else 12.dp,
+                    // FAB clearance above bottom tab bar (MainTabs padding); keep list readable.
+                    bottom = padding.calculateBottomPadding() + if (compact) 72.dp else 88.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
@@ -206,7 +218,8 @@ private fun DiaryListScreen(
                     VaultBrandHeader(
                         title = localizedString(R.string.brand_name),
                         subtitle = subtitle,
-                        modifier = Modifier.padding(bottom = 20.dp),
+                        compact = compact,
+                        modifier = Modifier.padding(bottom = if (compact) 14.dp else 20.dp),
                     )
                 }
                 items(entries, key = { it.id }) { item ->
@@ -356,6 +369,7 @@ private fun DiaryDetailScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = { Text(localizedString(R.string.brand_name)) },
@@ -500,6 +514,7 @@ private fun DiaryComposerScreen(
 
     Scaffold(
         containerColor = VaultColors.paper,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             // iOS: Cancel · 新日記 · 儲存 (gray when empty)
             CenterAlignedTopAppBar(
@@ -543,7 +558,8 @@ private fun DiaryComposerScreen(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(VaultColors.paper),
+                    .background(VaultColors.paper)
+                    .imePadding(),
             ) {
                 HorizontalDivider(color = VaultColors.line.copy(alpha = 0.7f))
                 ComposerMediaDock(
