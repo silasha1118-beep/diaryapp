@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -52,7 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -68,12 +70,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.media.DiaryMediaFileStore
 import com.diaryvault.app.model.DiaryEntry
+import com.diaryvault.app.model.DiaryMediaKind
 import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
 import java.text.DateFormat
 import java.util.Date
+import java.util.UUID
 
 @Composable
 fun DiaryNavHost(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
@@ -278,6 +283,11 @@ private fun DiarySwipeRow(
 private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
     val date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
         .format(Date(entry.createdAt))
+    val previewText = when {
+        entry.preview.isNotBlank() -> entry.preview
+        entry.hasMedia -> localizedString(R.string.diary_media_preview_only)
+        else -> localizedString(R.string.diary_empty_body_placeholder)
+    }
     Column(
         Modifier
             .fillMaxWidth()
@@ -299,6 +309,23 @@ private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
                 Text("·", color = VaultColors.inkMuted.copy(alpha = 0.7f))
                 Text(it, style = MaterialTheme.typography.labelLarge, color = VaultColors.seal)
             }
+            if (entry.hasMedia) {
+                Spacer(Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    entry.mediaKindsPresent.forEach { kind ->
+                        Icon(
+                            imageVector = when (kind) {
+                                DiaryMediaKind.Voice -> Icons.Default.Mic
+                                DiaryMediaKind.Image -> Icons.Default.Image
+                                DiaryMediaKind.Video -> Icons.Default.Videocam
+                            },
+                            contentDescription = null,
+                            tint = VaultColors.inkMuted,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
+                }
+            }
         }
         Text(
             text = entry.title.ifBlank { localizedString(R.string.diary_empty_body_placeholder) },
@@ -307,7 +334,7 @@ private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text = entry.preview.ifBlank { localizedString(R.string.diary_empty_body_placeholder) },
+            text = previewText,
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -356,7 +383,8 @@ private fun DiaryDetailScreen(
                 Modifier
                     .padding(padding)
                     .padding(horizontal = 24.dp)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
             ) {
                 val date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                     .format(Date(entry.createdAt))
@@ -368,12 +396,21 @@ private fun DiaryDetailScreen(
                     Text(it, color = VaultColors.seal, style = MaterialTheme.typography.labelLarge)
                 }
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    entry.body.ifBlank { localizedString(R.string.diary_empty_body_placeholder) },
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                if (entry.body.isNotBlank()) {
+                    Text(entry.body, style = MaterialTheme.typography.bodyLarge)
+                } else if (!entry.hasMedia) {
+                    Text(
+                        localizedString(R.string.diary_empty_body_placeholder),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+                if (entry.hasMedia) {
+                    Spacer(Modifier.height(20.dp))
+                    DiaryMediaSections(entryId = entry.id, attachments = entry.attachments)
+                }
                 Spacer(Modifier.height(24.dp))
                 Text(localizedString(R.string.diary_detail_owned), style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(32.dp))
             }
         }
     }
@@ -387,27 +424,53 @@ private fun DiaryComposerScreen(
     onDone: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val draftEntryId = remember {
+        existing?.id ?: UUID.randomUUID().toString()
+    }
     var title by remember { mutableStateOf(existing?.title.orEmpty()) }
     var body by remember { mutableStateOf(existing?.body.orEmpty()) }
     var mood by remember { mutableStateOf(existing?.moodTag.orEmpty()) }
+    var attachments by remember {
+        mutableStateOf(existing?.attachments.orEmpty())
+    }
     var hardTitle by remember { mutableStateOf<String?>(null) }
     var hardBenefit by remember { mutableStateOf<String?>(null) }
     var hardMeta by remember { mutableStateOf<String?>(null) }
     var hardShowUpgrade by remember { mutableStateOf(false) }
     var hardUpgradePro by remember { mutableStateOf(false) }
-    // iOS: canSave when body has text (or attachments — stubs empty here)
-    val canSave = body.isNotBlank()
+    // Mirror iOS: canSave when body has text OR attachments present.
+    val canSave = body.isNotBlank() || attachments.isNotEmpty()
+
+    fun discardDraftMediaIfNeeded() {
+        if (existing == null) {
+            DiaryMediaFileStore.deleteAll(context, draftEntryId)
+        }
+    }
 
     fun trySave() {
         if (!canSave) return
         if (existing != null) {
             viewModel.updateEntry(
-                existing.copy(title = title.trim(), body = body.trim(), moodTag = mood.trim().ifBlank { null }),
+                existing.copy(
+                    title = title.trim(),
+                    body = body.trim(),
+                    moodTag = mood.trim().ifBlank { null },
+                    attachments = attachments,
+                ),
             )
             onDone()
             return
         }
-        when (val result = viewModel.addEntry(title, body, mood)) {
+        when (
+            val result = viewModel.addEntry(
+                title = title,
+                body = body,
+                moodTag = mood,
+                attachments = attachments,
+                entryId = draftEntryId,
+            )
+        ) {
             is VaultViewModel.AddEntryResult.Saved -> onDone()
             is VaultViewModel.AddEntryResult.Blocked -> {
                 when {
@@ -449,7 +512,10 @@ private fun DiaryComposerScreen(
                     )
                 },
                 navigationIcon = {
-                    TextButton(onClick = onCancel) {
+                    TextButton(onClick = {
+                        discardDraftMediaIfNeeded()
+                        onCancel()
+                    }) {
                         Text(
                             localizedString(R.string.common_cancel),
                             color = VaultColors.inkMuted,
@@ -474,30 +540,18 @@ private fun DiaryComposerScreen(
             )
         },
         bottomBar = {
-            // iOS composerAttachDock: divider + mic/photo/video + muted duration caption
-            Column(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(VaultColors.paper),
+            ) {
                 HorizontalDivider(color = VaultColors.line.copy(alpha = 0.7f))
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(VaultColors.paper)
-                        .padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MediaStubIcon(Icons.Default.Mic, localizedString(R.string.diary_media_voice))
-                    MediaStubIcon(Icons.Default.Image, localizedString(R.string.diary_media_photo))
-                    MediaStubIcon(Icons.Default.Videocam, localizedString(R.string.diary_media_video))
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        localizedString(R.string.diary_media_hint),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = VaultColors.inkMuted,
-                        fontSize = 12.sp,
-                        maxLines = 2,
-                        modifier = Modifier.weight(2.5f),
-                    )
-                }
+                ComposerMediaDock(
+                    entryId = draftEntryId,
+                    attachments = attachments,
+                    onAttachmentsChange = { attachments = it },
+                    modifier = Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 10.dp),
+                )
             }
         },
     ) { padding ->
@@ -644,17 +698,3 @@ private fun ComposerPlainField(
     )
 }
 
-@Composable
-private fun MediaStubIcon(icon: ImageVector, label: String) {
-    IconButton(
-        onClick = { /* stub — media pickers deferred */ },
-        modifier = Modifier.size(40.dp, 36.dp),
-    ) {
-        Icon(
-            icon,
-            contentDescription = label,
-            tint = VaultColors.inkMuted,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}

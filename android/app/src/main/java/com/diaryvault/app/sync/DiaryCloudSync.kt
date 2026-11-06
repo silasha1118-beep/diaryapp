@@ -80,11 +80,26 @@ object DiaryCloudSync {
     val firebaseProjectID: String?
         get() = FirebaseBootstrap.projectId
 
-    suspend fun upsert(entry: DiaryEntry, uid: String) {
+    /**
+     * Uploads pending Storage media (when [appContext] is provided), then writes Firestore.
+     * Returns the entry with `remotePath` filled so callers can persist without bumping `updatedAt`.
+     */
+    suspend fun upsert(
+        entry: DiaryEntry,
+        uid: String,
+        appContext: android.content.Context? = null,
+    ): DiaryEntry {
         try {
-            val ref = DiaryFirestoreSchema.entryDocument(uid, entry.id)
-            ref.set(encode(entry, uid), SetOptions.merge()).await()
+            val withMedia = if (appContext != null && entry.attachments.isNotEmpty()) {
+                val uploaded = DiaryMediaCloudSync.uploadPending(appContext, entry, uid)
+                entry.copy(attachments = uploaded)
+            } else {
+                entry
+            }
+            val ref = DiaryFirestoreSchema.entryDocument(uid, withMedia.id)
+            ref.set(encode(withMedia, uid), SetOptions.merge()).await()
             upsertUserProfile(uid, hasTextEntries = true)
+            return withMedia
         } catch (e: Exception) {
             throw mapFirestoreError(e)
         }

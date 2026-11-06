@@ -22,6 +22,7 @@ import com.diaryvault.app.data.AppPreferences
 import com.diaryvault.app.data.DiaryStore
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.model.DiaryEntry
+import com.diaryvault.app.model.DiaryMediaAttachment
 import com.diaryvault.app.model.MirrorContext
 import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
@@ -317,17 +318,24 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         title: String,
         body: String,
         moodTag: String?,
+        attachments: List<DiaryMediaAttachment> = emptyList(),
+        entryId: String? = null,
     ): AddEntryResult {
         val ctx = getApplication<Application>()
         val plus = isAuthorPlusEntitled
         val pro = isAuthorProEntitled
-        if (DiaryUploadUsageGuard.isExhausted(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)) {
-            val limit = DiaryUploadUsageGuard.effectiveLimit(UploadQuotaConfig.Kind.TEXT, plus, pro)
+        val kind = if (attachments.isNotEmpty()) {
+            UploadQuotaConfig.Kind.MULTIMEDIA
+        } else {
+            UploadQuotaConfig.Kind.TEXT
+        }
+        if (DiaryUploadUsageGuard.isExhausted(ctx, kind, plus, pro)) {
+            val limit = DiaryUploadUsageGuard.effectiveLimit(kind, plus, pro)
             return AddEntryResult.Blocked(limit, plus, pro)
         }
         return try {
-            DiaryUploadUsageGuard.checkAndIncrement(ctx, UploadQuotaConfig.Kind.TEXT, plus, pro)
-            store.add(title, body, moodTag)
+            DiaryUploadUsageGuard.checkAndIncrement(ctx, kind, plus, pro)
+            store.add(title, body, moodTag, attachments = attachments, entryId = entryId)
             AddEntryResult.Saved
         } catch (e: DiaryUploadUsageGuard.RateLimited) {
             AddEntryResult.Blocked(e.limit, e.isAuthorPlus, e.isAuthorPro)

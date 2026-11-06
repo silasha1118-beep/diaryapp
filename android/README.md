@@ -77,7 +77,7 @@ App code: blank `verificationId` fails closed; Play instant-verify auto-signs-in
 ### 4. Firestore (same as iOS)
 
 1. Firestore Database **`(default)`** — paste / publish [`firebase/firestore.rules`](../firebase/firestore.rules).
-2. Sync path: `users/{uid}/entries/{entryId}` with soft-delete (`deleted` / `deletedAt` / `status`), `sourcePlatform` (`ios` | `android`), and media metadata on the **same** entry (`attachments` / `hasMedia` / `contentType`). Free includes text sync; Android captures media later but already round-trips iOS attachments. Vault-like cloud viewer: [`../firebase/admin/README.md`](../firebase/admin/README.md).
+2. Sync path: `users/{uid}/entries/{entryId}` with soft-delete (`deleted` / `deletedAt` / `status`), `sourcePlatform` (`ios` | `android`), and media on the **same** entry (`attachments` / `hasMedia` / `contentType`). Bytes go to Storage `users/{uid}/entries/{entryId}/{fileName}` (same as iOS). Soft-delete hides the entry; Storage objects stay. Vault-like cloud viewer: [`../firebase/admin/README.md`](../firebase/admin/README.md).
 
 ## Open in Android Studio
 
@@ -124,8 +124,18 @@ android/
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
     auth/        # SMS OTP (DEBUG +86 → Firebase; release +86 → Aliyun CF / Firebase fallback)
-    config/      # AuthConfig, FirebaseBootstrap, AI / quotas
+    config/      # AuthConfig, FirebaseBootstrap, DiaryMediaConfig, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
-    sync/        # DiaryCloudSync (Firestore schema parity with iOS)
-    ui/          # auth, diary, mirror, settings, theme
+    media/       # DiaryMediaFileStore (filesDir/diary_media/{entryId}/)
+    sync/        # DiaryCloudSync + DiaryMediaCloudSync (Firestore + Storage parity with iOS)
+    ui/          # auth, diary (+ media dock/playback), mirror, settings, theme
 ```
+
+## Vault multimedia smoke (Windows Studio / Huawei)
+
+1. Open `android/` in Android Studio; place `google-services.json`; Sync Gradle.
+2. Run on a **physical Huawei / Play device** (mic + camera). Grant RECORD_AUDIO / CAMERA when prompted.
+3. Sign in → Vault FAB `+` → attach voice (≤90s) / photo / video (≤60s) → Save (media-only OK).
+4. List shows media icons; open detail → play voice / view image / play video.
+5. Settings → **Sync now** → Console: entry has `attachments` + `hasMedia` + `sourcePlatform: android`; Storage under `users/{uid}/entries/{entryId}/`.
+6. Swipe-delete the entry — it disappears from Vault; Firestore keeps `deleted` / `deletedAt`; Storage objects remain (same as iOS / admin Vault).

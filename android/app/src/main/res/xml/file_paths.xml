@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Camera / video capture staging under cache/media_capture -->
+    <cache-path name="media_capture" path="media_capture/" />
+    <!-- Local diary media for rare share / debug (playback uses absolute File) -->
+    <files-path name="diary_media" path="diary_media/" />
+</paths>
