@@ -110,8 +110,15 @@ fun DiaryVaultTheme(
     }
 }
 
+/**
+ * Cream gradient shell. Set [atmosphere] false on tight welcome screens so faint
+ * blur circles don’t leave a sparse “empty right side” look on small phones.
+ */
 @Composable
-fun VaultBackground(content: @Composable BoxScope.() -> Unit) {
+fun VaultBackground(
+    atmosphere: Boolean = true,
+    content: @Composable BoxScope.() -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -127,20 +134,22 @@ fun VaultBackground(content: @Composable BoxScope.() -> Unit) {
                 ),
             ),
     ) {
-        Box(
-            Modifier
-                .size(280.dp)
-                .offset((-60).dp, (-20).dp)
-                .blur(60.dp)
-                .background(VaultColors.paperDeep.copy(alpha = 0.55f), CircleShape),
-        )
-        Box(
-            Modifier
-                .size(220.dp)
-                .offset(220.dp, 480.dp)
-                .blur(50.dp)
-                .background(VaultColors.seal.copy(alpha = 0.07f), CircleShape),
-        )
+        if (atmosphere) {
+            Box(
+                Modifier
+                    .size(280.dp)
+                    .offset((-60).dp, (-20).dp)
+                    .blur(60.dp)
+                    .background(VaultColors.paperDeep.copy(alpha = 0.55f), CircleShape),
+            )
+            Box(
+                Modifier
+                    .size(220.dp)
+                    .offset(220.dp, 480.dp)
+                    .blur(50.dp)
+                    .background(VaultColors.seal.copy(alpha = 0.07f), CircleShape),
+            )
+        }
         content()
     }
 }
