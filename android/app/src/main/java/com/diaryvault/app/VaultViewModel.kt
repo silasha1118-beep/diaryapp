@@ -258,6 +258,7 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         is SMSAuthError.InvalidPhone -> string(R.string.auth_phone_invalid)
         is SMSAuthError.InvalidCode -> string(R.string.auth_otp_error)
         is SMSAuthError.RateLimited -> string(R.string.auth_sms_rate_limited)
+        is SMSAuthError.BillingRequired -> string(R.string.auth_sms_billing_required)
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)
         is SMSAuthError.AppVerificationFailed -> string(R.string.auth_sms_app_verification)
         is SMSAuthError.RecaptchaUnavailable -> string(R.string.auth_sms_recaptcha_unavailable)
