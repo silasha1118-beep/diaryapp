@@ -3,6 +3,7 @@ package com.diaryvault.app.data
 import android.content.Context
 import android.util.Log
 import com.diaryvault.app.model.DiaryEntry
+import com.diaryvault.app.model.DiaryMediaAttachment
 import com.diaryvault.app.sync.CloudSyncFailure
 import com.diaryvault.app.sync.DiaryCloudSync
 import com.google.gson.Gson
@@ -19,12 +20,13 @@ import kotlinx.coroutines.sync.Mutex
 
 /**
  * Local JSON persistence for diary entries (source of truth offline).
- * When Firebase Auth is signed in, entries sync to Firestore (soft-delete, same shape as iOS).
+ * When Firebase Auth is signed in, entries sync to Firestore + Storage (soft-delete, same shape as iOS).
  */
 class DiaryStore(
     context: Context,
     private val scope: CoroutineScope,
 ) {
+    private val appContext = context.applicationContext
     private val file = File(context.filesDir, "diary_entries.json")
     private val pendingFile = File(context.filesDir, "diary_cloud_pending.json")
     private val gson = Gson()
@@ -71,14 +73,22 @@ class DiaryStore(
     private fun storedEntry(id: String): DiaryEntry? =
         _entries.value.firstOrNull { it.id == id }
 
-    fun add(title: String, body: String, moodTag: String?) {
+    fun add(
+        title: String,
+        body: String,
+        moodTag: String?,
+        attachments: List<DiaryMediaAttachment> = emptyList(),
+        entryId: String? = null,
+    ) {
         val now = System.currentTimeMillis()
         val entry = DiaryEntry(
+            id = entryId ?: java.util.UUID.randomUUID().toString(),
             title = title.trim(),
             body = body.trim(),
             moodTag = moodTag?.trim()?.takeIf { it.isNotEmpty() },
             createdAt = now,
             updatedAt = now,
+            attachments = attachments,
             sourcePlatform = DiaryCloudSync.SOURCE_PLATFORM,
         )
         _entries.value = listOf(entry) + _entries.value
@@ -93,8 +103,8 @@ class DiaryStore(
             deleted = false,
             deletedAt = null,
             updatedAt = System.currentTimeMillis(),
-            // Keep media metadata on the same entry when composer has no attachment UI yet.
-            attachments = entry.attachments.ifEmpty { existing?.attachments.orEmpty() },
+            // Composer may pass an explicit attachments list (including empty after removals).
+            attachments = entry.attachments,
             // Keep origin platform; fill Android only for pre-field legacy rows.
             sourcePlatform = entry.sourcePlatform?.takeIf { it.isNotBlank() }
                 ?: existing?.sourcePlatform?.takeIf { it.isNotBlank() }
@@ -104,6 +114,20 @@ class DiaryStore(
         save()
         enqueue(PendingCloudOp.Upsert(updated.id))
         scheduleSynchronize()
+    }
+
+    /**
+     * Persist Storage `remotePath` updates from a successful upload without bumping `updatedAt`
+     * (avoids sync loops). Mirrors iOS `DiaryStore.applyCloudMediaPaths`.
+     */
+    fun applyCloudMediaPaths(entry: DiaryEntry) {
+        val index = _entries.value.indexOfFirst { it.id == entry.id }
+        if (index < 0) return
+        val local = _entries.value[index]
+        if (local.attachments == entry.attachments) return
+        val merged = local.copy(attachments = entry.attachments)
+        _entries.value = _entries.value.map { if (it.id == entry.id) merged else it }
+        save()
     }
 
     /** Soft-delete locally + enqueue Firestore soft-delete upsert. Never hard-removes the row. */
@@ -195,7 +219,8 @@ class DiaryStore(
         val missing = localIDs - serverIDs
         if (missing.isNotEmpty()) {
             for (entry in _entries.value.filter { it.id in missing }) {
-                DiaryCloudSync.upsert(entry, uid)
+                val written = DiaryCloudSync.upsert(entry, uid, appContext)
+                applyCloudMediaPaths(written)
             }
             DiaryCloudSync.waitForPendingWrites()
             serverIDs = DiaryCloudSync.fetchServerEntryIDs(uid)
@@ -251,12 +276,16 @@ class DiaryStore(
             try {
                 when (op) {
                     is PendingCloudOp.Upsert -> {
-                        storedEntry(op.id)?.let { DiaryCloudSync.upsert(it, uid) }
+                        storedEntry(op.id)?.let { local ->
+                            val written = DiaryCloudSync.upsert(local, uid, appContext)
+                            applyCloudMediaPaths(written)
+                        }
                     }
                     is PendingCloudOp.Delete -> {
                         val entry = storedEntry(op.id)
                         if (entry != null) {
-                            DiaryCloudSync.upsert(entry, uid)
+                            val written = DiaryCloudSync.upsert(entry, uid, appContext)
+                            applyCloudMediaPaths(written)
                         } else {
                             DiaryCloudSync.markDeleted(op.id, uid, java.util.Date())
                         }
@@ -274,7 +303,8 @@ class DiaryStore(
 
     private suspend fun pushMissingLocals(uid: String, remoteIDs: Set<String>) {
         for (entry in _entries.value.filter { it.id !in remoteIDs }) {
-            DiaryCloudSync.upsert(entry, uid)
+            val written = DiaryCloudSync.upsert(entry, uid, appContext)
+            applyCloudMediaPaths(written)
         }
     }
 

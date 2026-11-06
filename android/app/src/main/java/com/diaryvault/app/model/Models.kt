@@ -1,11 +1,17 @@
 package com.diaryvault.app.model
 
+import com.google.gson.annotations.SerializedName
 import java.util.UUID
 
 /** Kind of media attached to a diary entry — matches iOS `DiaryMediaKind`. */
 enum class DiaryMediaKind(val raw: String) {
+    @SerializedName("voice")
     Voice("voice"),
+
+    @SerializedName("image")
     Image("image"),
+
+    @SerializedName("video")
     Video("video");
 
     val defaultFileExtension: String
@@ -23,8 +29,12 @@ enum class DiaryMediaKind(val raw: String) {
         }
 
     companion object {
-        fun fromRaw(raw: String?): DiaryMediaKind? =
-            entries.firstOrNull { it.raw.equals(raw, ignoreCase = true) }
+        fun fromRaw(raw: String?): DiaryMediaKind? {
+            if (raw.isNullOrBlank()) return null
+            entries.firstOrNull { it.raw.equals(raw, ignoreCase = true) }?.let { return it }
+            // Legacy local Gson may have stored enum names before @SerializedName.
+            return entries.firstOrNull { it.name.equals(raw, ignoreCase = true) }
+        }
     }
 }
 
@@ -59,8 +69,8 @@ data class DiaryEntry(
     val deletedAt: Long? = null,
     /**
      * Voice / image / video attachments. Synced on the same Firestore entry doc
-     * (`attachments` + `hasMedia` + `contentType`). Capture UI may still be deferred;
-     * decode/encode keeps cross-platform media on the post.
+     * (`attachments` + `hasMedia` + `contentType`). Local bytes under
+     * `filesDir/diary_media/{entryId}/`; Storage path `users/{uid}/entries/{entryId}/{file}`.
      */
     val attachments: List<DiaryMediaAttachment> = emptyList(),
     /**
@@ -70,6 +80,11 @@ data class DiaryEntry(
     val sourcePlatform: String? = null,
 ) {
     val hasMedia: Boolean get() = attachments.isNotEmpty()
+
+    /** Distinct media kinds present, stable order voice → image → video (list badges). */
+    val mediaKindsPresent: List<DiaryMediaKind>
+        get() = listOf(DiaryMediaKind.Voice, DiaryMediaKind.Image, DiaryMediaKind.Video)
+            .filter { kind -> attachments.any { it.kind == kind } }
 
     val preview: String
         get() {
