@@ -178,6 +178,10 @@ dependencies {
     // *.firebaseapp.com page (sessionStorage / "Chrome isn't responding" on emulator).
     implementation("androidx.browser:browser:1.8.0")
 
+    // Author Plus / Author Pro subscriptions — same product IDs as iOS StoreKit.
+    // Compiles without Play Console SKUs; empty catalog shows a clear unavailable state.
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
