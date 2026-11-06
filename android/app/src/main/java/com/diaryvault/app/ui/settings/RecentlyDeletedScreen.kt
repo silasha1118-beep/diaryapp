@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -98,12 +96,6 @@ fun RecentlyDeletedScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = VaultColors.inkMuted,
                 )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    localizedString(R.string.settings_vault_restore_footer),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = VaultColors.inkMuted,
-                )
             }
         } else {
             LazyColumn(
@@ -112,14 +104,6 @@ fun RecentlyDeletedScreen(
                     .padding(padding),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             ) {
-                item {
-                    Text(
-                        localizedString(R.string.settings_vault_restore_footer),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = VaultColors.inkMuted,
-                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 10.dp),
-                    )
-                }
                 item {
                     Column(
                         Modifier
