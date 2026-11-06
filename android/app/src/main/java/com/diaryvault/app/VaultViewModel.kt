@@ -69,6 +69,16 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, store.sortedEntries)
 
+    /** Soft-deleted in the last 30 days — Settings restore list (hidden from Vault). */
+    val recentlyDeletedEntries: StateFlow<List<DiaryEntry>> = store.entries
+        .map { list ->
+            val cutoff = System.currentTimeMillis() - DiaryStore.RESTORE_WINDOW_MS
+            list.filter { entry ->
+                entry.deleted && (entry.deletedAt ?: entry.updatedAt) >= cutoff
+            }.sortedByDescending { it.deletedAt ?: it.updatedAt }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, store.recentlyDeleted())
+
     private val _mirrorMessages = MutableStateFlow<List<MirrorMessage>>(emptyList())
     val mirrorMessages: StateFlow<List<MirrorMessage>> = _mirrorMessages.asStateFlow()
 
@@ -396,6 +406,10 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteEntry(id: String) {
         store.delete(id)
+    }
+
+    fun restoreEntry(id: String) {
+        store.restore(id)
     }
 
     fun string(resId: Int, vararg args: Any): String {

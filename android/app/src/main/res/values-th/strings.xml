@@ -7,6 +7,13 @@
     <string name="common_save">บันทึก</string>
     <string name="common_edit">แก้ไข</string>
     <string name="common_delete">ลบ</string>
+    <string name="diary_swipe_hint">ปัดซ้ายแล้วแตะ ลบ</string>
+    <string name="diary_delete_confirm_title">ลบรายการนี้หรือไม่?</string>
+    <string name="diary_delete_confirm_body">จะถูกซ่อนจากห้องเก็บ คุณกู้คืนได้ในการตั้งค่าภายใน 30 วัน</string>
+    <string name="settings_vault_recently_deleted">ลบล่าสุด</string>
+    <string name="settings_vault_restore">กู้คืน</string>
+    <string name="settings_vault_restore_empty">ไม่มีรายการที่ลบใน 30 วันที่ผ่านมา</string>
+    <string name="settings_vault_restore_footer">รายการที่ลบจะถูกซ่อนจากห้องเก็บ กู้คืนได้ที่นี่ภายใน 30 วัน</string>
     <string name="tab_vault">ห้องเก็บ</string>
     <string name="tab_mirror">กระจก</string>
     <string name="tab_settings">การตั้งค่า</string>

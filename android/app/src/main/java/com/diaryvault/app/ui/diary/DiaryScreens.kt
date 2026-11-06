@@ -1,7 +1,12 @@
 package com.diaryvault.app.ui.diary
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,13 +14,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +38,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -40,18 +49,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,12 +67,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
@@ -83,6 +94,8 @@ import com.diaryvault.app.ui.theme.VaultColors
 import java.text.DateFormat
 import java.util.Date
 import java.util.UUID
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 @Composable
 fun DiaryNavHost(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
@@ -144,6 +157,9 @@ private fun DiaryListScreen(
     }
 
     val compact = LocalConfiguration.current.screenHeightDp < 720
+    // Equal horizontal inset on narrow phones (Redmi 9C ~360dp) — prior start=24/end=20
+    // looked right-shifted; rows stay full-bleed so swipe Delete sits on the screen edge.
+    val horizontalInset = if (LocalConfiguration.current.screenWidthDp < 400) 16.dp else 20.dp
     // Android convention: bottom-right circular Material + FAB (not iOS top square.and.pencil).
     // contentWindowInsets=0: MainTabs already clears bottom nav; avoid double system-bar padding that
     // shoved FAB / list into overlapping chrome on short Redmi screens.
@@ -167,7 +183,7 @@ private fun DiaryListScreen(
                     .fillMaxSize()
                     .statusBarsPadding()
                     .padding(padding)
-                    .padding(horizontal = 24.dp, vertical = if (compact) 12.dp else 20.dp),
+                    .padding(horizontal = horizontalInset, vertical = if (compact) 12.dp else 20.dp),
             ) {
                 VaultBrandHeader(
                     title = localizedString(R.string.brand_name),
@@ -206,8 +222,8 @@ private fun DiaryListScreen(
             LazyColumn(
                 modifier = Modifier.statusBarsPadding(),
                 contentPadding = PaddingValues(
-                    start = 24.dp,
-                    end = 20.dp,
+                    start = 0.dp,
+                    end = 0.dp,
                     top = padding.calculateTopPadding() + if (compact) 8.dp else 12.dp,
                     // FAB clearance above bottom tab bar (MainTabs padding); keep list readable.
                     bottom = padding.calculateBottomPadding() + if (compact) 72.dp else 88.dp,
@@ -219,13 +235,16 @@ private fun DiaryListScreen(
                         title = localizedString(R.string.brand_name),
                         subtitle = subtitle,
                         compact = compact,
-                        modifier = Modifier.padding(bottom = if (compact) 14.dp else 20.dp),
+                        modifier = Modifier
+                            .padding(horizontal = horizontalInset)
+                            .padding(bottom = if (compact) 14.dp else 20.dp),
                     )
                 }
                 items(entries, key = { it.id }) { item ->
-                    // Soft-delete via end-to-start swipe (Material); same forever-retention path as iOS.
+                    // Reveal Delete on swipe; tap + confirm soft-deletes (never full-swipe auto-delete).
                     DiarySwipeRow(
                         entry = item,
+                        contentInset = horizontalInset,
                         onOpen = { onOpen(item.id) },
                         onDelete = { viewModel.deleteEntry(item.id) },
                     )
@@ -235,65 +254,134 @@ private fun DiaryListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DiarySwipeRow(
     entry: DiaryEntry,
+    contentInset: Dp,
     onOpen: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val swipeHint = localizedString(R.string.diary_swipe_hint)
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                onDelete()
-                true
-            } else {
-                false
+    val deleteLabel = localizedString(R.string.common_delete)
+    val actionWidth = 88.dp
+    val density = LocalDensity.current
+    val actionPx = with(density) { actionWidth.toPx() }
+    val scope = rememberCoroutineScope()
+    var offsetX by remember(entry.id) { mutableFloatStateOf(0f) }
+    var showConfirm by remember(entry.id) { mutableStateOf(false) }
+
+    fun settleReveal(open: Boolean) {
+        val target = if (open) -actionPx else 0f
+        scope.launch {
+            val anim = Animatable(offsetX)
+            anim.animateTo(target, tween(200)) {
+                offsetX = value
             }
-        },
-    )
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
-        backgroundContent = {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(VaultColors.seal)
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = VaultColors.paper,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        localizedString(R.string.common_delete),
-                        color = VaultColors.paper,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-            }
-        },
-        modifier = Modifier.semantics { contentDescription = swipeHint },
-    ) {
-        Column(Modifier.background(VaultColors.paper)) {
-            DiaryRow(entry, onClick = onOpen)
-            HorizontalDivider(color = VaultColors.line.copy(alpha = 0.55f))
         }
+    }
+
+    val dragState = rememberDraggableState { delta ->
+        offsetX = (offsetX + delta).coerceIn(-actionPx, 0f)
+    }
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = swipeHint },
+    ) {
+        // Seal Delete action — revealed behind content; tap only (full swipe never deletes).
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(VaultColors.seal),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Column(
+                Modifier
+                    .width(actionWidth)
+                    .fillMaxHeight()
+                    .clickable { showConfirm = true },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = deleteLabel,
+                    tint = VaultColors.paper,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    deleteLabel,
+                    color = VaultColors.paper,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        }
+
+        Column(
+            Modifier
+                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                .fillMaxWidth()
+                .background(VaultColors.paper)
+                .draggable(
+                    state = dragState,
+                    orientation = Orientation.Horizontal,
+                    onDragStopped = {
+                        settleReveal(offsetX <= -actionPx * 0.45f)
+                    },
+                ),
+        ) {
+            DiaryRow(
+                entry = entry,
+                contentInset = contentInset,
+                onClick = {
+                    if (offsetX < -actionPx * 0.2f) {
+                        settleReveal(false)
+                    } else {
+                        onOpen()
+                    }
+                },
+            )
+            HorizontalDivider(
+                color = VaultColors.line.copy(alpha = 0.55f),
+                modifier = Modifier.padding(start = contentInset),
+            )
+        }
+    }
+
+    if (showConfirm) {
+        AlertDialog(
+            onDismissRequest = { showConfirm = false },
+            title = { Text(localizedString(R.string.diary_delete_confirm_title)) },
+            text = { Text(localizedString(R.string.diary_delete_confirm_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirm = false
+                        settleReveal(false)
+                        onDelete()
+                    },
+                ) {
+                    Text(deleteLabel, color = VaultColors.seal)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirm = false }) {
+                    Text(localizedString(R.string.common_cancel))
+                }
+            },
+            containerColor = VaultColors.paper,
+        )
     }
 }
 
 @Composable
-private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
+private fun DiaryRow(
+    entry: DiaryEntry,
+    contentInset: Dp,
+    onClick: () -> Unit,
+) {
     val date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
         .format(Date(entry.createdAt))
     val previewText = when {
@@ -305,7 +393,7 @@ private fun DiaryRow(entry: DiaryEntry, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .padding(horizontal = contentInset, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Row(
