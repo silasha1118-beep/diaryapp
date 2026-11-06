@@ -2,7 +2,7 @@
   "name": "diaryvault-functions",
   "description": "DiaryVault Cloud Functions — Aliyun SMS OTP for +86, Firebase custom tokens",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "lib/index.js",
   "scripts": {
