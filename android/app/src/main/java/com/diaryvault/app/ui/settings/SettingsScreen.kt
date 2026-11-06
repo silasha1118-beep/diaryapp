@@ -407,14 +407,14 @@ fun SettingsScreen(viewModel: VaultViewModel, modifier: Modifier = Modifier) {
                     localizedString(R.string.settings_vault_recently_deleted),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     color = VaultColors.ink,
-                    modifier = Modifier.padding(horizontal = 16.dp, top = 14.dp, bottom = 4.dp),
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 4.dp),
                 )
                 if (recentlyDeleted.isEmpty()) {
                     Text(
                         localizedString(R.string.settings_vault_restore_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
-                        modifier = Modifier.padding(horizontal = 16.dp, top = 4.dp, bottom = 14.dp),
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 14.dp),
                     )
                 } else {
                     recentlyDeleted.forEachIndexed { index, entry ->
