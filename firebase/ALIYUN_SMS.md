@@ -63,7 +63,7 @@ Redeploy after changing secrets if your binding method requires it.
 
 ## 4. Stub / debug without Aliyun keys
 
-- **Android DEBUG:** `+86` skips Aliyun and uses Firebase Phone Auth — add the number under Console **Phone numbers for testing**.
+- **Android DEBUG:** `+86` **always** skips Aliyun (router + provider) and uses Firebase Phone Auth — add the number under Console **Phone numbers for testing** (keep `+86` on the list even while removing `+852` for live-SMS tests).
 - **Cloud `ALLOW_STUB`:** if a release build somehow hits Aliyun CF in stub mode, the Android client **rejects** that stub session and falls back to Firebase Phone Auth (Console test codes), instead of accepting a random server OTP.
 - **Android without JSON:** existing **stub** SMS provider still compiles and runs (any 6-digit / `DIARY_SMS_STUB_CODE`).
 - Release builds that need real mainland SMS must have Aliyun keys; do not ship `ALLOW_STUB=true` in production.

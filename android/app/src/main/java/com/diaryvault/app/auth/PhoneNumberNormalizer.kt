@@ -30,6 +30,20 @@ object PhoneNumberNormalizer {
         return "+" + trimmed.filter { it.isDigit() }
     }
 
+    /**
+     * OTP entry may use full-width digits (MIUI / CN IMEs). Firebase and CF gateways
+     * expect ASCII `0-9` — map both so Console test codes like `123456` verify.
+     */
+    fun normalizeOtpDigits(raw: String): String =
+        buildString(raw.length) {
+            for (ch in raw) {
+                when (ch) {
+                    in '0'..'9' -> append(ch)
+                    in '\uFF10'..'\uFF19' -> append('0' + (ch - '\uFF10'))
+                }
+            }
+        }
+
     fun composeE164(dial: RegionDial, nationalNumber: String): String {
         val digits = nationalNumber.filter { it.isDigit() }
         val national = if (digits.startsWith("0")) digits.drop(1) else digits

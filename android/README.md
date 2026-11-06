@@ -140,7 +140,9 @@ cd C:\dev\diaryapp\android
 
 **模拟器：** 仍用 Console 测试号 + 固定码（debug 模拟器会跳过 Integrity／Chrome）。**真短信请用实体机 + Google Play。**
 
-> **+86：** DEBUG 仍走 Firebase 测试号；release 待 Tencent／DA-102 KYC。与本 `+852` 真短信路径无关。
+> **+86：** DEBUG **强制** Firebase Phone Auth（Console 测试号，如 `+86 15014531587` → `123456`）。  
+> 测 `+852` 真短信时可以从测试列表删掉港号；**请保留 `+86` 测试号** 方便内地 Debug 登录。  
+> Release `+86` 待 Tencent／DA-102 KYC；与本 `+852` 真短信路径无关。
 
 ## Optional: cloud Mirror AI
 

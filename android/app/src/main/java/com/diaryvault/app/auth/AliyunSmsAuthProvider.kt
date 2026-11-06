@@ -3,6 +3,7 @@ package com.diaryvault.app.auth
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
@@ -15,6 +16,7 @@ import kotlinx.coroutines.tasks.await
  *
  * No AccessKey in the APK. No Google reCAPTCHA on this path.
  *
+ * **DEBUG** never calls Aliyun — Firebase Phone Auth only (Console test numbers).
  * When Functions are missing / Aliyun secrets unset / CF returns stub mode:
  * fall back to [firebaseFallback] (Firebase Phone Auth) so Firebase Console
  * **test phone numbers** (e.g. 123456) work — never a local stub OTP that
@@ -33,6 +35,17 @@ class AliyunSmsAuthProvider(
         val normalized = PhoneNumberNormalizer.normalizeToE164(phoneE164)
         if (!normalized.startsWith("+86") || !PhoneNumberNormalizer.isPlausibleE164(normalized)) {
             throw SMSAuthError.InvalidPhone
+        }
+
+        // Second line of defense if RoutingSMSAuthProvider is ever constructed without
+        // preferFirebaseForChinaMainland (e.g. a future Tencent-only wiring).
+        if (BuildConfig.DEBUG) {
+            return sendViaFirebaseFallback(
+                activity,
+                normalized,
+                resend,
+                "DEBUG: skip Aliyun — Firebase Console test numbers",
+            )
         }
 
         FirebaseBootstrap.configureIfNeeded(appContext)
@@ -86,15 +99,21 @@ class AliyunSmsAuthProvider(
     }
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
+        val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
         // Stub / Firebase sessions must not hit verifyAliyunSmsOtp with a Phone Auth id.
         if (session.path == SmsAuthPath.FIREBASE) {
-            return firebaseFallback.verify(code, session)
+            return firebaseFallback.verify(trimmed, session)
         }
         if (session.path == SmsAuthPath.STUB || session.verificationID.startsWith("stub-")) {
             // Legacy stub sessions: route to Firebase only if somehow still present —
             // local stub no longer issued on this path.
             Log.w(TAG, "Unexpected stub session on Aliyun path — trying Firebase verify")
-            return firebaseFallback.verify(code, session)
+            return firebaseFallback.verify(trimmed, session)
+        }
+        if (BuildConfig.DEBUG) {
+            // Should not happen if send skipped Aliyun; never verify CF OTP in DEBUG.
+            Log.w(TAG, "DEBUG Aliyun session unexpected — verifying via Firebase Phone Auth")
+            return firebaseFallback.verify(trimmed, session)
         }
 
         FirebaseBootstrap.configureIfNeeded(appContext)
@@ -104,7 +123,6 @@ class AliyunSmsAuthProvider(
             )
         }
 
-        val trimmed = code.trim()
         if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
 
         return try {
