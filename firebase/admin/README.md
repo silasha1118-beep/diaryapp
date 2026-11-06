@@ -101,6 +101,48 @@ That bare message is usually the **client SDK sanitizing** a failed callable (CO
 
 Redeploy both vault callables so they live in **`asia-east1`** (explicit region + `globalOptions` loaded before `onCall`). Delete any stale **`us-central1`** copies of these two functions in Console if deploy left duplicates.
 
+### `iam.serviceAccounts.signBlob` denied (Operator session mint failed)
+
+`createCustomToken` (used by `mintAdminVaultSession` and Aliyun OTP verify) needs the Functions **runtime** service account to sign JWTs. On Cloud Functions **Gen2** that SA is usually the default Compute Engine account:
+
+`{PROJECT_NUMBER}-compute@developer.gserviceaccount.com`
+
+If IAM never granted **Service Account Token Creator** on that SA (to itself), mint fails with:
+
+`Operator session mint failed: Permission 'iam.serviceAccounts.signBlob' denied on resource (or it may not exist).`
+
+**Find project number** (not the project id `diaryappsilas`):
+
+- Google Cloud Console → select project **diaryappsilas** → Dashboard / Home → **Project number**, or
+- Firebase Console → Project settings → **General** → **Project number**.
+
+**Confirm which SA the function uses** (optional but safest):
+
+- Cloud Console → **Cloud Functions** → `mintAdminVaultSession` (`asia-east1`) → configuration / details → **Service account** (or Cloud Run service of the same name → Security → Service account).
+
+**Fix in Console (no gcloud — Windows-friendly):**
+
+1. Open [Google Cloud Console → IAM & Admin → IAM](https://console.cloud.google.com/iam-admin/iam?project=diaryappsilas) for project **diaryappsilas**.
+2. Find principal  
+   `{PROJECT_NUMBER}-compute@developer.gserviceaccount.com`  
+   (or the SA shown on the function if different). If it is missing from the list, click **Grant access** and use that email as the new principal.
+3. Edit that principal → **Add another role** → **Service Account Token Creator** (`roles/iam.serviceAccountTokenCreator`).
+4. Save. Wait ~1–2 minutes, then retry **Open Vault as operator** (no redeploy required).
+
+**Same fix with gcloud (optional):**
+
+```bash
+# PROJECT_NUMBER from: gcloud projects describe diaryappsilas --format="value(projectNumber)"
+# RUNTIME_SA is usually: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+
+gcloud iam service-accounts add-iam-policy-binding RUNTIME_SA \
+  --member="serviceAccount:RUNTIME_SA" \
+  --role="roles/iam.serviceAccountTokenCreator" \
+  --project=diaryappsilas
+```
+
+Grant is on the service account **resource** (the SA signing for itself). Project-level IAM with the same role also works if Console only offers project IAM.
+
 ## Raw Console (no viewer)
 
 1. Firestore → `users` → `{Auth UID}` → `entries` (sort by `createdAt`).
