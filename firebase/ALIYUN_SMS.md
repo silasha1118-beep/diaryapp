@@ -36,6 +36,8 @@ cd ..
 firebase deploy --only functions
 ```
 
+`firebase.json` predeploy uses `npm --prefix ./functions run build` (relative path) so Windows PowerShell works — do not use `$RESOURCE_DIR` / `%RESOURCE_DIR%` placeholders.
+
 5. Set runtime env / secrets on the deployed functions (Cloud Console → Cloud Functions → each function → Edit → Runtime environment variables), **or** Secret Manager mapped as env:
 
 | Name | Value |
