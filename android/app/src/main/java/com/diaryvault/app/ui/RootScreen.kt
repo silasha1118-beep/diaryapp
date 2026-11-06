@@ -4,7 +4,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,13 +20,17 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.ui.auth.PhoneOTPLoginScreen
@@ -61,6 +67,14 @@ fun RootScreen(viewModel: VaultViewModel) {
 @Composable
 private fun MainTabs(viewModel: VaultViewModel) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    // Once Mirror has been opened, keep it composed (iOS TabView parity) so draft /
+    // list scroll survive leaving the tab. Message text also persists via MirrorChatStore.
+    var mirrorOpened by rememberSaveable { mutableStateOf(false) }
+    val mirrorSelected = tab == 1
+    val keepMirrorComposed = mirrorOpened || mirrorSelected
+    LaunchedEffect(mirrorSelected) {
+        if (mirrorSelected) mirrorOpened = true
+    }
     // Hide tab bar while IME is open so nested imePadding (Mirror composer, etc.)
     // is not stacked on top of NavigationBar height (large empty gap above keyboard).
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -100,10 +114,27 @@ private fun MainTabs(viewModel: VaultViewModel) {
                 }
             },
         ) { padding ->
-            when (tab) {
-                0 -> DiaryNavHost(viewModel, Modifier.padding(padding))
-                1 -> MirrorTabScreen(viewModel, Modifier.padding(padding))
-                else -> SettingsNavHost(viewModel, Modifier.padding(padding))
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            ) {
+                if (keepMirrorComposed) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .zIndex(if (mirrorSelected) 1f else 0f)
+                            .graphicsLayer {
+                                alpha = if (mirrorSelected) 1f else 0f
+                            },
+                    ) {
+                        MirrorTabScreen(viewModel, Modifier.fillMaxSize())
+                    }
+                }
+                when (tab) {
+                    0 -> DiaryNavHost(viewModel, Modifier.fillMaxSize())
+                    2 -> SettingsNavHost(viewModel, Modifier.fillMaxSize())
+                }
             }
         }
     }
