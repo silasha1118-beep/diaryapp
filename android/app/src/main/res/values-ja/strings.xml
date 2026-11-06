@@ -8,8 +8,6 @@
     <string name="common_edit">編集</string>
     <string name="common_delete">削除</string>
     <string name="diary_swipe_hint">左にスワイプして「削除」をタップ</string>
-    <string name="diary_delete_confirm_title">この日記を削除しますか？</string>
-    <string name="diary_delete_confirm_body">ボールトから非表示になります。30日以内なら設定から復元できます。</string>
     <string name="settings_vault_recently_deleted">最近削除した項目</string>
     <string name="settings_vault_restore">復元</string>
     <string name="settings_vault_restore_empty">過去30日に削除した日記はありません。</string>
