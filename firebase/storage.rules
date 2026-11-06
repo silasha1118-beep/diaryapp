@@ -1,9 +1,11 @@
 rules_version = '2';
 
-// DiaryVault — paste into Firebase Console → Storage → Rules → Publish.
+// DiaryVault — paste into Firebase Console → Storage → Rules → Publish,
+// or from firebase/: firebase deploy --only storage
 // Objects live under users/{uid}/entries/{entryId}/{fileName}.
 // Soft-delete of diary docs does not delete Storage objects (archive retention).
-// Operator with claim vaultAdmin may read any object (Vault media preview).
+// Operator with claim vaultAdmin (mintAdminVaultSession custom token) may READ
+// any entry media; writes/deletes stay owner-only.
 service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() {
@@ -14,6 +16,8 @@ service firebase.storage {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // Same claim Firestore uses: request.auth.token.vaultAdmin == true
+    // (set via createCustomToken developerClaims + setCustomUserClaims).
     function isVaultAdmin() {
       return signedIn() && request.auth.token.vaultAdmin == true;
     }
@@ -23,7 +27,8 @@ service firebase.storage {
       return request.resource.size < 80 * 1024 * 1024;
     }
 
-    match /users/{userId}/entries/{entryId}/{fileName} {
+    // {fileName=**} covers flat files and any nested media under an entry.
+    match /users/{userId}/entries/{entryId}/{fileName=**} {
       allow read: if isOwner(userId) || isVaultAdmin();
       allow write: if isOwner(userId)
         && sizeOk()

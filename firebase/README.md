@@ -78,5 +78,5 @@ users/{uid}/entries/{entryId}   // entryId = DiaryEntry UUID string (stable — 
 ## Admin / Vault-like viewer
 
 - **In-repo viewer:** [`admin/`](admin/) — **operator password** (OTP-free, all Auth accounts) via Cloud Functions `mintAdminVaultSession` + claim `vaultAdmin`, or alternate customer phone OTP (one account). Media: Storage `getDownloadURL` for image / voice / video on each entry. Soft-delete filters: All / Active / Deleted. Setup: [`admin/README.md`](admin/README.md).
-- **Rules:** Firestore + Storage allow `request.auth.token.vaultAdmin == true` to **read** any user’s entries and media (writes stay owner-only).
+- **Rules:** Firestore + Storage allow `request.auth.token.vaultAdmin == true` to **read** any user’s entries and media (writes stay owner-only). If Admin Vault lists entries but media fails with `storage/unauthorized`, publish Storage rules: from `firebase/`, `firebase deploy --only storage`.
 - **Console:** sort `entries` by `createdAt`; scan `label` / `status` / `hasMedia` / `sourcePlatform`.
