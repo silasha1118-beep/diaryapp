@@ -75,6 +75,32 @@ Attachments use paths already on the entry (`attachments[].remotePath`, typicall
 - **voice** — `<audio controls>` (`.m4a` / `audio/mp4`)  
 - **video** — `<video controls>` (`.mp4`)
 
+## Troubleshooting — Open Vault shows only `internal`
+
+That bare message is usually the **client SDK sanitizing** a failed callable (CORS / wrong region / missing function), not the HttpsError text from your password check.
+
+### Immediate checks (Windows → `http://127.0.0.1:4173` or Hosting)
+
+1. **Browser Network tab** → click **Open Vault as operator** → find `mintAdminVaultSession` (or the Gen2 Cloud Run URL containing that name).
+   - Note **request URL region** (`asia-east1` vs `us-central1`), **HTTP status**, and response body / CORS errors.
+   - Admin client is wired to **`asia-east1`** (`getFunctions(app, "asia-east1")`). If the function only exists in another region, you get `functions/internal` with message `internal`.
+2. **Logs**
+   ```bash
+   firebase functions:log --only mintAdminVaultSession
+   # or Console → Functions → mintAdminVaultSession → Logs
+   ```
+   No log line on click ⇒ the request never hit that function (region/CORS/deploy). A log with `ADMIN_VAULT_PASSWORD is not configured` / `Invalid operator password` ⇒ secret/password, not CORS.
+3. **Secret bound to the function** (setting the secret alone is not enough until deploy binds it):
+   ```bash
+   firebase functions:secrets:access ADMIN_VAULT_PASSWORD
+   firebase deploy --only functions:mintAdminVaultSession,functions:listAdminVaultAccounts
+   ```
+   In Console → Functions → `mintAdminVaultSession` → configuration, confirm **`ADMIN_VAULT_PASSWORD`** is listed under secrets. Then redeploy if you just set/rotated it.
+
+### After pulling the region fix
+
+Redeploy both vault callables so they live in **`asia-east1`** (explicit region + `globalOptions` loaded before `onCall`). Delete any stale **`us-central1`** copies of these two functions in Console if deploy left duplicates.
+
 ## Raw Console (no viewer)
 
 1. Firestore → `users` → `{Auth UID}` → `entries` (sort by `createdAt`).

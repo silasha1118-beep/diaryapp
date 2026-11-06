@@ -8,10 +8,14 @@
  * Then deploy functions and publish Firestore/Storage rules that honor vaultAdmin.
  */
 
+import "./globalOptions";
+
 import * as admin from "firebase-admin";
 import { createHash, timingSafeEqual } from "crypto";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
+
+import { FUNCTIONS_REGION } from "./globalOptions";
 
 /** Stable Auth UID for the operator session (not a customer phone user). */
 export const VAULT_ADMIN_UID = "diaryvault-operator";
@@ -80,6 +84,7 @@ function assertVaultAdmin(auth: { token?: Record<string, unknown> } | undefined)
  */
 export const mintAdminVaultSession = onCall(
   {
+    region: FUNCTIONS_REGION,
     enforceAppCheck: false,
     secrets: [adminVaultPassword],
   },
@@ -97,16 +102,23 @@ export const mintAdminVaultSession = onCall(
       throw new HttpsError("permission-denied", "Invalid operator password");
     }
 
-    const uid = await ensureVaultAdminUser();
-    const customToken = await admin.auth().createCustomToken(uid, {
-      vaultAdmin: true,
-    });
+    try {
+      const uid = await ensureVaultAdminUser();
+      const customToken = await admin.auth().createCustomToken(uid, {
+        vaultAdmin: true,
+      });
 
-    return {
-      customToken,
-      uid,
-      expiresInHintSec: 3600,
-    };
+      return {
+        customToken,
+        uid,
+        expiresInHintSec: 3600,
+      };
+    } catch (err: unknown) {
+      if (err instanceof HttpsError) throw err;
+      const detail = err instanceof Error ? err.message : String(err);
+      console.error("mintAdminVaultSession failed", detail);
+      throw new HttpsError("internal", `Operator session mint failed: ${detail}`);
+    }
   },
 );
 
@@ -118,39 +130,47 @@ export const mintAdminVaultSession = onCall(
  */
 export const listAdminVaultAccounts = onCall(
   {
+    region: FUNCTIONS_REGION,
     enforceAppCheck: false,
   },
   async (request) => {
     assertVaultAdmin(request.auth);
-    const auth = admin.auth();
-    const accounts: Array<{
-      uid: string;
-      phoneNumber: string | null;
-      displayName: string | null;
-      disabled: boolean;
-    }> = [];
+    try {
+      const auth = admin.auth();
+      const accounts: Array<{
+        uid: string;
+        phoneNumber: string | null;
+        displayName: string | null;
+        disabled: boolean;
+      }> = [];
 
-    let pageToken: string | undefined;
-    do {
-      const page = await auth.listUsers(1000, pageToken);
-      for (const user of page.users) {
-        if (user.uid === VAULT_ADMIN_UID) continue;
-        accounts.push({
-          uid: user.uid,
-          phoneNumber: user.phoneNumber ?? null,
-          displayName: user.displayName ?? null,
-          disabled: user.disabled,
-        });
-      }
-      pageToken = page.pageToken;
-    } while (pageToken);
+      let pageToken: string | undefined;
+      do {
+        const page = await auth.listUsers(1000, pageToken);
+        for (const user of page.users) {
+          if (user.uid === VAULT_ADMIN_UID) continue;
+          accounts.push({
+            uid: user.uid,
+            phoneNumber: user.phoneNumber ?? null,
+            displayName: user.displayName ?? null,
+            disabled: user.disabled,
+          });
+        }
+        pageToken = page.pageToken;
+      } while (pageToken);
 
-    accounts.sort((a, b) => {
-      const ap = a.phoneNumber || a.uid;
-      const bp = b.phoneNumber || b.uid;
-      return ap.localeCompare(bp);
-    });
+      accounts.sort((a, b) => {
+        const ap = a.phoneNumber || a.uid;
+        const bp = b.phoneNumber || b.uid;
+        return ap.localeCompare(bp);
+      });
 
-    return { accounts };
+      return { accounts };
+    } catch (err: unknown) {
+      if (err instanceof HttpsError) throw err;
+      const detail = err instanceof Error ? err.message : String(err);
+      console.error("listAdminVaultAccounts failed", detail);
+      throw new HttpsError("internal", `Account list failed: ${detail}`);
+    }
   },
 );

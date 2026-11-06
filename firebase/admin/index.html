@@ -388,6 +388,37 @@
       els.error.classList.remove("hidden");
     }
 
+    /** Surface Firebase callable code + hints; bare "internal" usually means CORS/region/secret. */
+    function formatCallableError(e) {
+      const code = typeof e?.code === "string" ? e.code : "";
+      const raw = (e?.message || String(e || "unknown error")).trim();
+      const details =
+        e?.details != null
+          ? typeof e.details === "string"
+            ? e.details
+            : JSON.stringify(e.details)
+          : "";
+      const lines = [];
+      if (code) lines.push(`code: ${code}`);
+      lines.push(raw || "(no message)");
+      if (details) lines.push(`details: ${details}`);
+      const blob = `${code} ${raw}`.toLowerCase();
+      if (
+        blob.includes("functions/internal") ||
+        raw === "internal" ||
+        raw === "INTERNAL" ||
+        code === "functions/not-found" ||
+        code === "functions/unavailable"
+      ) {
+        lines.push(
+          "",
+          "Likely: callable region mismatch, function missing in asia-east1, CORS, or unbound ADMIN_VAULT_PASSWORD.",
+          "Check Network → mintAdminVaultSession (status + response), `firebase functions:log`, and that the secret is bound to the function. See firebase/admin/README.md § Troubleshooting.",
+        );
+      }
+      return lines.join("\n");
+    }
+
     if (window.__DIARY_CONFIG_MISSING || !window.DIARY_FIREBASE_CONFIG?.apiKey || window.DIARY_FIREBASE_CONFIG.apiKey === "REPLACE_ME") {
       els.configWarn.classList.remove("hidden");
       throw new Error("firebase-config.js missing");
@@ -724,7 +755,7 @@
         try {
           await loadAccountList();
         } catch (e) {
-          showError(e?.message || String(e));
+          showError(formatCallableError(e));
         }
         return;
       }
@@ -753,7 +784,7 @@
         await signInWithCustomToken(auth, token);
         els.adminPassword.value = "";
       } catch (e) {
-        const msg = e?.message || String(e);
+        const msg = formatCallableError(e);
         showError(msg.includes("ADMIN_VAULT_PASSWORD")
           ? msg + "\n\nSet the secret in Console / functions/.env — see firebase/admin/README.md."
           : msg);
@@ -812,7 +843,7 @@
       try {
         await loadAccountList();
       } catch (e) {
-        showError(e?.message || String(e));
+        showError(formatCallableError(e));
       }
     });
 

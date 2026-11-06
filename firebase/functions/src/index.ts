@@ -13,9 +13,10 @@
  * See ../ALIYUN_SMS.md for Silas Console setup.
  */
 
+import "./globalOptions";
+
 import * as admin from "firebase-admin";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { setGlobalOptions } from "firebase-functions/v2";
 
 import {
   aliyunStubAllowed,
@@ -23,16 +24,13 @@ import {
   sendAliyunSms,
 } from "./aliyunSms";
 import { createOtpSession, generateOtpCode, verifyOtpSession } from "./otpStore";
+import { FUNCTIONS_REGION } from "./globalOptions";
 
 // Operator Vault admin (password → custom token). Re-exported for deploy.
+// globalOptions is imported first above AND inside adminVault so region sticks.
 export { mintAdminVaultSession, listAdminVaultAccounts } from "./adminVault";
 
 admin.initializeApp();
-
-setGlobalOptions({
-  region: "asia-east1",
-  maxInstances: 20,
-});
 
 const CHINA_E164 = /^\+86(1\d{10})$/;
 
@@ -65,7 +63,7 @@ function assertChinaMobile(phoneRaw: unknown): { e164: string; national: string 
  * Response: `{ sessionId, stub?, stubDebugHint? }`
  */
 export const sendAliyunSmsOtp = onCall(
-  { enforceAppCheck: false },
+  { region: FUNCTIONS_REGION, enforceAppCheck: false },
   async (request) => {
     const { e164, national } = assertChinaMobile(request.data?.phoneE164);
     const config = readAliyunSmsConfig();
@@ -104,7 +102,7 @@ export const sendAliyunSmsOtp = onCall(
  * Creates the Auth user with `phoneNumber` when needed so Firestore identity matches Phone Auth.
  */
 export const verifyAliyunSmsOtp = onCall(
-  { enforceAppCheck: false },
+  { region: FUNCTIONS_REGION, enforceAppCheck: false },
   async (request) => {
     const sessionId =
       typeof request.data?.sessionId === "string" ? request.data.sessionId.trim() : "";
