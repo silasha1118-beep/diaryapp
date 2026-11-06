@@ -2,6 +2,7 @@ package com.diaryvault.app.ui.mirror
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,8 +41,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -100,110 +102,128 @@ private fun MirrorChatPane(
                 ),
             )
         },
+        // Composer in bottomBar + imePadding (same pattern as diary composer).
+        // MainTabs hides the tab NavigationBar while IME is open so this is not
+        // stacked on nav-bar height (the large empty gap above the keyboard).
+        bottomBar = {
+            MirrorComposerBar(
+                draft = draft,
+                onDraftChange = { draft = it },
+                canSend = canSend,
+                onSend = {
+                    val text = draft
+                    draft = ""
+                    viewModel.sendMirror(text)
+                },
+                modifier = Modifier.imePadding(),
+            )
+        },
     ) { padding ->
-        Column(
-            Modifier
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .imePadding(),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp),
-            ) {
+            item {
+                // System intro — no bubble (iOS MirrorRole.system)
+                Text(
+                    localizedString(R.string.mirror_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = VaultColors.inkMuted,
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
+            items(messages, key = { it.id }) { msg ->
+                MirrorBubble(msg)
+            }
+            if (thinking) {
                 item {
-                    // System intro — no bubble (iOS MirrorRole.system)
                     Text(
-                        localizedString(R.string.mirror_intro),
+                        localizedString(R.string.mirror_thinking),
                         style = MaterialTheme.typography.bodyMedium,
                         color = VaultColors.inkMuted,
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        modifier = Modifier.padding(horizontal = 4.dp),
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(horizontal = 6.dp),
                     )
                 }
-                items(messages, key = { it.id }) { msg ->
-                    MirrorBubble(msg)
-                }
-                if (thinking) {
-                    item {
+            }
+        }
+    }
+}
+
+/** PaperDeep strip, cream field, circular send — matches iOS Mirror composer. */
+@Composable
+private fun MirrorComposerBar(
+    draft: String,
+    onDraftChange: (String) -> Unit,
+    canSend: Boolean,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .background(VaultColors.paperDeep.copy(alpha = 0.85f))
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        BasicTextField(
+            value = draft,
+            onValueChange = onDraftChange,
+            modifier = Modifier
+                .weight(1f)
+                .background(VaultColors.paper, RoundedCornerShape(8.dp))
+                .border(1.dp, VaultColors.line.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            textStyle = TextStyle(
+                fontFamily = FontFamily.Serif,
+                fontSize = 16.sp,
+                color = VaultColors.ink,
+                lineHeight = 22.sp,
+            ),
+            cursorBrush = SolidColor(VaultColors.seal),
+            maxLines = 5,
+            decorationBox = { inner ->
+                Box {
+                    if (draft.isEmpty()) {
                         Text(
-                            localizedString(R.string.mirror_thinking),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = VaultColors.inkMuted,
-                            fontStyle = FontStyle.Italic,
-                            modifier = Modifier.padding(horizontal = 6.dp),
+                            localizedString(R.string.mirror_placeholder),
+                            style = TextStyle(
+                                fontFamily = FontFamily.Serif,
+                                fontSize = 16.sp,
+                                color = VaultColors.inkMuted,
+                            ),
                         )
                     }
+                    inner()
                 }
-            }
-
-            // Composer — paperDeep strip, cream field, circular send (iOS composer)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .background(VaultColors.paperDeep.copy(alpha = 0.85f))
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                BasicTextField(
-                    value = draft,
-                    onValueChange = { draft = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(VaultColors.paper, RoundedCornerShape(8.dp))
-                        .border(1.dp, VaultColors.line.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    textStyle = TextStyle(
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 16.sp,
-                        color = VaultColors.ink,
-                        lineHeight = 22.sp,
-                    ),
-                    cursorBrush = SolidColor(VaultColors.seal),
-                    decorationBox = { inner ->
-                        Box {
-                            if (draft.isEmpty()) {
-                                Text(
-                                    localizedString(R.string.mirror_placeholder),
-                                    style = TextStyle(
-                                        fontFamily = FontFamily.Serif,
-                                        fontSize = 16.sp,
-                                        color = VaultColors.inkMuted,
-                                    ),
-                                )
-                            }
-                            inner()
-                        }
-                    },
-                )
-                IconButton(
-                    onClick = {
-                        val text = draft
-                        draft = ""
-                        viewModel.sendMirror(text)
-                    },
+            },
+        )
+        // Box+clickable avoids IconButton's 48.dp min size misaligning the 40.dp seal.
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(if (canSend) VaultColors.seal else VaultColors.line)
+                .clickable(
                     enabled = canSend,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = if (canSend) VaultColors.seal else VaultColors.line,
-                            shape = CircleShape,
-                        ),
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = localizedString(R.string.mirror_send),
-                        tint = if (canSend) VaultColors.paper else VaultColors.inkMuted,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
+                    role = Role.Button,
+                    onClick = onSend,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.Send,
+                contentDescription = localizedString(R.string.mirror_send),
+                tint = if (canSend) VaultColors.paper else VaultColors.inkMuted,
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }
