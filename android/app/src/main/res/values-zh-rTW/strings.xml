@@ -129,8 +129,10 @@
     <string name="auth_otp_verify">驗證並繼續</string>
     <string name="auth_otp_error">驗證碼不符，請再試一次。</string>
     <string name="auth_otp_error_debug_test_list">驗證碼不符。Debug 固定碼（如 123456）只對 Firebase Console → Authentication → Phone → Phone numbers for testing 列表中的號碼有效。若為測真簡訊已刪除，請加回該號，或改用簡訊裡的真實驗證碼。</string>
+    <string name="auth_otp_error_debug_detail">驗證碼不符。Firebase project=%1$s error=%2$s。請確認 google-services.json 的 project_id 是 diaryappsilas（與 Console 同一專案）。Logcat：VaultAuth|FirebasePhoneSMS。可重送；Debug 測試號應自動登入。</string>
+    <string name="auth_otp_session_expired_debug">驗證階段已過期（%1$s）。請重送驗證碼——Debug 測試號重送後應自動登入。</string>
     <string name="auth_otp_session_expired">驗證已過期。請點重新傳送，再輸入新驗證碼。</string>
-    <string name="auth_sms_sent_hint_debug">倒數計時只代表 Firebase 已接受傳送。控制台固定碼僅在號碼仍位於「Phone numbers for testing」時有效；若為測真簡訊已刪除，請加回，或等待真實簡訊。</string>
+    <string name="auth_sms_sent_hint_debug">Debug 測試號（+85284028001／+8615014531587）傳送後應自動登入。若仍出現驗證碼欄，請輸入 123456。google-services.json 必須是專案 diaryappsilas。</string>
     <string name="auth_phone_change_number">改用其他號碼</string>
     <string name="auth_phone_resend">重新發送驗證碼</string>
     <string name="auth_phone_resend_in">%1$d 秒後可重送</string>

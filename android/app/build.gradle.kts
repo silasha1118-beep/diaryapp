@@ -26,15 +26,29 @@ android {
         buildConfigField("String", "DIARY_SMS_PROVIDER", "\"${System.getenv("DIARY_SMS_PROVIDER") ?: ""}\"")
         buildConfigField("String", "DIARY_SMS_STUB_CODE", "\"${System.getenv("DIARY_SMS_STUB_CODE") ?: ""}\"")
         buildConfigField("String", "DIARY_FIREBASE_PROJECT_ID", "\"${System.getenv("DIARY_FIREBASE_PROJECT_ID") ?: "diaryappsilas"}\"")
+        // Overridden per buildType — release must stay empty (no hardcoded test OTPs).
+        buildConfigField("String", "DIARY_DEBUG_PHONE_TEST_CODES", "\"\"")
     }
 
     buildTypes {
+        debug {
+            // Console Phone numbers for testing (diaryappsilas). Used only when BuildConfig.DEBUG
+            // with FirebaseAuthSettings.setAutoRetrievedSmsCodeForPhoneNumber.
+            val fromEnv = System.getenv("DIARY_DEBUG_PHONE_TEST_CODES")?.trim().orEmpty()
+            val defaults = "+85284028001:123456,+8615014531587:123456"
+            buildConfigField(
+                "String",
+                "DIARY_DEBUG_PHONE_TEST_CODES",
+                "\"${(fromEnv.ifEmpty { defaults }).replace("\"", "\\\"")}\"",
+            )
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "DIARY_DEBUG_PHONE_TEST_CODES", "\"\"")
         }
     }
 

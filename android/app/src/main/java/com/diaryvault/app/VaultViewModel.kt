@@ -5,6 +5,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.diaryvault.app.account.AccountSession
+import com.diaryvault.app.auth.DebugPhoneTestCodes
 import com.diaryvault.app.auth.PhoneNumberNormalizer
 import com.diaryvault.app.auth.SMSAuthError
 import com.diaryvault.app.auth.SMSAuthProviderFactory
@@ -160,7 +161,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                 android.util.Log.i(
                     "VaultAuth",
                     "sendPhoneCode e164=$e164 resend=$resend dial=$dialLabel " +
-                        "providerKind=$smsProviderKind",
+                        "providerKind=$smsProviderKind project=${FirebaseBootstrap.projectId} " +
+                        "debugAutoSms=${DebugPhoneTestCodes.codeFor(e164) != null}",
                 )
                 val session = smsProvider.sendCode(activity, e164, resend = resend)
                 android.util.Log.i(
@@ -199,7 +201,8 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                     "VaultAuth",
                     "verifyPhoneCode path=${session.path} e164=${session.phoneE164} " +
                         "codeLen=${normalized.length} idLen=${session.verificationID.length} " +
-                        "auto=${session.autoVerified} providerKind=$smsProviderKind",
+                        "auto=${session.autoVerified} providerKind=$smsProviderKind " +
+                        "project=${FirebaseBootstrap.projectId}",
                 )
                 completePhoneSignIn(smsProvider.verify(normalized, session))
                 android.util.Log.i("VaultAuth", "verifyPhoneCode ok path=${session.path}")
@@ -265,12 +268,24 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun mapAuthError(e: Exception): String = when (e) {
         is SMSAuthError.InvalidPhone -> string(R.string.auth_phone_invalid)
-        // DEBUG: Firebase still onCodeSent when the number was removed from Console
-        // "Phone numbers for testing" (live-SMS work) — fixed 123456 then never matches.
+        // DEBUG: include Firebase project + error code so project mismatch / burned
+        // verificationId is visible without Logcat (Console test list may already be correct).
         is SMSAuthError.InvalidCode ->
-            if (BuildConfig.DEBUG) string(R.string.auth_otp_error_debug_test_list)
-            else string(R.string.auth_otp_error)
-        is SMSAuthError.SessionExpired -> string(R.string.auth_otp_session_expired)
+            if (BuildConfig.DEBUG) {
+                string(
+                    R.string.auth_otp_error_debug_detail,
+                    FirebaseBootstrap.projectId ?: "?",
+                    e.firebaseErrorCode.ifBlank { "INVALID_CODE" },
+                )
+            } else {
+                string(R.string.auth_otp_error)
+            }
+        is SMSAuthError.SessionExpired ->
+            if (BuildConfig.DEBUG && e.firebaseErrorCode.isNotBlank()) {
+                string(R.string.auth_otp_session_expired_debug, e.firebaseErrorCode)
+            } else {
+                string(R.string.auth_otp_session_expired)
+            }
         is SMSAuthError.RateLimited -> string(R.string.auth_sms_rate_limited)
         is SMSAuthError.BillingRequired -> string(R.string.auth_sms_billing_required)
         is SMSAuthError.RegionNotAllowed -> string(R.string.auth_sms_region_blocked)

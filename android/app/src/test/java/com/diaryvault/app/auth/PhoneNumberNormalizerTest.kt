@@ -29,4 +29,22 @@ class PhoneNumberNormalizerTest {
         assertFalse(RoutingSMSAuthProvider.isChinaMainland("+85284028001"))
         assertFalse(RoutingSMSAuthProvider.isChinaMainland("+85328"))
     }
+
+    @Test
+    fun composeE164_hkEightDigits() {
+        assertEquals(
+            "+85284028001",
+            PhoneNumberNormalizer.composeE164(
+                PhoneNumberNormalizer.RegionDial.HK,
+                "84028001",
+            ),
+        )
+        assertEquals(
+            "+85284028001",
+            PhoneNumberNormalizer.composeE164(
+                PhoneNumberNormalizer.RegionDial.HK,
+                "8402 8001",
+            ),
+        )
+    }
 }

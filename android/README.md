@@ -141,12 +141,13 @@ cd C:\dev\diaryapp\android
 **模拟器：** 仍用 Console 测试号 + 固定码（debug 模拟器会跳过 Integrity／Chrome）。**真短信请用实体机 + Google Play。**
 
 > **Debug 固定码登录（+86 与 +852 相同规则）：**  
-> 号码必须在 Firebase Console → Authentication → Phone → **Phone numbers for testing**。  
-> 测 `+852` 真短信时若已删除 `+85284028001`，输入 `123456` **永远**会「验证码不符」（`onCodeSent`／倒计时仍会出现）。加回列表即可；或改用短信真码。  
-> **请同时保留** `+86 15014531587` 与（需要时）`+85284028001` 在测试列表，方便 Debug 装包登录。  
-> DEBUG 另关闭 Instant Verification（`setTimeout(0)`），避免 MIUI 自动验证烧坏 `verificationId`。  
+> 号码必须在 Firebase Console → Authentication → Phone → **Phone numbers for testing**，且本机 `google-services.json` 的 **project_id 必须是 `diaryappsilas`**（与 Console 同一项目）。  
+> Debug 对内置测试号（`+85284028001` / `+8615014531587` → `123456`）会调用 Firebase 官方  
+> `setAutoRetrievedSmsCodeForPhoneNumber` + `setAppVerificationDisabledForTesting(true)`，发送后应 **自动登录**（不必手输）。  
+> 若仍出现验证码栏：输入 `123456`；失败时红字会带 `project=` 与 Firebase `error=`（方便发现 json 指错项目／session 过期被误报成「验证码不符」）。  
+> 测 `+852` 真短信时临时删除测试号即可；删完不要再输 `123456`。  
 > Release `+86` 待 Tencent／DA-102 KYC；`+852` release 仍走 Firebase（60s auto-retrieve）。  
-> Logcat：`VaultAuth`。
+> Logcat：`VaultAuth|FirebasePhoneSMS`。
 
 ## Optional: cloud Mirror AI
 
