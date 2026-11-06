@@ -141,7 +141,7 @@ class AliyunSmsAuthProvider(
             )
         }
 
-        if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
+        if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode()
 
         return try {
             val data = call(
@@ -202,7 +202,7 @@ class AliyunSmsAuthProvider(
             val details = error.message.orEmpty()
             return when (error.code) {
                 FirebaseFunctionsException.Code.INVALID_ARGUMENT ->
-                    if (details.contains("code", ignoreCase = true)) SMSAuthError.InvalidCode
+                    if (details.contains("code", ignoreCase = true)) SMSAuthError.InvalidCode()
                     else SMSAuthError.InvalidPhone
                 FirebaseFunctionsException.Code.RESOURCE_EXHAUSTED -> SMSAuthError.RateLimited
                 FirebaseFunctionsException.Code.FAILED_PRECONDITION ->

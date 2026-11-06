@@ -61,9 +61,15 @@ data class SMSAuthUser(
 
 sealed class SMSAuthError(message: String) : Exception(message) {
     data object InvalidPhone : SMSAuthError("Invalid phone number")
-    data object InvalidCode : SMSAuthError("Invalid verification code")
+    /**
+     * @param firebaseErrorCode raw Firebase Auth error code when known
+     *   (e.g. `ERROR_INVALID_VERIFICATION_CODE`) — shown in DEBUG UI / Logcat.
+     */
+    data class InvalidCode(val firebaseErrorCode: String = "") : SMSAuthError(
+        "Invalid verification code",
+    )
     /** Firebase verificationId expired / consumed (often Instant Verification raced onCodeSent). */
-    data object SessionExpired : SMSAuthError(
+    data class SessionExpired(val firebaseErrorCode: String = "") : SMSAuthError(
         "Verification session expired. Request a new code.",
     )
     data class NotConfigured(val detail: String) : SMSAuthError(detail)
@@ -189,13 +195,13 @@ class StubSMSAuthProvider : SMSAuthProviding {
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
         val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
-        if (trimmed.length != 6 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
+        if (trimmed.length != 6 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode()
         val fixed = AuthConfig.stubAcceptCode
         if (fixed != null) {
-            if (trimmed != fixed) throw SMSAuthError.InvalidCode
+            if (trimmed != fixed) throw SMSAuthError.InvalidCode()
         } else {
             val expected = issued[session.verificationID]
-            if (expected != null && trimmed != expected) throw SMSAuthError.InvalidCode
+            if (expected != null && trimmed != expected) throw SMSAuthError.InvalidCode()
         }
         return SMSAuthUser(
             userID = "phone-" + session.phoneE164.filter { it.isDigit() },
@@ -251,11 +257,33 @@ class FirebasePhoneSMSAuthProvider(
         // cannot sign in with a stale auto credential against a new onCodeSent session.
         pendingAutoCredential.set(null)
 
+        // DEBUG: official Firebase test API — forces onVerificationCompleted for Console
+        // Phone numbers for testing (must also be on the Console list for this project).
+        val debugTestCode = DebugPhoneTestCodes.codeFor(normalized)
+        applyDebugAutoRetrievedSms(normalized, debugTestCode)
+
+        val runtimeProject = FirebaseBootstrap.projectId
+        val expectedProject = AuthConfig.firebaseProjectID
+        if (BuildConfig.DEBUG &&
+            !runtimeProject.isNullOrBlank() &&
+            !expectedProject.isNullOrBlank() &&
+            runtimeProject != expectedProject
+        ) {
+            Log.e(
+                TAG,
+                "FIREBASE PROJECT MISMATCH runtime=$runtimeProject " +
+                    "expected=$expectedProject — google-services.json is not diaryappsilas; " +
+                    "Console test codes on another project will never verify",
+            )
+        }
+
         Log.i(
             TAG,
             "verifyPhoneNumber start e164=$normalized resend=$resend mode=$mode " +
                 "pkg=${appContext.packageName} activity=${activity.javaClass.simpleName} " +
-                "project=${FirebaseBootstrap.projectId} env=${PhoneAuthEnvironment.describe(activity)}",
+                "project=$runtimeProject expectedProject=$expectedProject " +
+                "debugAutoSms=${debugTestCode != null} " +
+                "env=${PhoneAuthEnvironment.describe(activity)}",
         )
 
         // Phone Auth + reCAPTCHA / Play Integrity must start on the main thread with a live Activity.
@@ -318,6 +346,8 @@ class FirebasePhoneSMSAuthProvider(
 
         if (!BuildConfig.DEBUG) {
             settings.setAppVerificationDisabledForTesting(false)
+            // Clear any leftover DEBUG auto-SMS pairing from a prior debug install/process.
+            settings.setAutoRetrievedSmsCodeForPhoneNumber(null, null)
             if (!playServices && !hasBrowser) {
                 Log.e(TAG, "No Play Services and no https browser — cannot verify app")
                 throw SMSAuthError.RecaptchaUnavailable
@@ -332,37 +362,38 @@ class FirebasePhoneSMSAuthProvider(
         }
 
         // DEBUG --------------------------------------------------------------
-        // Emulator Chrome Custom Tabs frequently ANR / lose sessionStorage. Skip browser
-        // verification entirely so Console test numbers work; real SMS → use a physical device.
-        if (emulator) {
-            settings.setAppVerificationDisabledForTesting(true)
-            Log.w(
-                TAG,
-                "DEBUG emulator: setAppVerificationDisabledForTesting(true) — " +
-                    "avoid Chrome Custom Tabs ANR / sessionStorage. " +
-                    "Use Firebase Console → Phone numbers for testing, or a real device with Play.",
-            )
-            return AppVerificationMode.DISABLED_FOR_TESTING
-        }
-
-        if (!hasBrowser && !playServices) {
-            settings.setAppVerificationDisabledForTesting(true)
-            Log.w(
-                TAG,
-                "DEBUG: no Play Services / browser — setAppVerificationDisabledForTesting(true). " +
-                    "Use Console test phone numbers, or a real device.",
-            )
-            return AppVerificationMode.DISABLED_FOR_TESTING
-        }
-
-        settings.setAppVerificationDisabledForTesting(false)
-        if (hasCustomTabs) PhoneAuthEnvironment.warmCustomTabs(activity)
-        Log.i(
+        // Firebase docs: disable app verification when exercising Console test numbers
+        // (emulator OR physical). Leaving Play Integrity on for sideloaded debug APKs
+        // on MIUI has produced onCodeSent + typed 123456 → INVALID_VERIFICATION_CODE
+        // even when the number is on Phone numbers for testing.
+        settings.setAppVerificationDisabledForTesting(true)
+        Log.w(
             TAG,
-            "DEBUG device: Play Integrity preferred (forceRecaptcha=false) " +
+            "DEBUG: setAppVerificationDisabledForTesting(true) " +
+                "emulator=$emulator playServices=$playServices hasBrowser=$hasBrowser " +
                 "env=${PhoneAuthEnvironment.describe(activity)}",
         )
-        return AppVerificationMode.DEFAULT
+        return AppVerificationMode.DISABLED_FOR_TESTING
+    }
+
+    /**
+     * Pair a Console test number with its fixed code so Firebase triggers
+     * [PhoneAuthProvider.OnVerificationStateChangedCallbacks.onVerificationCompleted]
+     * instead of relying on typed [PhoneAuthProvider.getCredential] (fragile on MIUI).
+     */
+    private fun applyDebugAutoRetrievedSms(e164: String, testCode: String?) {
+        val settings = FirebaseAuth.getInstance().firebaseAuthSettings
+        if (!BuildConfig.DEBUG || testCode.isNullOrBlank()) {
+            settings.setAutoRetrievedSmsCodeForPhoneNumber(null, null)
+            return
+        }
+        settings.setAutoRetrievedSmsCodeForPhoneNumber(e164, testCode)
+        Log.i(
+            TAG,
+            "DEBUG setAutoRetrievedSmsCodeForPhoneNumber e164=$e164 codeLen=${testCode.length} " +
+                "(requires same pair on Console Phone numbers for testing for project " +
+                "${FirebaseBootstrap.projectId})",
+        )
     }
 
     private suspend fun awaitVerification(
@@ -508,23 +539,35 @@ class FirebasePhoneSMSAuthProvider(
 
                 override fun onCodeAutoRetrievalTimeOut(verificationId: String) {
                     // SMS may still arrive; session already resumed via onCodeSent when applicable.
-                    Log.d(TAG, "onCodeAutoRetrievalTimeOut verificationIdLen=${verificationId.length}")
-                    if (verificationId.isNotBlank()) {
+                    // Do NOT overwrite prefs after onCodeSent with a different id — that caused
+                    // stale verificationId confusion when timeout=0 fires this immediately.
+                    Log.d(
+                        TAG,
+                        "onCodeAutoRetrievalTimeOut verificationIdLen=${verificationId.length} " +
+                            "alreadyResumed=${resumed.get()}",
+                    )
+                    if (verificationId.isNotBlank() && !resumed.get()) {
                         prefs().edit().putString(KEY_VERIFICATION_ID, verificationId).apply()
                     }
                 }
             }
 
-            // DEBUG: timeout 0 disables Instant Verification + SMS auto-retrieval so
-            // Console test numbers stay on the typed-code path (onCodeSent → 123456).
-            // On Xiaomi/MIUI, late Instant Verification after onCodeSent can burn the
-            // verificationId and make getCredential(id, "123456") return invalid-code.
-            // Release keeps 60s so live +852 SMS can auto-retrieve.
-            val autoRetrieveSeconds = if (BuildConfig.DEBUG) 0L else 60L
+            // Timeout semantics (Firebase): 0 = disable SMS auto-retrieval only
+            // (Instant Verification can still fire). When DEBUG pairs a Console test
+            // number via setAutoRetrievedSmsCodeForPhoneNumber, keep a normal window
+            // so onVerificationCompleted can win. Otherwise DEBUG uses 0 to avoid
+            // MIUI SMS-retriever races burning a typed verificationId.
+            val debugTestCode = DebugPhoneTestCodes.codeFor(normalized)
+            val autoRetrieveSeconds = when {
+                !BuildConfig.DEBUG -> 60L
+                debugTestCode != null -> 60L
+                else -> 0L
+            }
             Log.i(
                 TAG,
                 "PhoneAuthOptions timeout=${autoRetrieveSeconds}s " +
-                    "(0=disable Instant Verification / auto-retrieve) DEBUG=${BuildConfig.DEBUG}",
+                    "debugAutoSms=${debugTestCode != null} DEBUG=${BuildConfig.DEBUG} " +
+                    "e164=$normalized",
             )
             val builder = PhoneAuthOptions.newBuilder(FirebaseAuth.getInstance())
                 .setPhoneNumber(normalized)
@@ -612,8 +655,17 @@ class FirebasePhoneSMSAuthProvider(
                     try {
                         return signIn(pending, session.phoneE164)
                     } catch (e: Exception) {
-                        Log.e(TAG, "late Instant Verification sign-in failed: ${e.message}", e)
-                        // Fall through to typed path as last resort.
+                        Log.e(
+                            TAG,
+                            "late Instant Verification sign-in failed — not falling through " +
+                                "to typed getCredential (verificationId likely consumed): " +
+                                "${e.message}",
+                            e,
+                        )
+                        // Falling through previously mapped a burned id as「驗證碼不符」.
+                        throw SMSAuthError.SessionExpired(
+                            firebaseErrorCode = (e as? FirebaseAuthException)?.errorCode.orEmpty(),
+                        )
                     }
                 }
                 else -> {
@@ -631,7 +683,7 @@ class FirebasePhoneSMSAuthProvider(
     }
 
     private suspend fun verifyWithTypedCode(trimmed: String, session: SMSCodeSession): SMSAuthUser {
-        if (trimmed.length < 4 || trimmed.any { it !in '0'..'9' }) throw SMSAuthError.InvalidCode
+        if (trimmed.length < 4 || trimmed.any { it !in '0'..'9' }) throw SMSAuthError.InvalidCode()
 
         // Must use the verificationId from the same onCodeSent that filled otpSession.
         // Prefs are last-resort recovery only when the session id is blank (should be rare).
@@ -660,7 +712,7 @@ class FirebasePhoneSMSAuthProvider(
             "verifyCredential provider=FirebasePhone verificationIdLen=${verificationID.length} " +
                 "prefix=${verificationID.take(6)}… codeLen=${trimmed.length} " +
                 "fromSession=${fromSession.isNotEmpty() && fromSession != "auto"} " +
-                "e164=${session.phoneE164}",
+                "e164=${session.phoneE164} project=${FirebaseBootstrap.projectId}",
         )
 
         val credential = PhoneAuthProvider.getCredential(verificationID, trimmed)
@@ -669,7 +721,14 @@ class FirebasePhoneSMSAuthProvider(
             prefs().edit().remove(KEY_VERIFICATION_ID).apply()
             user
         } catch (e: Exception) {
-            Log.e(TAG, "signInWithCredential failed: ${e.message}", e)
+            val errCode = (e as? FirebaseAuthException)?.errorCode.orEmpty()
+            Log.e(
+                TAG,
+                "signInWithCredential failed code=$errCode msg=${e.message} " +
+                    "verificationIdLen=${verificationID.length} e164=${session.phoneE164} " +
+                    "project=${FirebaseBootstrap.projectId}",
+                e,
+            )
             throw mapFirebaseError(e)
         }
     }
@@ -707,22 +766,48 @@ class FirebasePhoneSMSAuthProvider(
             is FirebaseAuthException -> error.errorCode
             else -> ""
         }
+        Log.e(
+            TAG,
+            "mapFirebaseError code=$code class=${error.javaClass.simpleName} msg=$message " +
+                "project=${FirebaseBootstrap.projectId}",
+        )
 
         if (error is FirebaseTooManyRequestsException) return SMSAuthError.RateLimited
-        if (error is FirebaseAuthInvalidCredentialsException) {
-            return if (lowered.contains("phone")) SMSAuthError.InvalidPhone else SMSAuthError.InvalidCode
-        }
+
+        // IMPORTANT: do NOT map all FirebaseAuthInvalidCredentialsException → InvalidCode first.
+        // ERROR_SESSION_EXPIRED / ERROR_INVALID_VERIFICATION_ID also use that class and were
+        // previously shown as「驗證碼不符」with a misleading Console test-list hint.
 
         when {
             code.contains("INVALID_PHONE", ignoreCase = true) ||
                 lowered.contains("invalid format") ||
                 lowered.contains("invalid phone") -> return SMSAuthError.InvalidPhone
             code.contains("SESSION_EXPIRED", ignoreCase = true) ||
+                code.contains("INVALID_VERIFICATION_ID", ignoreCase = true) ||
                 lowered.contains("session expired") ||
-                lowered.contains("code has expired") -> return SMSAuthError.SessionExpired
-            code.contains("INVALID_VERIFICATION", ignoreCase = true) ||
-                lowered.contains("verification code") ||
-                lowered.contains("invalid code") -> return SMSAuthError.InvalidCode
+                lowered.contains("code has expired") ||
+                (lowered.contains("verification id") && lowered.contains("invalid")) ->
+                return SMSAuthError.SessionExpired(firebaseErrorCode = code)
+            code.contains("INVALID_VERIFICATION_CODE", ignoreCase = true) ||
+                (
+                    (
+                        code.contains("INVALID_VERIFICATION", ignoreCase = true) ||
+                            lowered.contains("verification code") ||
+                            lowered.contains("invalid code") ||
+                            lowered.contains("sms code")
+                        ) &&
+                        !code.contains("INVALID_VERIFICATION_ID", ignoreCase = true)
+                    ) ->
+                return SMSAuthError.InvalidCode(firebaseErrorCode = code)
+            error is FirebaseAuthInvalidCredentialsException -> {
+                // Broad credential failure with no specific code — prefer InvalidCode but
+                // keep the raw firebase code for DEBUG UI.
+                return if (lowered.contains("phone")) {
+                    SMSAuthError.InvalidPhone
+                } else {
+                    SMSAuthError.InvalidCode(firebaseErrorCode = code.ifBlank { "INVALID_CREDENTIAL" })
+                }
+            }
             code.contains("BILLING_NOT_ENABLED", ignoreCase = true) ||
                 lowered.contains("billing not enabled") ||
                 lowered.contains("upgrade to blaze") ||
