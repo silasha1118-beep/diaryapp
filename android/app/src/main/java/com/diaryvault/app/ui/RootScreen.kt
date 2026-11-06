@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.ui.auth.PhoneOTPLoginScreen
@@ -59,6 +61,9 @@ fun RootScreen(viewModel: VaultViewModel) {
 @Composable
 private fun MainTabs(viewModel: VaultViewModel) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    // Hide tab bar while IME is open so nested imePadding (Mirror composer, etc.)
+    // is not stacked on top of NavigationBar height (large empty gap above keyboard).
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
     VaultBackground {
         Scaffold(
@@ -67,29 +72,31 @@ private fun MainTabs(viewModel: VaultViewModel) {
             // + FAB are not double-padded against MIUI 3-button nav (Redmi 9C overlap).
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                // NavigationBarDefaults.windowInsets pads above system nav buttons.
-                NavigationBar(containerColor = VaultColors.paper.copy(alpha = 0.94f)) {
-                    NavigationBarItem(
-                        selected = tab == 0,
-                        onClick = { tab = 0 },
-                        icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null) },
-                        label = { Text(localizedString(R.string.tab_vault)) },
-                        colors = navColors(),
-                    )
-                    NavigationBarItem(
-                        selected = tab == 1,
-                        onClick = { tab = 1 },
-                        icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
-                        label = { Text(localizedString(R.string.tab_mirror)) },
-                        colors = navColors(),
-                    )
-                    NavigationBarItem(
-                        selected = tab == 2,
-                        onClick = { tab = 2 },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                        label = { Text(localizedString(R.string.tab_settings)) },
-                        colors = navColors(),
-                    )
+                if (!imeVisible) {
+                    // NavigationBarDefaults.windowInsets pads above system nav buttons.
+                    NavigationBar(containerColor = VaultColors.paper.copy(alpha = 0.94f)) {
+                        NavigationBarItem(
+                            selected = tab == 0,
+                            onClick = { tab = 0 },
+                            icon = { Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null) },
+                            label = { Text(localizedString(R.string.tab_vault)) },
+                            colors = navColors(),
+                        )
+                        NavigationBarItem(
+                            selected = tab == 1,
+                            onClick = { tab = 1 },
+                            icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null) },
+                            label = { Text(localizedString(R.string.tab_mirror)) },
+                            colors = navColors(),
+                        )
+                        NavigationBarItem(
+                            selected = tab == 2,
+                            onClick = { tab = 2 },
+                            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                            label = { Text(localizedString(R.string.tab_settings)) },
+                            colors = navColors(),
+                        )
+                    }
                 }
             },
         ) { padding ->
