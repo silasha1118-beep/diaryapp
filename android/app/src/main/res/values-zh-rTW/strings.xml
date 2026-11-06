@@ -114,7 +114,7 @@
     <string name="auth_headline">登入，讓金庫真正屬於你。</string>
     <string name="auth_body">使用手機號碼與簡訊驗證碼登入。登入後文字日記會同步到帳號。</string>
     <string name="auth_phone_label">手機號碼</string>
-    <string name="auth_phone_placeholder">手機號碼（不含國碼）</string>
+    <string name="auth_phone_placeholder">手機號碼</string>
     <string name="auth_phone_send">傳送驗證碼</string>
     <string name="auth_dial_tw">+886 台灣</string>
     <string name="auth_dial_hk">+852 香港</string>
