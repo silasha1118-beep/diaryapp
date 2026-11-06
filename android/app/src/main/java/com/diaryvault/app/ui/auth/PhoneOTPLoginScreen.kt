@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.auth.PhoneNumberNormalizer
 import com.diaryvault.app.auth.SmsAuthPath
 import com.diaryvault.app.config.AuthConfig
 import com.diaryvault.app.ui.components.AuthCreamField
@@ -55,7 +56,7 @@ import kotlinx.coroutines.delay
 
 /**
  * Phone SMS OTP gate — dial **+86** → Aliyun in release when configured;
- * **DEBUG +86** (and missing Aliyun keys) → Firebase Phone Auth (Console test numbers);
+ * **DEBUG +86** (and missing Aliyun / China CF keys) → Firebase Phone Auth (Console test numbers);
  * other dials → Firebase Phone Auth when `google-services.json` is present, else local stub.
  * Customer UI only — no DEBUG / stub / local-session chrome (prefs: no developer chrome).
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
@@ -171,7 +172,8 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
                 AuthCreamField(
                     value = code,
                     onValueChange = {
-                        code = it.filter { ch -> ch.isDigit() }.take(6)
+                        // ASCII-normalize full-width MIUI digits so Console `123456` matches.
+                        code = PhoneNumberNormalizer.normalizeOtpDigits(it).take(6)
                         viewModel.clearAuthError()
                     },
                     enabled = !busy,

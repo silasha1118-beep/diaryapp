@@ -144,6 +144,7 @@ object SMSAuthProviderFactory {
     /**
      * Dual SMS:
      * - **DEBUG:** all dials (including +86) → Firebase Phone Auth so Console test numbers work
+     *   ([RoutingSMSAuthProvider] + [AliyunSmsAuthProvider] both force Firebase in DEBUG)
      * - **Release +86:** Aliyun Cloud Functions when keys are set; if keys/Functions missing →
      *   Firebase Phone Auth fallback (not a local stub that ignores Console codes)
      * - other dials → Firebase Phone Auth (Play Integrity preferred — see #77)
@@ -154,6 +155,7 @@ object SMSAuthProviderFactory {
         return RoutingSMSAuthProvider(
             chinaMainland = AliyunSmsAuthProvider(app, firebaseFallback = firebase),
             other = firebase,
+            // Explicit + BuildConfig.DEBUG OR inside pick() — Console +86 test codes.
             preferFirebaseForChinaMainland = BuildConfig.DEBUG,
         )
     }
@@ -182,7 +184,7 @@ class StubSMSAuthProvider : SMSAuthProviding {
     }
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
-        val trimmed = code.trim()
+        val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
         if (trimmed.length != 6 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
         val fixed = AuthConfig.stubAcceptCode
         if (fixed != null) {
@@ -546,20 +548,22 @@ class FirebasePhoneSMSAuthProvider(
             )
         }
 
-        pendingAutoCredential.getAndSet(null)?.let { auto ->
-            Log.i(TAG, "verify via pending auto credential")
-            return signIn(auto, session.phoneE164)
-        }
-
+        // Auto-retrieval credential is only valid for the same send that set autoVerified.
+        // Never consume a stale pending credential against a typed-code session.
         if (session.autoVerified) {
+            pendingAutoCredential.getAndSet(null)?.let { auto ->
+                Log.i(TAG, "verify via pending auto credential")
+                return signIn(auto, session.phoneE164)
+            }
             throw SMSAuthError.Underlying("Auto-verification expired. Request a new code.")
         }
+        pendingAutoCredential.set(null)
 
-        val trimmed = code.trim()
+        val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
         if (trimmed.length < 4 || !trimmed.all { it.isDigit() }) throw SMSAuthError.InvalidCode
 
-        // Prefer the verificationId from onCodeSent stored on the session.
-        // Prefs are a last-resort recovery only when the session id is blank.
+        // Must use the verificationId from the same onCodeSent that filled otpSession.
+        // Prefs are last-resort recovery only when the session id is blank (should be rare).
         val fromSession = session.verificationID.trim()
         val verificationID = when {
             fromSession.isNotEmpty() && fromSession != "auto" -> fromSession
@@ -568,17 +572,24 @@ class FirebasePhoneSMSAuthProvider(
         if (verificationID.isEmpty() || verificationID == "auto") {
             throw SMSAuthError.Underlying("Missing verification session. Request a new code.")
         }
-        if (fromSession.isNotEmpty() && fromSession != "auto" &&
-            fromSession != prefs().getString(KEY_VERIFICATION_ID, null)
-        ) {
-            // Session wins; keep prefs aligned for any recovery path.
+        if (fromSession.isNotEmpty() && fromSession != "auto") {
+            // Session from this onCodeSent always wins over any older prefs value.
+            if (fromSession != prefs().getString(KEY_VERIFICATION_ID, null)) {
+                Log.w(
+                    TAG,
+                    "verify: session verificationId differs from prefs — using session " +
+                        "(same onCodeSent). sessionLen=${fromSession.length} " +
+                        "prefsLen=${prefs().getString(KEY_VERIFICATION_ID, null)?.length ?: 0}",
+                )
+            }
             prefs().edit().putString(KEY_VERIFICATION_ID, fromSession).apply()
         }
         Log.i(
             TAG,
             "verifyCredential verificationIdLen=${verificationID.length} " +
                 "prefix=${verificationID.take(6)}… codeLen=${trimmed.length} " +
-                "fromSession=${fromSession.isNotEmpty()}",
+                "fromSession=${fromSession.isNotEmpty() && fromSession != "auto"} " +
+                "e164=${session.phoneE164}",
         )
 
         val credential = PhoneAuthProvider.getCredential(verificationID, trimmed)
