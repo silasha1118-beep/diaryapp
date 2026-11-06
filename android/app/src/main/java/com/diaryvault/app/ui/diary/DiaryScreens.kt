@@ -84,11 +84,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
+import com.diaryvault.app.billing.BillingConfig
 import com.diaryvault.app.media.DiaryMediaFileStore
 import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.DiaryMediaKind
 import com.diaryvault.app.ui.components.VaultBrandHeader
 import com.diaryvault.app.ui.components.localizedString
+import com.diaryvault.app.ui.paywall.UpgradeCheckoutSheet
 import com.diaryvault.app.ui.theme.VaultColors
 import java.text.DateFormat
 import java.util.Date
@@ -517,6 +519,7 @@ private fun DiaryComposerScreen(
     var hardMeta by remember { mutableStateOf<String?>(null) }
     var hardShowUpgrade by remember { mutableStateOf(false) }
     var hardUpgradePro by remember { mutableStateOf(false) }
+    var showUpgradeCheckout by remember { mutableStateOf(false) }
     // Mirror iOS: canSave when body has text OR attachments present.
     val canSave = body.isNotBlank() || attachments.isNotEmpty()
 
@@ -742,11 +745,25 @@ private fun DiaryComposerScreen(
                             ),
                             color = VaultColors.seal,
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable { showUpgradeCheckout = true },
                         )
                     }
                 }
             }
         }
+    }
+
+    if (showUpgradeCheckout) {
+        UpgradeCheckoutSheet(
+            viewModel = viewModel,
+            preferredTier = if (hardUpgradePro) {
+                BillingConfig.Tier.AUTHOR_PRO
+            } else {
+                BillingConfig.Tier.AUTHOR_PLUS
+            },
+            onDismiss = { showUpgradeCheckout = false },
+        )
     }
 }
 

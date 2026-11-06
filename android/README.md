@@ -201,6 +201,55 @@ export XAI_API_KEY="…"
 
 Quotas (local counter): Free **40 lifetime** · Plus **8/day** · Pro **16/day**.
 
+## Play Billing（訂閱 / Author Plus · Author Pro）
+
+Client uses **Google Play Billing Library 7** (`billing-ktx`). Product IDs match iOS StoreKit:
+
+| Tier | Period | Product ID |
+|------|--------|------------|
+| Author Plus | monthly | `com.diaryvault.author.plus.monthly` |
+| Author Plus | quarterly | `com.diaryvault.author.plus.quarterly` |
+| Author Plus | yearly | `com.diaryvault.author.plus.yearly` |
+| Author Pro | monthly | `com.diaryvault.author.pro.monthly` |
+| Author Pro | quarterly | `com.diaryvault.author.pro.quarterly` |
+| Author Pro | yearly | `com.diaryvault.author.pro.yearly` |
+
+App **compiles and runs without** Console products — paywall shows「价格尚未加载／Plans could not be loaded」until SKUs exist. Free vault copy never claims device-only storage (signed-in Free includes cloud sync).
+
+### What works in the app now
+
+- Settings → **查看方案／恢复购买** → full paywall (Plus + Pro × 月／季／年 + restore)
+- Vault create / Mirror exhausted → upgrade CTA → compact checkout sheet
+- Entitlements drive existing Free 40 / Plus 8/day / Pro 16/day quota guards
+- **DEBUG only:** paywall → **模拟 Plus / 模拟 Pro / 清除模拟** (no Play charge) for Redmi quota smoke
+
+### Silas — Play Console 商品（华为 Windows 简体 UI）
+
+在 [Google Play Console](https://play.google.com/console) 打开应用 **`com.diaryvault.app`**（若尚未创建应用：所有应用 → 创建应用 → 填写名称「日記金庫」／包名 `com.diaryvault.app`）。
+
+1. 左侧 **获利** → **商品** → **订阅**（Monetize → Products → Subscriptions）。
+2. 建立 **6 个订阅商品**（每个周期一个独立 product ID，与上表完全一致；不要改拼写）。
+3. 每个商品内再建 **一个基础方案（base plan）**：
+   - 月订 → 续订周期 **1 个月**
+   - 季订 → **3 个月**
+   - 年订 → **1 年**
+   - 自动续订开启；价格按地区设定（TW／HK／CN／MY／SG／TH／JP）。
+4. 把 6 个商品都设为 **有效**（Active）。同一订阅组内 Pro 应高于 Plus（服务等级），与 iOS 一致。
+5. **设置** → **授权许可测试**（License testing）→ 加入你的 Google 测试账号（Gmail）。
+6. 可选：用 **内部测试** 轨道上传 AAB／APK，用许可测试账号安装；或继续用 Android Studio **Run Debug**（真机须有 Google Play）。
+7. 静态回复（可选）：许可测试账号可在 Play 商店对测试购买使用「测试卡片」／延迟结算等选项（Console → 设置 → 授权许可测试说明）。
+
+完成前：Debug 构建用 paywall 底部 **模拟 Plus／Pro** 验证额度；真实购买按钮会提示商品不可用。
+
+### Redmi 真机测试（手机 UI 繁體）
+
+1. 連上 Redmi → Android Studio **執行** Debug（包名 `com.diaryvault.app`）。
+2. **設定** → **訂閱** → **查看方案／恢復購買**：
+   - Console 尚未建商品時：看到「目前無法從 Google Play 載入方案」。
+   - Debug：點 **模擬 Plus** → 回設定應顯示 Author Plus；鏡子／金庫額度變每日 8。
+3. 金庫寫滿 Free 40 或鏡子用盡 → 出現升級 CTA → 開啟結帳表。
+4. Console SKU 就緒後：用 **許可測試** Google 帳號登入 Play → 真機訂閱 → **恢復購買**。
+
 ## Layout
 
 ```text
@@ -209,11 +258,12 @@ android/
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
     auth/        # SMS OTP (DEBUG +86 → Firebase; release +86 → Aliyun CF / Firebase fallback)
+    billing/     # BillingConfig + SubscriptionStore (Play Billing)
     config/      # AuthConfig, FirebaseBootstrap, DiaryMediaConfig, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
     media/       # DiaryMediaFileStore (filesDir/diary_media/{entryId}/)
     sync/        # DiaryCloudSync + DiaryMediaCloudSync (Firestore + Storage parity with iOS)
-    ui/          # auth, diary (+ media dock/playback), mirror, settings, theme
+    ui/          # auth, diary, mirror, paywall, settings, theme
 ```
 
 ## Vault multimedia smoke (Windows Studio / Huawei)
