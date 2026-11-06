@@ -17,7 +17,6 @@
     <string name="onboarding_privacy_point1">Your entries stay in your vault. Export and leave anytime.</string>
     <string name="onboarding_privacy_point2">AI learns only to understand you better — not to train a public model.</string>
     <string name="onboarding_privacy_point3">Gentle reminders can be turned off. Mirror tone only: reflect + ask.</string>
-    <string name="onboarding_privacy_residency">Data residency narrative: Taiwan (TW). Cloud AI only — no on-device model in MVP.</string>
     <string name="onboarding_name_title">What should we call you?</string>
     <string name="onboarding_name_body">Optional. Used only inside your vault.</string>
     <string name="onboarding_name_placeholder">Your name</string>
