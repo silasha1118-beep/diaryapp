@@ -137,7 +137,7 @@
     <string name="auth_sms_recaptcha_unavailable">安全验证需要 Google Play 或浏览器。模拟器请到 Firebase Console → Authentication → Phone → Phone numbers for testing 加入此号码并输入测试码，或改用实体手机。</string>
     <string name="auth_sms_recaptcha_browser_failed">浏览器安全页失败（或 Chrome 无响应）。请关闭该页面回到本应用后重试。建议使用带 Google Play 的实体手机——模拟器上的 Chrome 不稳定。</string>
     <string name="auth_sms_timed_out">请求超时。若安全验证浏览器页仍开着请先关闭，然后重试；或改用带 Google Play 的实体手机。</string>
-    <string name="auth_sms_sent_hint">若未收到可稍后再试</string>
+    <string name="auth_sms_sent_hint">已发出验证码请求。若一分钟内未收到短信，请检查垃圾短信、等倒计时结束后再重发。</string>
     <string name="auth_sms_empty_verification">验证尚未完成，请再发送一次验证码。</string>
     <string name="auth_sms_generic_failure">发送验证码时出现问题，请稍后再试。</string>
     <string name="auth_sms_sending_security">正在验证此设备…</string>

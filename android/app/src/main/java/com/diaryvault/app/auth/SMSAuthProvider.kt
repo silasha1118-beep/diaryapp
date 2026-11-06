@@ -448,10 +448,13 @@ class FirebasePhoneSMSAuthProvider(
                         }
                         return
                     }
+                    // onCodeSent ≠ carrier delivery. Console "Phone numbers for testing"
+                    // also fires this with no SMS — user must enter the fixed test code.
                     Log.i(
                         TAG,
-                        "onCodeSent verificationIdLen=${verificationId.length} " +
-                            "prefix=${verificationId.take(6)}…",
+                        "onCodeSent e164=$normalized verificationIdLen=${verificationId.length} " +
+                            "prefix=${verificationId.take(6)}… " +
+                            "(no SMS if number is on Firebase Phone numbers for testing)",
                     )
                     forceResendToken.set(token)
                     lastPhoneE164.set(normalized)
