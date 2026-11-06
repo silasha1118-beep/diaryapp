@@ -29,6 +29,7 @@ import com.diaryvault.app.model.MirrorMessage
 import com.diaryvault.app.model.MirrorRole
 import com.diaryvault.app.service.DiaryUploadUsageGuard
 import com.diaryvault.app.service.MirrorAIError
+import com.diaryvault.app.service.MirrorUsageGuard
 import com.diaryvault.app.service.createMirrorAIService
 import com.diaryvault.app.service.localeForLanguageTag
 import com.diaryvault.app.sync.DiaryCloudSync
@@ -45,9 +46,17 @@ import kotlinx.coroutines.withContext
 class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = AppPreferences(application)
     private val store = DiaryStore(application, viewModelScope)
-    private val ai = createMirrorAIService(application)
     private val accountSession = AccountSession(application)
     private val billingStub = BillingStub()
+    private val isAuthorPlusEntitled: Boolean
+        get() = billingStub.isSubscribed && !isAuthorProEntitled
+    private val isAuthorProEntitled: Boolean
+        get() = false
+    private val ai = createMirrorAIService(
+        application,
+        isAuthorPlus = { isAuthorPlusEntitled },
+        isAuthorPro = { isAuthorProEntitled },
+    )
     private val smsProvider: SMSAuthProviding = SMSAuthProviderFactory.make(application)
 
     private val _language = MutableStateFlow(AppLanguage.fromTag(prefs.languageTag))
@@ -85,8 +94,16 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     private val _mirrorThinking = MutableStateFlow(false)
     val mirrorThinking: StateFlow<Boolean> = _mirrorThinking.asStateFlow()
 
+    /** Clear banner error (network / not configured / quota) — not appended as a chat bubble. */
+    private val _mirrorError = MutableStateFlow<String?>(null)
+    val mirrorError: StateFlow<String?> = _mirrorError.asStateFlow()
+
+    private val _mirrorQuotaTick = MutableStateFlow(0)
+    val mirrorQuotaTick: StateFlow<Int> = _mirrorQuotaTick.asStateFlow()
+
     val useCloudClient: Boolean get() = AIConfig.useCloudClient
     val isAnthropicProvider: Boolean get() = AIConfig.provider == AIProvider.ANTHROPIC
+    val aiModelLabel: String get() = if (useCloudClient) AIConfig.model else "mock"
     val dataResidency: String get() = AIConfig.dataResidencyLabel
 
     private val _accountSignedIn = MutableStateFlow(accountSession.isSignedIn)
@@ -366,12 +383,6 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         ) : AddEntryResult()
     }
 
-    private val isAuthorPlusEntitled: Boolean
-        get() = billingStub.isSubscribed
-
-    private val isAuthorProEntitled: Boolean
-        get() = false
-
     fun addEntry(
         title: String,
         body: String,
@@ -422,13 +433,50 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
         return if (args.isEmpty()) ctx.getString(resId) else ctx.getString(resId, *args)
     }
 
+    fun clearMirrorError() {
+        _mirrorError.value = null
+    }
+
+    fun mirrorQuotaRemaining(): Int? {
+        val ctx = getApplication<Application>()
+        return MirrorUsageGuard.remaining(ctx, isAuthorPlusEntitled, isAuthorProEntitled)
+    }
+
+    fun mirrorQuotaLimit(): Int =
+        MirrorUsageGuard.effectiveLimit(isAuthorPlusEntitled, isAuthorProEntitled)
+
+    fun mirrorQuotaExhausted(): Boolean {
+        val ctx = getApplication<Application>()
+        return MirrorUsageGuard.isExhausted(ctx, isAuthorPlusEntitled, isAuthorProEntitled)
+    }
+
     fun sendMirror(userText: String) {
         val trimmed = userText.trim()
         if (trimmed.isEmpty() || _mirrorThinking.value) return
 
+        val ctx = getApplication<Application>()
+        val plus = isAuthorPlusEntitled
+        val pro = isAuthorProEntitled
+
+        if (MirrorUsageGuard.isExhausted(ctx, plus, pro)) {
+            val limit = MirrorUsageGuard.effectiveLimit(plus, pro)
+            _mirrorError.value = when {
+                pro -> string(R.string.mirror_quota_exhausted_pro, limit)
+                plus -> string(R.string.mirror_quota_exhausted_plus, limit)
+                else -> string(R.string.mirror_quota_exhausted_free, limit)
+            }
+            return
+        }
+
+        if (!AIConfig.useCloudClient) {
+            _mirrorError.value = string(R.string.mirror_error_not_configured)
+            return
+        }
+
         val userMsg = MirrorMessage(role = MirrorRole.User, text = trimmed)
         _mirrorMessages.value = _mirrorMessages.value + userMsg
         _mirrorThinking.value = true
+        _mirrorError.value = null
 
         viewModelScope.launch {
             try {
@@ -446,19 +494,21 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 _mirrorMessages.value = _mirrorMessages.value + reply
             } catch (e: Exception) {
-                val fallbackText = when (e) {
-                    is MirrorAIError.RateLimited, is MirrorAIError.Network, is MirrorAIError.NotConfigured ->
-                        e.message ?: e.toString()
-                    else ->
-                        string(R.string.mirror_mock_no_cite) + "\n\n" + string(R.string.mirror_mock_question)
+                _mirrorError.value = when (e) {
+                    is MirrorAIError.RateLimited -> when {
+                        e.isAuthorPro -> string(R.string.mirror_quota_exhausted_pro, e.limit)
+                        e.isAuthorPlus -> string(R.string.mirror_quota_exhausted_plus, e.limit)
+                        else -> string(R.string.mirror_quota_exhausted_free, e.limit)
+                    }
+                    is MirrorAIError.NotConfigured -> string(R.string.mirror_error_not_configured)
+                    is MirrorAIError.Network -> string(R.string.mirror_error_network, e.message ?: "")
+                    is MirrorAIError.Decoding -> string(R.string.mirror_error_decoding)
+                    is MirrorAIError.EmptyInput -> null
+                    else -> string(R.string.mirror_error_network, e.message ?: e.toString())
                 }
-                val fallback = MirrorMessage(
-                    role = MirrorRole.Mirror,
-                    text = fallbackText,
-                )
-                _mirrorMessages.value = _mirrorMessages.value + fallback
             } finally {
                 _mirrorThinking.value = false
+                _mirrorQuotaTick.value = _mirrorQuotaTick.value + 1
             }
         }
     }

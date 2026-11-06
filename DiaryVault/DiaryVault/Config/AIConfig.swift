@@ -9,11 +9,11 @@ enum AIProvider: String {
 /// Cloud LLM configuration. No secrets belong in the repo.
 ///
 /// Wire a cloud chat API via scheme env / Info.plist:
-/// - `DIARY_AI_API_KEY` — required to leave mock mode (never commit)
-/// - `DIARY_AI_PROVIDER` — optional; `openai` (default) or `anthropic`.
+/// - `DIARY_AI_API_KEY` or `XAI_API_KEY` — required to leave mock mode (never commit)
+/// - `DIARY_AI_PROVIDER` — optional; `openai` / `xai` (default) or `anthropic`.
 ///   Auto-detects `anthropic` when `DIARY_AI_BASE_URL` contains `anthropic`.
-/// - `DIARY_AI_BASE_URL` — optional; defaults to OpenAI or Anthropic host by provider
-/// - `DIARY_AI_MODEL` — optional; defaults to `gpt-4o-mini` (openai) or `claude-sonnet-4-5` (anthropic)
+/// - `DIARY_AI_BASE_URL` — optional; defaults to **https://api.x.ai** (openai/xai) or Anthropic host
+/// - `DIARY_AI_MODEL` — optional; defaults to **grok-4.7** (openai/xai) or `claude-sonnet-4-5` (anthropic)
 /// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 400)
 /// - `DIARY_AI_MAX_CONTEXT_ENTRIES` — optional; diary excerpts in prompt (default 8)
 /// - `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT` — Free-tier Mirror lifetime hard cap (default 40; alias `DIARY_AI_FREE_DAILY_REQUEST_LIMIT`)
@@ -25,9 +25,10 @@ enum AIProvider: String {
 ///
 /// Data residency narrative for this product: Taiwan (TW).
 enum AIConfig {
-    static let defaultOpenAIBaseURLString = "https://api.openai.com"
+    /// Host only — ``CloudMirrorAIClient`` appends `/v1/chat/completions`.
+    static let defaultOpenAIBaseURLString = "https://api.x.ai"
     static let defaultAnthropicBaseURLString = "https://api.anthropic.com"
-    static let defaultOpenAIModel = "gpt-4o-mini"
+    static let defaultOpenAIModel = "grok-4.7"
     static let defaultAnthropicModel = "claude-sonnet-4-5"
     /// Anthropic Messages API version header value.
     static let anthropicAPIVersion = "2023-06-01"
@@ -46,11 +47,11 @@ enum AIConfig {
     // Diary media duration soft caps: see ``DiaryMediaConfig`` (voice 90s / video 60s).
     // Multimedia **upload count** caps live in UploadQuotaConfig (same vault bucket as text).
 
-    /// Resolved provider: explicit `DIARY_AI_PROVIDER`, else auto-detect from BASE_URL, else openai.
+    /// Resolved provider: explicit `DIARY_AI_PROVIDER`, else auto-detect from BASE_URL, else openai (xAI).
     static var provider: AIProvider {
         if let raw = value(for: "DIARY_AI_PROVIDER")?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
             if raw == AIProvider.anthropic.rawValue { return .anthropic }
-            if raw == AIProvider.openai.rawValue { return .openai }
+            if raw == AIProvider.openai.rawValue || raw == "xai" || raw == "grok" { return .openai }
         }
         if let base = value(for: "DIARY_AI_BASE_URL")?.lowercased(), base.contains("anthropic") {
             return .anthropic
@@ -59,10 +60,14 @@ enum AIConfig {
     }
 
     static var baseURL: URL? {
-        if let raw = value(for: "DIARY_AI_BASE_URL"), let url = URL(string: raw) {
-            return url
+        if let raw = value(for: "DIARY_AI_BASE_URL") {
+            var cleaned = raw.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if cleaned.lowercased().hasSuffix("/v1") {
+                cleaned = String(cleaned.dropLast(3)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            }
+            if let url = URL(string: cleaned) { return url }
         }
-        // Key alone is enough; default host depends on provider.
+        // Key alone is enough; default host depends on provider (xAI for openai path).
         guard apiKey != nil else { return nil }
         let fallback = provider == .anthropic
             ? defaultAnthropicBaseURLString
@@ -71,7 +76,7 @@ enum AIConfig {
     }
 
     static var apiKey: String? {
-        value(for: "DIARY_AI_API_KEY")
+        value(for: "DIARY_AI_API_KEY") ?? value(for: "XAI_API_KEY")
     }
 
     static var model: String {

@@ -167,13 +167,39 @@ cd C:\dev\diaryapp\android
 > Release `+86` 待 Tencent／DA-102 KYC；`+852` release 仍走 Firebase（60s auto-retrieve）。  
 > Logcat：`VaultAuth|FirebasePhoneSMS`。
 
-## Optional: cloud Mirror AI
+## Cloud Mirror AI (xAI Grok)
+
+Working provider: **xAI Grok** (OpenAI-compatible). No Firebase Functions proxy in-repo yet — key stays on the device build via gitignored `local.properties`.
+
+### Silas — Windows Studio steps（简体）
+
+1. Get an API key at https://console.x.ai → API Keys.
+2. Open (or create) `C:\dev\diaryapp\android\local.properties`（Android Studio 已有 `sdk.dir=…` 时直接追加，不要删掉 sdk.dir）:
+
+```properties
+XAI_API_KEY=xai-your-key-here
+# optional overrides (defaults below are already correct for Grok):
+# DIARY_AI_BASE_URL=https://api.x.ai
+# DIARY_AI_MODEL=grok-4.7
+# DIARY_AI_PROVIDER=openai
+```
+
+`DIARY_AI_API_KEY` is accepted as an alias of `XAI_API_KEY`. **Never commit** `local.properties` (already gitignored).
+
+3. Android Studio → **Sync Project with Gradle Files** → Run Debug（须重新编译，BuildConfig 才会带上密钥）.
+4. Open **镜子 / Mirror** → send a message. Banner should show remaining Free lifetime quota (40). Reply comes from live Grok.
+
+Without a key the app still builds; Mirror shows a clear “needs key” banner and does not invent mock replies.
+
+### Env alternative (CI / terminal)
 
 ```bash
-export DIARY_AI_API_KEY="…"
-export DIARY_AI_PROVIDER=openai   # or anthropic / xai
+export XAI_API_KEY="…"
+# or: export DIARY_AI_API_KEY="…"
 ./gradlew :app:assembleDebug
 ```
+
+Quotas (local counter): Free **40 lifetime** · Plus **8/day** · Pro **16/day**.
 
 ## Layout
 

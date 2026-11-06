@@ -62,6 +62,17 @@
     <string name="mirror_mock_no_cite">我聽見了。金庫裡可引用的文字還不多——沒關係，我們可以慢慢寫。</string>
     <string name="mirror_mock_question">這段話裡，哪一部分最接近你此刻的感覺？</string>
     <string name="mirror_mock_disclaimer">根據你寫過的內容 · 模擬鏡子（非教練處方）</string>
+    <string name="mirror_mode_needs_key">鏡子需要 xAI 金鑰 — 在 android/local.properties 加入 XAI_API_KEY，Sync 後重新編譯</string>
+    <string name="mirror_error_not_configured">雲端鏡子尚未設定。請在 android/local.properties 加入 XAI_API_KEY（或 DIARY_AI_API_KEY），Sync Gradle 並重新編譯。切勿提交金鑰。</string>
+    <string name="mirror_error_network">鏡子無法連線雲端 AI：%1$s</string>
+    <string name="mirror_error_decoding">鏡子收到異常回覆。請再試一次。</string>
+    <string name="mirror_error_dismiss">關閉</string>
+    <string name="mirror_quota_remaining_lifetime">鏡子生涯剩餘 %1$d／%2$d 次</string>
+    <string name="mirror_quota_remaining_daily">今日鏡子剩餘 %1$d／%2$d 次</string>
+    <string name="mirror_quota_unlimited">今日鏡子不限次數</string>
+    <string name="mirror_quota_exhausted_free">免費鏡子已用完（生涯 %1$d 次）。請升級 Author Plus 繼續。</string>
+    <string name="mirror_quota_exhausted_plus">今日鏡子已用完（%1$d）。可升級 Author Pro（16 次／日），或明天再試。</string>
+    <string name="mirror_quota_exhausted_pro">今日鏡子已用完（%1$d）。請明天再試。</string>
     <string name="settings_title">設定</string>
     <string name="settings_section_account">帳號</string>
     <string name="settings_account_status">狀態</string>
@@ -93,7 +104,7 @@
     <string name="settings_ai_provider_openai">OpenAI 相容</string>
     <string name="settings_ai_provider_anthropic">Anthropic</string>
     <string name="settings_ai_residency">資料落地</string>
-    <string name="settings_ai_footer">以 Gradle／環境變數設定 DIARY_AI_API_KEY，可選 DIARY_AI_PROVIDER=anthropic|openai。倉庫不含密鑰。</string>
+    <string name="settings_ai_footer">目前可用：xAI Grok。在 android/local.properties 加入 XAI_API_KEY（或 DIARY_AI_API_KEY）；預設 BASE_URL https://api.x.ai、模型 grok-4.7。倉庫不含密鑰。</string>
     <string name="settings_section_legacy">遺產／紀念</string>
     <string name="settings_legacy_stub">紀念與遺產相關設定將於之後版本提供。</string>
     <string name="settings_legacy_footer">僅路線圖。本 MVP 骨架刻意省略。</string>

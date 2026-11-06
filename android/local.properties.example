@@ -1,0 +1,16 @@
+## Example only — copy keys into local.properties (gitignored). Never commit real keys.
+## Android Studio already writes sdk.dir=… into local.properties; append AI keys below it.
+
+## Required for live Mirror (xAI Grok):
+# XAI_API_KEY=xai-...
+
+## Aliases / optional overrides (defaults match product pref):
+# DIARY_AI_API_KEY=xai-...
+# DIARY_AI_PROVIDER=openai
+# DIARY_AI_BASE_URL=https://api.x.ai
+# DIARY_AI_MODEL=grok-4.7
+# DIARY_AI_MAX_TOKENS=400
+# DIARY_AI_MAX_CONTEXT_ENTRIES=8
+# DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT=40
+# DIARY_AI_DAILY_REQUEST_LIMIT=8
+# DIARY_AI_PRO_DAILY_REQUEST_LIMIT=16

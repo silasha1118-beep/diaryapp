@@ -4,6 +4,7 @@ import com.diaryvault.app.BuildConfig
 
 /** Supported cloud LLM providers for Mirror. */
 enum class AIProvider {
+    /** OpenAI-compatible chat completions (xAI Grok, OpenAI, DeepSeek, etc.). */
     OPENAI,
     ANTHROPIC,
 }
@@ -11,12 +12,12 @@ enum class AIProvider {
 /**
  * Cloud LLM configuration. No secrets belong in the repo.
  *
- * Wire a cloud chat API at build/run time:
- * - DIARY_AI_API_KEY — required to leave mock mode (never commit)
- * - DIARY_AI_PROVIDER — optional; openai (default) or anthropic.
+ * Wire a cloud chat API at build/run time (local.properties preferred on Windows):
+ * - DIARY_AI_API_KEY or XAI_API_KEY — required for live Mirror (never commit)
+ * - DIARY_AI_PROVIDER — optional; `openai` / `xai` (default) or `anthropic`.
  *   Auto-detects anthropic when DIARY_AI_BASE_URL contains "anthropic".
- * - DIARY_AI_BASE_URL — optional; defaults to OpenAI or Anthropic host by provider
- * - DIARY_AI_MODEL — optional; defaults to gpt-4o-mini (openai) or claude-sonnet-4-5 (anthropic)
+ * - DIARY_AI_BASE_URL — optional; default **https://api.x.ai** (app appends `/v1/chat/completions`)
+ * - DIARY_AI_MODEL — optional; default **grok-4.7** (openai/xai) or claude-sonnet-4-5 (anthropic)
  * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 400)
  * - DIARY_AI_MAX_CONTEXT_ENTRIES — optional; diary excerpts in prompt (default 8)
  * - DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT — Free Mirror lifetime hard cap (default 40; alias FREE_DAILY)
@@ -26,12 +27,16 @@ enum class AIProvider {
  * Soft Free Mirror ladders removed (2026-11-01). Mirror quotas stay independent of diary upload quotas
  * ([UploadQuotaConfig] / [com.diaryvault.app.service.DiaryUploadUsageGuard]).
  *
+ * Working provider (product pref): **xAI Grok** (OpenAI-compatible). No second provider invented.
+ * There is no Firebase Functions Mirror proxy in-repo yet — client key via local.properties only.
+ *
  * Data residency narrative: Taiwan (TW).
  */
 object AIConfig {
-    const val DEFAULT_OPENAI_BASE_URL = "https://api.openai.com"
+    /** Host only — [CloudMirrorAIClient] appends `/v1/chat/completions`. */
+    const val DEFAULT_OPENAI_BASE_URL = "https://api.x.ai"
     const val DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
-    const val DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+    const val DEFAULT_OPENAI_MODEL = "grok-4.7"
     const val DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5"
     /** Anthropic Messages API version header value. */
     const val ANTHROPIC_API_VERSION = "2023-06-01"
@@ -46,15 +51,16 @@ object AIConfig {
     val apiKey: String?
         get() = BuildConfig.DIARY_AI_API_KEY.takeIf { it.isNotBlank() }
             ?: System.getenv("DIARY_AI_API_KEY")?.takeIf { it.isNotBlank() }
+            ?: System.getenv("XAI_API_KEY")?.takeIf { it.isNotBlank() }
 
-    /** Resolved provider: explicit DIARY_AI_PROVIDER, else auto-detect from BASE_URL, else openai. */
+    /** Resolved provider: explicit DIARY_AI_PROVIDER, else auto-detect from BASE_URL, else openai (xAI). */
     val provider: AIProvider
         get() {
             val raw = BuildConfig.DIARY_AI_PROVIDER.takeIf { it.isNotBlank() }
                 ?: System.getenv("DIARY_AI_PROVIDER")?.takeIf { it.isNotBlank() }
             when (raw?.trim()?.lowercase()) {
                 "anthropic" -> return AIProvider.ANTHROPIC
-                "openai" -> return AIProvider.OPENAI
+                "openai", "xai", "grok" -> return AIProvider.OPENAI
             }
             val base = BuildConfig.DIARY_AI_BASE_URL.takeIf { it.isNotBlank() }
                 ?: System.getenv("DIARY_AI_BASE_URL")?.takeIf { it.isNotBlank() }
@@ -68,7 +74,10 @@ object AIConfig {
         get() {
             val configured = BuildConfig.DIARY_AI_BASE_URL.takeIf { it.isNotBlank() }
                 ?: System.getenv("DIARY_AI_BASE_URL")?.takeIf { it.isNotBlank() }
-            if (!configured.isNullOrBlank()) return configured.trimEnd('/')
+            if (!configured.isNullOrBlank()) {
+                // OpenAI SDK style `https://api.x.ai/v1` → strip trailing /v1 (we append it).
+                return configured.trimEnd('/').removeSuffix("/v1")
+            }
             if (apiKey == null) return null
             return if (provider == AIProvider.ANTHROPIC) {
                 DEFAULT_ANTHROPIC_BASE_URL
@@ -102,6 +111,10 @@ object AIConfig {
     /** Free-tier Mirror lifetime hard cap. Always at least 1. */
     val freeLifetimeRequestLimit: Int
         get() {
+            val fromBuild = BuildConfig.DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT.takeIf { it.isNotBlank() }
+            if (fromBuild != null) {
+                return fromBuild.toIntOrNull()?.coerceAtLeast(1) ?: DEFAULT_FREE_LIFETIME_REQUEST_LIMIT
+            }
             val lifetime = System.getenv("DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT")?.takeIf { it.isNotBlank() }
             if (lifetime != null) {
                 return lifetime.toIntOrNull()?.coerceAtLeast(1) ?: DEFAULT_FREE_LIFETIME_REQUEST_LIMIT
@@ -131,7 +144,7 @@ object AIConfig {
     val proDailyRequestLimit: Int
         get() = intFromBuildOrEnv(
             "DIARY_AI_PRO_DAILY_REQUEST_LIMIT",
-            "",
+            BuildConfig.DIARY_AI_PRO_DAILY_REQUEST_LIMIT,
             DEFAULT_PRO_DAILY_REQUEST_LIMIT,
         )
 
