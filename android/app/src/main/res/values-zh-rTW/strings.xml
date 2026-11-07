@@ -67,10 +67,10 @@
     <string name="mirror_error_network">鏡子無法連線雲端 AI：%1$s</string>
     <string name="mirror_error_decoding">鏡子收到異常回覆。請再試一次。</string>
     <string name="mirror_error_dismiss">關閉</string>
-    <string name="mirror_quota_remaining_lifetime">鏡子生涯剩餘 %1$d／%2$d 次</string>
+    <string name="mirror_quota_remaining_lifetime">鏡子終身剩餘 %1$d／%2$d 次</string>
     <string name="mirror_quota_remaining_daily">今日鏡子剩餘 %1$d／%2$d 次</string>
     <string name="mirror_quota_unlimited">今日鏡子不限次數</string>
-    <string name="mirror_quota_exhausted_free">免費鏡子已用完（生涯 %1$d 次）。請升級 Author Plus 繼續。</string>
+    <string name="mirror_quota_exhausted_free">免費鏡子已用完（終身 %1$d 次）。請升級 Author Plus 繼續。</string>
     <string name="mirror_quota_exhausted_plus">今日鏡子已用完（%1$d）。可升級 Author Pro（16 次／日），或明天再試。</string>
     <string name="mirror_quota_exhausted_pro">今日鏡子已用完（%1$d）。請明天再試。</string>
     <string name="settings_title">設定</string>
@@ -127,7 +127,7 @@
     <string name="lang_th_full">ไทย</string>
     <string name="auth_tagline">寫下今日，留給未來的自己</string>
     <string name="auth_headline">登入，讓金庫真正屬於你。</string>
-    <string name="auth_body">使用手機號碼與簡訊驗證碼登入。登入後文字日記會同步到帳號。</string>
+    <string name="auth_body">使用手機號碼與短訊驗證碼登入。登入後文字日記會同步到帳號。</string>
     <string name="auth_phone_label">手機號碼</string>
     <string name="auth_phone_placeholder">手機號碼</string>
     <string name="auth_phone_send">傳送驗證碼</string>
@@ -143,7 +143,7 @@
     <string name="auth_otp_placeholder">六位數字</string>
     <string name="auth_otp_verify">驗證並繼續</string>
     <string name="auth_otp_error">驗證碼不符，請再試一次。</string>
-    <string name="auth_otp_error_debug_test_list">驗證碼不符。Debug 固定碼（如 123456）只對 Firebase Console → Authentication → Phone → Phone numbers for testing 列表中的號碼有效。若為測真簡訊已刪除，請加回該號，或改用簡訊裡的真實驗證碼。</string>
+    <string name="auth_otp_error_debug_test_list">驗證碼不符。Debug 固定碼（如 123456）只對 Firebase Console → Authentication → Phone → Phone numbers for testing 列表中的號碼有效。若為測真短訊已刪除，請加回該號，或改用短訊裡的真實驗證碼。</string>
     <string name="auth_otp_error_debug_detail">驗證碼不符。Firebase project=%1$s error=%2$s。請確認 google-services.json 的 project_id 是 diaryappsilas（與 Console 同一專案）。Logcat：VaultAuth|FirebasePhoneSMS。可重送；Debug 測試號應自動登入。</string>
     <string name="auth_otp_error_debug_missing_google_services">此 Debug APK 未接入 Firebase（project_id 為空）。請在 Windows 打開 C:\\dev\\diaryapp\\android\\app\\google-services.json，確認 \"project_id\": \"diaryappsilas\"。若檔案不存在：Firebase Console → diaryappsilas → 專案設定 → Android com.diaryvault.app → 下載 google-services.json → 存到該路徑 → Sync → 解除安裝 App → 重新 Run Debug。Logcat：DiaryVaultFirebase|VaultAuth。</string>
     <string name="auth_otp_session_expired_debug">驗證階段已過期（%1$s）。請重送驗證碼——Debug 測試號重送後應自動登入。</string>
@@ -153,13 +153,13 @@
     <string name="auth_phone_resend">重新發送驗證碼</string>
     <string name="auth_phone_resend_in">%1$d 秒後可重送</string>
     <string name="auth_sms_rate_limited">嘗試次數過多，請稍後再試。</string>
-    <string name="auth_sms_billing_required">真實簡訊需要將 Firebase 專案升級為 Blaze（隨用隨付）方案。請在 Firebase Console 升級後再試。</string>
-    <string name="auth_sms_region_blocked">此號碼所在地區暫時無法發送簡訊，請稍後再試或改用其他號碼。</string>
+    <string name="auth_sms_billing_required">真實短訊需要將 Firebase 專案升級為 Blaze（隨用隨付）方案。請在 Firebase Console 升級後再試。</string>
+    <string name="auth_sms_region_blocked">此號碼所在地區暫時無法發送短訊，請稍後再試或改用其他號碼。</string>
     <string name="auth_sms_app_verification">無法完成安全驗證。請關閉已開啟的瀏覽器頁面後重試，或改用有 Google Play 的實體手機。</string>
     <string name="auth_sms_recaptcha_unavailable">安全驗證需要 Google Play 或瀏覽器。模擬器請到 Firebase Console → Authentication → Phone → Phone numbers for testing 加入此號碼並輸入測試碼，或改用實體手機。</string>
     <string name="auth_sms_recaptcha_browser_failed">瀏覽器安全頁失敗（或 Chrome 無回應）。請關閉該頁面回到本應用後重試。建議使用有 Google Play 的實體手機——模擬器上的 Chrome 不穩定。</string>
     <string name="auth_sms_timed_out">請求逾時。若安全驗證瀏覽器頁仍開著請先關閉，然後重試；或改用有 Google Play 的實體手機。</string>
-    <string name="auth_sms_sent_hint">請查看簡訊收件匣。若沒有簡訊，多半是該號碼仍在 Firebase「測試電話號碼」列表（只認控制台固定碼），或尚未開通 Blaze／簡訊地區；確認後可點重新發送。</string>
+    <string name="auth_sms_sent_hint">請查看短訊收件匣。若沒有短訊，多半是該號碼仍在 Firebase「測試電話號碼」列表（只認控制台固定碼），或尚未開通 Blaze／短訊地區；確認後可點重新發送。</string>
     <string name="auth_sms_empty_verification">驗證尚未完成，請再傳送一次驗證碼。</string>
     <string name="auth_sms_generic_failure">傳送驗證碼時發生問題，請稍後再試。</string>
     <string name="auth_sms_sending_security">正在驗證此裝置…</string>
@@ -198,7 +198,7 @@
     <string name="settings_account_linked_yes">是</string>
     <string name="settings_account_linked_no">否</string>
     <string name="settings_section_link_phone">連結手機</string>
-    <string name="settings_link_phone_banner">連結手機號碼後，可用簡訊驗證碼在任一裝置開啟同一金庫。</string>
+    <string name="settings_link_phone_banner">連結手機號碼後，可用短訊驗證碼在任一裝置開啟同一金庫。</string>
     <string name="settings_link_phone_send">傳送連結驗證碼</string>
     <string name="settings_link_phone_note">我們會驗證手機號碼，並保留在同一個帳號上。</string>
     <string name="settings_section_cloud">同步</string>

@@ -19,7 +19,7 @@ object MirrorPromptBuilder {
             context.localeTag.startsWith("zh-Hant", ignoreCase = true) ||
                 context.localeTag.startsWith("zh-TW", ignoreCase = true) ||
                 context.localeTag.startsWith("zh-HK", ignoreCase = true) ->
-                "Reply in Traditional Chinese (繁體中文)."
+                "Reply in Traditional Chinese using Hong Kong wording (繁體中文，港式用字；例如「區號」「短訊」「登入」「影片」「預設」)."
             context.localeTag.startsWith("zh-Hans", ignoreCase = true) ||
                 context.localeTag.startsWith("zh-CN", ignoreCase = true) ->
                 "Reply in Simplified Chinese (简体中文)."
@@ -28,7 +28,7 @@ object MirrorPromptBuilder {
             context.localeTag.startsWith("th", ignoreCase = true) ->
                 "Reply in Thai (ไทย)."
             context.localeTag.startsWith("zh", ignoreCase = true) ->
-                "Reply in Traditional Chinese (繁體中文)."
+                "Reply in Traditional Chinese using Hong Kong wording (繁體中文，港式用字)."
             else -> "Reply in English."
         }
 
