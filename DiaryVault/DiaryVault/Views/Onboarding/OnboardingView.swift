@@ -99,11 +99,6 @@ struct OnboardingView: View {
             bullet(localization.text("onboarding.privacy.point2"))
             bullet(localization.text("onboarding.privacy.point3"))
 
-            Text(localization.text("onboarding.privacy.residency"))
-                .font(.system(size: 14))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .padding(.top, 8)
-
             Spacer()
         }
         .padding(.horizontal, 28)

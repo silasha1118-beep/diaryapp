@@ -40,7 +40,9 @@ struct SettingsView: View {
                     dataSection
                     languageSection
                     adviceSection
-                    vaultSection
+                    if !appState.displayName.isEmpty {
+                        vaultSection
+                    }
                     // Legal last so Privacy / EULA clear the tab bar with bottom inset below.
                     legalSection
                     #if DEBUG
@@ -152,8 +154,6 @@ struct SettingsView: View {
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
         } header: {
             Text(localization.text("settings.section.accountPhone"))
-        } footer: {
-            Text(localization.text("settings.account.phone.footer"))
         }
     }
 
@@ -170,8 +170,6 @@ struct SettingsView: View {
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             } header: {
                 Text(localization.text("settings.account.link.phone.title"))
-            } footer: {
-                Text(localization.text("settings.account.link.phone.note"))
             }
         }
         if account.needsAppleLink {
@@ -185,8 +183,6 @@ struct SettingsView: View {
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16))
             } header: {
                 Text(localization.text("settings.account.link.apple.title"))
-            } footer: {
-                Text(localization.text("settings.account.link.apple.note"))
             }
         }
         if account.hasLinkedPhone && account.hasLinkedApple {
@@ -196,8 +192,6 @@ struct SettingsView: View {
                     .foregroundStyle(VaultTheme.inkMuted)
             } header: {
                 Text(localization.text("settings.section.accountLink"))
-            } footer: {
-                Text(localization.text("settings.account.link.footer"))
             }
         }
     }
@@ -220,8 +214,6 @@ struct SettingsView: View {
             .disabled(!account.hasLiveFirebaseAuth)
         } header: {
             Text(localization.text("settings.section.cloud"))
-        } footer: {
-            Text(localization.text("settings.cloud.footer"))
         }
     }
 
@@ -242,8 +234,6 @@ struct SettingsView: View {
             }
         } header: {
             Text(localization.text("settings.section.billing"))
-        } footer: {
-            Text(localization.text("settings.billing.footer"))
         }
     }
 
@@ -283,8 +273,6 @@ struct SettingsView: View {
             }
         } header: {
             Text(localization.text("settings.section.data"))
-        } footer: {
-            Text(localization.text("settings.data.footer"))
         }
     }
 
@@ -306,8 +294,6 @@ struct SettingsView: View {
             )
         } header: {
             Text(localization.text("settings.section.legal"))
-        } footer: {
-            Text(localization.text("settings.legal.footer"))
         }
     }
 
@@ -320,8 +306,6 @@ struct SettingsView: View {
             }
         } header: {
             Text(localization.text("settings.section.language"))
-        } footer: {
-            Text(localization.text("settings.language.footer"))
         }
     }
 
@@ -333,8 +317,6 @@ struct SettingsView: View {
             .tint(VaultTheme.seal)
         } header: {
             Text(localization.text("settings.section.advice"))
-        } footer: {
-            Text(localization.text("settings.reminders.footer"))
         }
     }
 
@@ -345,9 +327,6 @@ struct SettingsView: View {
                     Text(appState.displayName)
                 }
             }
-            Text(localization.text("settings.legacy.stub"))
-                .font(.system(size: 13))
-                .foregroundStyle(VaultTheme.inkMuted)
         } header: {
             Text(localization.text("settings.section.vault"))
         }
@@ -395,8 +374,6 @@ struct SettingsView: View {
             .foregroundStyle(VaultTheme.seal)
         } header: {
             Text(localization.text("settings.section.developer"))
-        } footer: {
-            Text(localization.text("settings.developer.footer"))
         }
     }
     #endif

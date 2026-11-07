@@ -46,17 +46,6 @@ struct AppleSignInBackupView: View {
                     : localization.text("auth.apple.backup")
             )
 
-            if !(mode == .link && chrome == .settings) {
-                Text(
-                    mode == .link
-                        ? localization.text("settings.account.link.apple.note")
-                        : localization.text("auth.apple.secondaryNote")
-                )
-                .font(.system(size: 12))
-                .foregroundStyle(VaultTheme.inkMuted)
-                .fixedSize(horizontal: false, vertical: true)
-            }
-
             if let infoMessage {
                 Text(infoMessage)
                     .font(.system(size: 13))

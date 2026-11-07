@@ -75,6 +75,16 @@ struct PaywallView: View {
 
                         if subscriptions.products.isEmpty && !subscriptions.isLoading {
                             missingProductsBanner
+                            Button {
+                                Task { await subscriptions.refresh() }
+                            } label: {
+                                Text(localization.text("paywall.reload"))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(VaultTheme.seal)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                            }
+                            .buttonStyle(.plain)
                         }
 
                         Button {

@@ -26,12 +26,6 @@ struct AuthGateView: View {
                         .foregroundStyle(VaultTheme.ink)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text(localization.text("auth.body"))
-                        .font(.system(size: 16))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                        .lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
-
                     PhoneOTPLoginForm(chrome: .gate)
 
                     HStack(spacing: 12) {
