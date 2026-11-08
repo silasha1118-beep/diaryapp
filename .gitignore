@@ -47,6 +47,9 @@ android/**/build/
 android/local.properties
 *.apk
 *.aab
+*.jks
+*.keystore
+!**/debug.keystore
 .cxx/
 
 # Firebase Cloud Functions

@@ -224,3 +224,49 @@ android/
 4. List shows media icons; open detail → play voice / view image / play video.
 5. Settings → **Sync now** → Console: entry has `attachments` + `hasMedia` + `sourcePlatform: android`; Storage under `users/{uid}/entries/{entryId}/`.
 6. Swipe-delete the entry — it disappears from Vault; Firestore keeps `deleted` / `deletedAt`; Storage objects remain (same as iOS / admin Vault).
+
+## Play release AAB (upload key — do this before Console unlock)
+
+**IDs today:** `applicationId` / namespace `com.diaryvault.app` · `versionName` `0.1.0` · `versionCode` `1`.
+
+Release signing is **optional at configure time**: if all four keys below are set and the keystore file exists, `:app:bundleRelease` signs with that upload key. If any are missing, release still builds but is **unsigned** (not Play-uploadable).
+
+### 1. Create upload keystore once (Windows PowerShell — keep an offline backup)
+
+```powershell
+& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -genkeypair -v `
+  -keystore C:\dev\diaryapp\android\diaryvault-upload.jks `
+  -alias diaryvault -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Use the **same** store password and key password (PKCS12). Never commit the `.jks` (gitignored). Losing it blocks app updates if you opt out of Play App Signing backup.
+
+### 2. Put secrets in `android/local.properties` (gitignored)
+
+```properties
+DIARY_RELEASE_STORE_FILE=C:\\dev\\diaryapp\\android\\diaryvault-upload.jks
+DIARY_RELEASE_STORE_PASSWORD=...
+DIARY_RELEASE_KEY_ALIAS=diaryvault
+DIARY_RELEASE_KEY_PASSWORD=...
+```
+
+Same four names also work as environment variables. See `local.properties.example`.
+
+### 3. Build the AAB
+
+```powershell
+cd C:\dev\diaryapp\android
+.\gradlew :app:bundleRelease
+```
+
+Artifact: `android\app\build\outputs\bundle\release\app-release.aab`
+
+Confirm signing: `.\gradlew :app:signingReport` → **Variant: release** must show your upload keystore (not `debug.keystore`).
+
+### 4. When Play Console developer approval unlocks
+
+1. Create the app (package `com.diaryvault.app`) if missing.
+2. **Play App Signing** → upload / enroll the upload key (or let Play generate the app signing key and keep your upload key for AABs).
+3. Register **release** SHA-1 + SHA-256 (from `signingReport` / keytool on the **upload** keystore) on Firebase Android `com.diaryvault.app` for Phone Auth / Integrity.
+4. Production / testing track → **Upload** that `app-release.aab` (do not use the debug APK).
+5. Bump `versionCode` (and usually `versionName`) in `app/build.gradle.kts` before each subsequent upload.
