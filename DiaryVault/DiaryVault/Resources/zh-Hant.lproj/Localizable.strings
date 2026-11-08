@@ -31,15 +31,15 @@
 
 /* Auth — phone SMS OTP (all regions) */
 "auth.headline" = "登入，讓金庫真正屬於你。";
-"auth.body" = "使用手機號碼與簡訊驗證碼登入（主路徑）。台／港／陸／馬／新／泰／日皆可——只要能收 SMS。也可直接「透過 Apple 登入」。App 不存密碼。本 MVP 尚無雲端同步。";
+"auth.body" = "使用手機號碼與短訊驗證碼登入（主路徑）。台／港／陸／馬／新／泰／日皆可——只要能收 SMS。也可直接「透過 Apple 登入」。App 不存密碼。本 MVP 尚無雲端同步。";
 "auth.error" = "登入未完成，請再試一次。";
 "auth.phone.label" = "手機號碼";
 "auth.phone.region" = "地區";
-"auth.phone.placeholder" = "手機號碼（不含國碼）";
+"auth.phone.placeholder" = "手機號碼（不含區號）";
 "auth.phone.send" = "傳送驗證碼";
 "auth.phone.resend" = "重新傳送";
 "auth.phone.resend.cooldown" = "重新傳送（%d）";
-"auth.phone.sent" = "驗證碼已送出，請查看簡訊。";
+"auth.phone.sent" = "驗證碼已送出，請查看短訊。";
 "auth.phone.invalid" = "請輸入所選地區的有效手機號碼（台灣 9、港／新 8、中國大陸 11、馬來西亞 9–10、泰國 9、日本 10；開頭 0 可保留）。";
 "auth.otp.label" = "驗證碼";
 "auth.otp.placeholder" = "六位數字";
@@ -52,19 +52,19 @@
 "auth.dial.sg" = "+65 新加坡";
 "auth.dial.th" = "+66 泰國";
 "auth.dial.jp" = "+81 日本";
-"auth.stub.hint" = "Stub 簡訊（未真實發送）：請使用 %@";
-"auth.sms.provider.firebase" = "簡訊後端：Firebase（真實發送）";
-"auth.sms.provider.stub" = "簡訊後端：Stub（本機，未真實發送）";
-"auth.sms.provider.twilio" = "簡訊後端：Twilio";
+"auth.stub.hint" = "Stub 短訊（未真實發送）：請使用 %@";
+"auth.sms.provider.firebase" = "短訊後端：Firebase（真實發送）";
+"auth.sms.provider.stub" = "短訊後端：Stub（本機，未真實發送）";
+"auth.sms.provider.twilio" = "短訊後端：Twilio";
 "auth.sms.provider.stub.missingPlist" = "請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git），重新編譯；DIARY_SMS_PROVIDER 保持空白。";
-"auth.sms.provider.stub.explicit" = "Scheme／Info 設了 DIARY_SMS_PROVIDER=stub。清掉該環境變數（或改為 firebase）後重新編譯即可發送真實簡訊。";
-"auth.sms.notConfigured" = "簡訊尚未就緒。請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git）後重新編譯，或設定 DIARY_SMS_PROVIDER=stub。";
-"auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實簡訊——可用 Firebase 測試號碼節省配額。";
+"auth.sms.provider.stub.explicit" = "Scheme／Info 設了 DIARY_SMS_PROVIDER=stub。清掉該環境變數（或改為 firebase）後重新編譯即可發送真實短訊。";
+"auth.sms.notConfigured" = "短訊尚未就緒。請將 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/（勿提交 git）後重新編譯，或設定 DIARY_SMS_PROVIDER=stub。";
+"auth.sms.rateLimited" = "嘗試次數過多，請稍後再試。Spark 方案每天約 10 則真實短訊——可用 Firebase 測試號碼節省配額。";
 "auth.sms.regionBlocked" = "此電話地區在 Firebase 被封鎖。請到 Console → Authentication → Settings → SMS region policy，允許台灣、香港、中國大陸、馬來西亞、新加坡、泰國與日本。";
 "auth.sms.appVerification" = "缺少 Phone Auth URL scheme。請把含 REVERSED_CLIENT_ID 的 GoogleService-Info.plist 放在 DiaryVault/DiaryVault/，Product → Clean Build Folder，刪除手機上的 App 後重裝。再到 Target → Info → URL Types 確認有 com.googleusercontent.apps.…";
 "auth.apple.or" = "或";
 "auth.apple.backup" = "透過 Apple 登入";
-"auth.apple.secondaryNote" = "適合不想收簡訊、或想用 Apple ID 綁定帳號時使用。";
+"auth.apple.secondaryNote" = "適合不想收短訊、或想用 Apple ID 綁定帳號時使用。";
 "auth.apple.error" = "透過 Apple 登入未完成，請再試一次。";
 "auth.apple.paidNote" = "需要付費 Apple Developer 團隊（約每年 99 美元）。免費 Personal Team 無法啟用此能力。";
 "auth.displayName.title" = "我們該怎麼稱呼你？";
@@ -346,4 +346,4 @@
 "settings.legal.privacy" = "隱私權政策";
 "settings.legal.terms" = "使用條款（EULA）";
 "settings.legal.footer" = "繼續書寫前，請閱讀隱私權政策與使用條款。";
-"settings.legal.privacy.stubNote" = "送審前請以託管的隱私權政策網址（DIARY_PRIVACY_POLICY_URL）取代此摘要。須說明簡訊登入、本機日記、雲端鏡子 AI 與 StoreKit 購買。";
+"settings.legal.privacy.stubNote" = "送審前請以託管的隱私權政策網址（DIARY_PRIVACY_POLICY_URL）取代此摘要。須說明短訊登入、本機日記、雲端鏡子 AI 與 StoreKit 購買。";
