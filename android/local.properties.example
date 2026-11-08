@@ -1,5 +1,5 @@
 ## Example only — copy keys into local.properties (gitignored). Never commit real keys.
-## Android Studio already writes sdk.dir=… into local.properties; append AI keys below it.
+## Android Studio already writes sdk.dir=… into local.properties; append AI / signing keys below it.
 
 ## Required for live Mirror (xAI Grok):
 # XAI_API_KEY=xai-...
@@ -14,3 +14,13 @@
 # DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT=40
 # DIARY_AI_DAILY_REQUEST_LIMIT=8
 # DIARY_AI_PRO_DAILY_REQUEST_LIMIT=16
+
+## Play upload signing (required for signed :app:bundleRelease / Play Console AAB).
+## Create once on Windows (keep backup offline — losing this blocks updates):
+##   keytool -genkeypair -v -keystore C:\dev\diaryapp\android\diaryvault-upload.jks \
+##     -alias diaryvault -keyalg RSA -keysize 2048 -validity 10000
+## Then set all four (Windows path OK; also accepted as env vars with the same names):
+# DIARY_RELEASE_STORE_FILE=C:\\dev\\diaryapp\\android\\diaryvault-upload.jks
+# DIARY_RELEASE_STORE_PASSWORD=...
+# DIARY_RELEASE_KEY_ALIAS=diaryvault
+# DIARY_RELEASE_KEY_PASSWORD=...

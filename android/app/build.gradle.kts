@@ -90,6 +90,42 @@ android {
         buildConfigField("String", "DIARY_DEBUG_PHONE_TEST_CODES", "\"\"")
     }
 
+    /**
+     * Play upload signing — never commit the keystore or passwords.
+     *
+     * Resolve from (same order as diaryAiProp):
+     *   android/local.properties → Gradle -P → process env
+     *
+     * Required keys (all four) for a signed release AAB:
+     *   DIARY_RELEASE_STORE_FILE   absolute path to .jks / .keystore
+     *   DIARY_RELEASE_STORE_PASSWORD
+     *   DIARY_RELEASE_KEY_ALIAS
+     *   DIARY_RELEASE_KEY_PASSWORD
+     *
+     * If any key is missing, release still assembles but is unsigned (not Play-uploadable).
+     */
+    val releaseStoreFile = diaryAiProp("DIARY_RELEASE_STORE_FILE")
+    val releaseStorePassword = diaryAiProp("DIARY_RELEASE_STORE_PASSWORD")
+    val releaseKeyAlias = diaryAiProp("DIARY_RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = diaryAiProp("DIARY_RELEASE_KEY_PASSWORD")
+    val releaseSigningConfigured =
+        releaseStoreFile.isNotEmpty() &&
+            releaseStorePassword.isNotEmpty() &&
+            releaseKeyAlias.isNotEmpty() &&
+            releaseKeyPassword.isNotEmpty() &&
+            file(releaseStoreFile).isFile
+
+    signingConfigs {
+        if (releaseSigningConfigured) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Console Phone numbers for testing (diaryappsilas). Used only when BuildConfig.DEBUG
@@ -109,6 +145,9 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "DIARY_DEBUG_PHONE_TEST_CODES", "\"\"")
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
