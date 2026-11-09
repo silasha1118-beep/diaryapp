@@ -1,5 +1,5 @@
 {
-  "_comment": "EXAMPLE ONLY — do NOT rename this to google-services.json and commit. Silas (Windows): Firebase Console → project diaryappsilas → Project settings → Android com.diaryvault.app → download google-services.json → save to C:\\dev\\diaryapp\\android\\app\\google-services.json (gitignored). Open the file and confirm project_id is diaryappsilas. Debug Gradle fails if the file is missing or project_id is wrong (-Pdiary.allowStubSms=true for stub-only). Leave DIARY_SMS_PROVIDER empty. Register debug/release SHA-1 AND SHA-256 so Play Integrity can attest.",
+  "_comment": "EXAMPLE ONLY — do NOT rename this to google-services.json and commit. Silas (Windows): Firebase Console → project diaryappsilas → Project settings → Android com.silasha.diaryvault → download google-services.json → save to C:\\dev\\diaryapp\\android\\app\\google-services.json (gitignored). Open the file and confirm project_id is diaryappsilas. Debug Gradle fails if the file is missing or project_id is wrong (-Pdiary.allowStubSms=true for stub-only). Leave DIARY_SMS_PROVIDER empty. Register debug/release SHA-1 AND SHA-256 so Play Integrity can attest.",
   "project_info": {
     "project_number": "REPLACE_ME",
     "project_id": "diaryappsilas",
@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:REPLACE_ME:android:REPLACE_ME",
         "android_client_info": {
-          "package_name": "com.diaryvault.app"
+          "package_name": "com.silasha.diaryvault"
         }
       },
       "oauth_client": [],

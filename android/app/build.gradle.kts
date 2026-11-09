@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 /**
@@ -41,15 +42,15 @@ fun escapeBuildConfigString(value: String): String =
         .replace("\r", "")
 
 android {
-    namespace = "com.diaryvault.app"
-    compileSdk = 34
+    namespace = "com.silasha.diaryvault"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.diaryvault.app"
+        applicationId = "com.silasha.diaryvault"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "0.1.1"
         // Cloud AI — local.properties / env at assemble time; never commit real keys.
         // Working provider (product pref): xAI Grok — defaults applied in AIConfig when key is set.
         buildConfigField("String", "DIARY_AI_PROVIDER", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_PROVIDER"))}\"")
@@ -165,9 +166,8 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
+    // Compose compiler is the Kotlin 2.x plugin (org.jetbrains.kotlin.plugin.compose);
+    // do not set composeOptions.kotlinCompilerExtensionVersion.
 
     packaging {
         resources {
@@ -217,6 +217,11 @@ dependencies {
     // *.firebaseapp.com page (sessionStorage / "Chrome isn't responding" on emulator).
     implementation("androidx.browser:browser:1.8.0")
 
+    // Author Plus / Author Pro subscriptions — same product IDs as iOS StoreKit.
+    // Compiles without Play Console SKUs; empty catalog shows a clear unavailable state.
+    // Play Console requires Billing Library 8+ (uses kotlin-stdlib 2.2.10 → Kotlin plugin 2.2.10).
+    implementation("com.android.billingclient:billing-ktx:8.3.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
@@ -258,7 +263,7 @@ tasks.configureEach {
     if (name != "preDebugBuild") return@configureEach
     doFirst {
         val expectedProject = "diaryappsilas"
-        val expectedPackage = "com.diaryvault.app"
+        val expectedPackage = "com.silasha.diaryvault"
         val windowsPath = "C:\\dev\\diaryapp\\android\\app\\google-services.json"
         if (!googleServicesFile.exists()) {
             if (stubSmsExplicitlyAllowed()) {

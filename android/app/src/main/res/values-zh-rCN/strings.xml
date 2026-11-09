@@ -85,10 +85,13 @@
     <string name="settings_billing_plan">方案</string>
     <string name="settings_billing_free">免费</string>
     <string name="settings_billing_active">Author Plus</string>
+    <string name="settings_billing_active_pro">Author Pro</string>
     <string name="settings_billing_expires">周期结束</string>
     <string name="settings_billing_period_stub">2026/12/05</string>
+    <string name="settings_billing_period_none">—</string>
+    <string name="settings_billing_period_play">由 Google Play 管理</string>
     <string name="settings_billing_products">产品 ID</string>
-    <string name="settings_billing_footer">免费、Author Plus 与 Author Pro。可在此查看方案或恢复购买。订阅通过你的商店账号续订。</string>
+    <string name="settings_billing_footer">免费、Author Plus 与 Author Pro。可在此查看方案或恢复购买。订阅通过你的 Google Play 账号续订。已登录的免费金库包含云端同步。</string>
     <string name="settings_section_language">语言</string>
     <string name="settings_language">App 语言</string>
     <string name="settings_language_footer">繁中／简中／English／日本語／ไทย——可随时切换。首次启动依系统语言（商店地区）。</string>
@@ -145,7 +148,7 @@
     <string name="auth_otp_error">验证码不符，请再试一次。</string>
     <string name="auth_otp_error_debug_test_list">验证码不符。Debug 固定码（如 123456）仅对 Firebase Console → Authentication → Phone → Phone numbers for testing 列表中的号码有效。若为测真短信已删除，请加回该号，或改用短信里的真实验证码。</string>
     <string name="auth_otp_error_debug_detail">验证码不符。Firebase project=%1$s error=%2$s。请确认 google-services.json 的 project_id 是 diaryappsilas（与 Console 同一项目）。Logcat：VaultAuth|FirebasePhoneSMS。可重发；Debug 测试号应自动登录。</string>
-    <string name="auth_otp_error_debug_missing_google_services">此 Debug APK 未接入 Firebase（project_id 为空）。请在 Windows 打开 C:\\dev\\diaryapp\\android\\app\\google-services.json，确认 \"project_id\": \"diaryappsilas\"。若文件不存在：Firebase Console → diaryappsilas → 项目设置 → Android com.diaryvault.app → 下载 google-services.json → 保存到该路径 → Sync → 卸载 App → 重新 Run Debug。Logcat：DiaryVaultFirebase|VaultAuth。</string>
+    <string name="auth_otp_error_debug_missing_google_services">此 Debug APK 未接入 Firebase（project_id 为空）。请在 Windows 打开 C:\\dev\\diaryapp\\android\\app\\google-services.json，确认 \"project_id\": \"diaryappsilas\"。若文件不存在：Firebase Console → diaryappsilas → 项目设置 → Android com.silasha.diaryvault → 下载 google-services.json → 保存到该路径 → Sync → 卸载 App → 重新 Run Debug。Logcat：DiaryVaultFirebase|VaultAuth。</string>
     <string name="auth_otp_session_expired_debug">验证阶段已过期（%1$s）。请重发验证码——Debug 测试号重发后应自动登录。</string>
     <string name="auth_otp_session_expired">验证已过期。请点重新发送，再输入新验证码。</string>
     <string name="auth_sms_sent_hint_debug">Debug 测试号（+85284028001／+8615014531587）发送后应自动登录。若仍出现验证码栏，请输入 123456。google-services.json 必须是项目 diaryappsilas。</string>
@@ -224,4 +227,43 @@
     <string name="settings_legal_privacy">隐私权政策</string>
     <string name="settings_legal_terms">使用条款（EULA）</string>
     <string name="settings_legal_footer">继续书写前，请阅读隐私权政策与使用条款。</string>
+
+    <string name="paywall_title">方案</string>
+    <string name="paywall_headline">继续书写。</string>
+    <string name="paywall_body_short">Author Plus 或 Author Pro——选周期后订阅。</string>
+    <string name="paywall_plus_title">Author Plus</string>
+    <string name="paywall_plus_summary">金库＋镜子各每日 8 次（文字与多媒体共用金库额度）。已登录日记可云端同步。</string>
+    <string name="paywall_pro_title">Author Pro</string>
+    <string name="paywall_pro_summary">金库＋镜子各每日 16 次（文字与多媒体共用金库额度）。已登录日记可云端同步。</string>
+    <string name="paywall_period_monthly">月订</string>
+    <string name="paywall_period_quarterly">季订</string>
+    <string name="paywall_period_yearly">年订</string>
+    <string name="paywall_buy">订阅</string>
+    <string name="paywall_restore">恢复购买</string>
+    <string name="paywall_active">此 Google 账号已启用 Author Plus</string>
+    <string name="paywall_active_pro">此 Google 账号已启用 Author Pro</string>
+    <string name="paywall_current_plan">当前方案</string>
+    <string name="paywall_owned">使用中</string>
+    <string name="paywall_expires">续订／到期</string>
+    <string name="paywall_unavailable">价格尚未加载</string>
+    <string name="paywall_products_missing">目前无法从 Google Play 加载方案。可能尚未在 Play Console 创建商品——请稍后再试；Debug 构建可用「模拟 Plus／Pro」。</string>
+    <string name="paywall_disclosure_short">自动续订。确认后向你的 Google Play 账号收费。可随时在 Play 商店 → 付款与订阅 取消。</string>
+    <string name="paywall_status_products_empty">尚无可用方案。请稍后再试或重新加载。</string>
+    <string name="paywall_status_products_error">无法从 Google Play 加载方案。</string>
+    <string name="paywall_status_purchase_success">购买已记录。方案已启用。</string>
+    <string name="paywall_status_purchase_cancelled">已取消购买。</string>
+    <string name="paywall_status_purchase_pending">购买待核准。</string>
+    <string name="paywall_status_purchase_unknown">购买结束于未知状态。</string>
+    <string name="paywall_status_purchase_error">购买失败。</string>
+    <string name="paywall_status_restore_success">已恢复购买。</string>
+    <string name="paywall_status_restore_none">此 Google 账号没有有效订阅。</string>
+    <string name="paywall_status_restore_error">恢复失败。请再试一次，或使用当初购买的 Google 账号登录。</string>
+    <string name="paywall_status_debug_simulate">DEBUG：已套用模拟权益（不会向 Play 扣款）。</string>
+    <string name="paywall_debug_simulate_plus">模拟 Plus</string>
+    <string name="paywall_debug_simulate_pro">模拟 Pro</string>
+    <string name="paywall_debug_clear">清除模拟</string>
+    <string name="upgrade_checkout_title">升级</string>
+    <string name="upgrade_checkout_headline">选择方案</string>
+    <string name="upgrade_checkout_body">先选 Plus 或 Pro，再选月订／季订／年订。</string>
+    <string name="upgrade_checkout_legal">自动续订。确认后向你的 Google Play 账号收费。可在 Play 商店 → 付款与订阅 取消。</string>
 </resources>
