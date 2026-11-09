@@ -41,11 +41,11 @@ fun escapeBuildConfigString(value: String): String =
         .replace("\r", "")
 
 android {
-    namespace = "com.diaryvault.app"
+    namespace = "com.silasha.diaryvault"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.diaryvault.app"
+        applicationId = "com.silasha.diaryvault"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -262,7 +262,7 @@ tasks.configureEach {
     if (name != "preDebugBuild") return@configureEach
     doFirst {
         val expectedProject = "diaryappsilas"
-        val expectedPackage = "com.diaryvault.app"
+        val expectedPackage = "com.silasha.diaryvault"
         val windowsPath = "C:\\dev\\diaryapp\\android\\app\\google-services.json"
         if (!googleServicesFile.exists()) {
             if (stubSmsExplicitlyAllowed()) {
