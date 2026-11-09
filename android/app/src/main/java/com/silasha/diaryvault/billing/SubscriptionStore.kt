@@ -57,6 +57,8 @@ class SubscriptionStore(
                 .enableOneTimeProducts()
                 .build(),
         )
+        // PBL 8+: reconnect automatically after Play Billing service drops.
+        .enableAutoServiceReconnection()
         .build()
 
     private val _products = MutableStateFlow<List<BillingProductOffer>>(emptyList())
@@ -339,6 +341,8 @@ class SubscriptionStore(
 
     private suspend fun handlePurchase(purchase: Purchase) {
         if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) return
+        // PBL 8.1+: suspended (dispute/abuse hold) must not grant entitlement.
+        if (purchase.isSuspended) return
         val catalogHit = purchase.products.any { BillingConfig.isCatalogProduct(it) }
         if (!catalogHit) return
         if (!purchase.isAcknowledged) {
@@ -393,6 +397,7 @@ class SubscriptionStore(
 
         for (purchase in result.purchasesList) {
             if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) continue
+            if (purchase.isSuspended) continue
             for (productId in purchase.products) {
                 val candidate = BillingConfig.tier(productId) ?: continue
                 val period = BillingConfig.periodRank(productId)

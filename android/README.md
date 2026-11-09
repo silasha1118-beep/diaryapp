@@ -4,15 +4,15 @@ Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three 
 
 **Package:** `com.silasha.diaryvault`  
 **Display name:** 日記金庫  
-**minSdk:** 26 · **compileSdk / targetSdk:** 34  
+**minSdk:** 26 · **compileSdk / targetSdk:** 36  
 **Firebase project:** `diaryappsilas` (same as iOS)
 
 > Do not open or edit the iOS Xcode project from this folder. `DiaryVault/` stays the iOS source of truth.
 
 ## What Silas needs on his Mac
 
-1. **Android Studio** Hedgehog or newer — [developer.android.com/studio](https://developer.android.com/studio)
-2. Android SDK Platform **34**, Build-Tools, an emulator image (API 26+)
+1. **Android Studio** Meerkat or newer — [developer.android.com/studio](https://developer.android.com/studio) (AGP 8.9.1+ / API 36)
+2. Android SDK Platform **36**, Build-Tools 36, an emulator image (API 26+)
 3. **JDK 17** (prefer the IDE’s embedded JDK)
 
 ## Firebase setup (required for real SMS + sync)
@@ -203,7 +203,7 @@ Quotas (local counter): Free **40 lifetime** · Plus **8/day** · Pro **16/day**
 
 ## Play Billing（訂閱 / Author Plus · Author Pro）
 
-Client uses **Google Play Billing Library 7** (`billing-ktx`). Product IDs match iOS StoreKit:
+Client uses **Google Play Billing Library 8** (`billing-ktx:8.3.0`). Product IDs match iOS StoreKit:
 
 | Tier | Period | Product ID (subscription) | Base plan ID | Billing period |
 |------|--------|---------------------------|--------------|----------------|
@@ -279,7 +279,7 @@ android/
 
 ## Play release AAB (upload key — do this before Console unlock)
 
-**IDs today:** `applicationId` / namespace `com.silasha.diaryvault` · `versionName` `0.1.0` · `versionCode` `1`.
+**IDs today:** `applicationId` / namespace `com.silasha.diaryvault` · `versionName` `0.1.1` · `versionCode` `2`.
 
 Release signing is **optional at configure time**: if all four keys below are set and the keystore file exists, `:app:bundleRelease` signs with that upload key. If any are missing, release still builds but is **unsigned** (not Play-uploadable).
 

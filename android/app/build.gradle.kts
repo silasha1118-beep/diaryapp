@@ -42,14 +42,14 @@ fun escapeBuildConfigString(value: String): String =
 
 android {
     namespace = "com.silasha.diaryvault"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.silasha.diaryvault"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "0.1.1"
         // Cloud AI — local.properties / env at assemble time; never commit real keys.
         // Working provider (product pref): xAI Grok — defaults applied in AIConfig when key is set.
         buildConfigField("String", "DIARY_AI_PROVIDER", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_PROVIDER"))}\"")
@@ -219,7 +219,8 @@ dependencies {
 
     // Author Plus / Author Pro subscriptions — same product IDs as iOS StoreKit.
     // Compiles without Play Console SKUs; empty catalog shows a clear unavailable state.
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    // Play Console requires Billing Library 8+ for new uploads (latest 8.x).
+    implementation("com.android.billingclient:billing-ktx:8.3.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
