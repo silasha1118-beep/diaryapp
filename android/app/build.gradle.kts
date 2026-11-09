@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 /**
@@ -165,9 +166,8 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
+    // Compose compiler is the Kotlin 2.x plugin (org.jetbrains.kotlin.plugin.compose);
+    // do not set composeOptions.kotlinCompilerExtensionVersion.
 
     packaging {
         resources {
@@ -219,7 +219,7 @@ dependencies {
 
     // Author Plus / Author Pro subscriptions — same product IDs as iOS StoreKit.
     // Compiles without Play Console SKUs; empty catalog shows a clear unavailable state.
-    // Play Console requires Billing Library 8+ for new uploads (latest 8.x).
+    // Play Console requires Billing Library 8+ (uses kotlin-stdlib 2.2.10 → Kotlin plugin 2.2.10).
     implementation("com.android.billingclient:billing-ktx:8.3.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

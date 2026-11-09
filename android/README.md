@@ -203,7 +203,7 @@ Quotas (local counter): Free **40 lifetime** · Plus **8/day** · Pro **16/day**
 
 ## Play Billing（訂閱 / Author Plus · Author Pro）
 
-Client uses **Google Play Billing Library 8** (`billing-ktx:8.3.0`). Product IDs match iOS StoreKit:
+Client uses **Google Play Billing Library 8** (`billing-ktx:8.3.0`; Kotlin **2.2.10** + Compose Compiler plugin). Product IDs match iOS StoreKit:
 
 | Tier | Period | Product ID (subscription) | Base plan ID | Billing period |
 |------|--------|---------------------------|--------------|----------------|
