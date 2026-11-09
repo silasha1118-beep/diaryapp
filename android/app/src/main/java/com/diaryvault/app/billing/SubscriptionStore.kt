@@ -99,6 +99,9 @@ class SubscriptionStore(
 
     private var productDetailsById: Map<String, ProductDetails> = emptyMap()
 
+    /** Purchase token for the currently entitled catalog subscription (needed for Play upgrades). */
+    private var activePurchaseToken: String? = null
+
     val plusProducts: List<BillingProductOffer>
         get() = _products.value.filter { BillingConfig.isPlusProduct(it.productId) }
 
@@ -223,11 +226,27 @@ class SubscriptionStore(
                 .setProductDetails(details)
                 .setOfferToken(offer.offerToken)
                 .build()
-            val flowParams = BillingFlowParams.newBuilder()
+            val flowBuilder = BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(listOf(productDetailsParams))
-                .build()
 
-            val launchResult = billingClient.launchBillingFlow(activity, flowParams)
+            // Play requires a replacement token when changing plan while already subscribed
+            // (Plus → Pro, or period change). Fresh Free → paid buys skip this.
+            val oldToken = activePurchaseToken
+            val currentProduct = _activeProductId.value
+            if (!oldToken.isNullOrBlank() &&
+                !currentProduct.isNullOrBlank() &&
+                currentProduct != productId
+            ) {
+                val updateParams = BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+                    .setOldPurchaseToken(oldToken)
+                    .setSubscriptionReplacementMode(
+                        BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE,
+                    )
+                    .build()
+                flowBuilder.setSubscriptionUpdateParams(updateParams)
+            }
+
+            val launchResult = billingClient.launchBillingFlow(activity, flowBuilder.build())
             if (launchResult.responseCode != BillingClient.BillingResponseCode.OK) {
                 _statusMessage.value = "purchase.error"
                 _lastErrorDetail.value =
@@ -370,6 +389,7 @@ class SubscriptionStore(
         var bestProductId: String? = null
         var bestTier: BillingConfig.Tier = BillingConfig.Tier.FREE
         var bestPeriod = -1
+        var bestToken: String? = null
 
         for (purchase in result.purchasesList) {
             if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) continue
@@ -385,12 +405,14 @@ class SubscriptionStore(
                     bestTier = candidate
                     bestProductId = productId
                     bestPeriod = period
+                    bestToken = purchase.purchaseToken
                 }
             }
             // Acknowledge any unacked while scanning.
             handlePurchase(purchase)
         }
 
+        activePurchaseToken = bestToken
         applyEntitlement(
             productId = bestProductId,
             tier = bestTier,
@@ -409,6 +431,10 @@ class SubscriptionStore(
         _isSubscribed.value = tier.isAtLeast(BillingConfig.Tier.AUTHOR_PLUS)
         _isAuthorPro.value = tier == BillingConfig.Tier.AUTHOR_PRO
         _expirationMs.value = expirationMs
+        // Free / DEBUG simulate have no Play purchase token — clear so upgrades never send a stale one.
+        if (tier == BillingConfig.Tier.FREE || debugOverrideTier != null) {
+            activePurchaseToken = null
+        }
 
         prefs.edit()
             .putBoolean(BillingConfig.AUTHOR_PLUS_ENTITLEMENT_PREFS_KEY, _isSubscribed.value)

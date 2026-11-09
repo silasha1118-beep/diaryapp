@@ -71,6 +71,20 @@ object BillingConfig {
     const val DEFAULT_PRO_QUARTERLY_PRODUCT_ID = "com.diaryvault.author.pro.quarterly"
     const val DEFAULT_PRO_YEARLY_PRODUCT_ID = "com.diaryvault.author.pro.yearly"
 
+    /**
+     * Recommended Play Console **base plan** IDs (one auto-renewing base plan per subscription).
+     * Client accepts any base-plan offerToken; these IDs keep Console setup unambiguous.
+     */
+    const val BASE_PLAN_MONTHLY = "monthly"
+    const val BASE_PLAN_QUARTERLY = "quarterly"
+    const val BASE_PLAN_YEARLY = "yearly"
+
+    fun recommendedBasePlanId(period: Period): String = when (period) {
+        Period.MONTHLY -> BASE_PLAN_MONTHLY
+        Period.QUARTERLY -> BASE_PLAN_QUARTERLY
+        Period.YEARLY -> BASE_PLAN_YEARLY
+    }
+
     val plusMonthlyProductId: String
         get() = env("DIARY_IAP_PLUS_MONTHLY_PRODUCT_ID")
             ?: env("DIARY_IAP_MONTHLY_PRODUCT_ID")

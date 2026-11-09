@@ -205,16 +205,16 @@ Quotas (local counter): Free **40 lifetime** · Plus **8/day** · Pro **16/day**
 
 Client uses **Google Play Billing Library 7** (`billing-ktx`). Product IDs match iOS StoreKit:
 
-| Tier | Period | Product ID |
-|------|--------|------------|
-| Author Plus | monthly | `com.diaryvault.author.plus.monthly` |
-| Author Plus | quarterly | `com.diaryvault.author.plus.quarterly` |
-| Author Plus | yearly | `com.diaryvault.author.plus.yearly` |
-| Author Pro | monthly | `com.diaryvault.author.pro.monthly` |
-| Author Pro | quarterly | `com.diaryvault.author.pro.quarterly` |
-| Author Pro | yearly | `com.diaryvault.author.pro.yearly` |
+| Tier | Period | Product ID (subscription) | Base plan ID | Billing period |
+|------|--------|---------------------------|--------------|----------------|
+| Author Plus | monthly | `com.diaryvault.author.plus.monthly` | `monthly` | 1 month |
+| Author Plus | quarterly | `com.diaryvault.author.plus.quarterly` | `quarterly` | 3 months |
+| Author Plus | yearly | `com.diaryvault.author.plus.yearly` | `yearly` | 1 year |
+| Author Pro | monthly | `com.diaryvault.author.pro.monthly` | `monthly` | 1 month |
+| Author Pro | quarterly | `com.diaryvault.author.pro.quarterly` | `quarterly` | 3 months |
+| Author Pro | yearly | `com.diaryvault.author.pro.yearly` | `yearly` | 1 year |
 
-App **compiles and runs without** Console products — paywall shows「价格尚未加载／Plans could not be loaded」until SKUs exist. Free vault copy never claims device-only storage (signed-in Free includes cloud sync).
+App **compiles and runs without** Console products — paywall shows「价格尚未加载／Plans could not be loaded」until SKUs exist. Free vault copy never claims device-only storage (signed-in Free includes cloud sync). Client uses Play **subscription replacement** when upgrading Plus → Pro or changing period (no release stub that skips payment).
 
 ### What works in the app now
 
@@ -229,17 +229,17 @@ App **compiles and runs without** Console products — paywall shows「价格尚
 
 1. 左侧 **获利** → **商品** → **订阅**（Monetize → Products → Subscriptions）。
 2. 建立 **6 个订阅商品**（每个周期一个独立 product ID，与上表完全一致；不要改拼写）。
-3. 每个商品内再建 **一个基础方案（base plan）**：
-   - 月订 → 续订周期 **1 个月**
-   - 季订 → **3 个月**
-   - 年订 → **1 年**
-   - 自动续订开启；价格按地区设定（TW／HK／CN／MY／SG／TH／JP）。
-4. 把 6 个商品都设为 **有效**（Active）。同一订阅组内 Pro 应高于 Plus（服务等级），与 iOS 一致。
+3. 每个商品内再建 **一个自动续订基础方案（base plan）**，ID 与周期按下表（可复制）：
+   - 月订 → base plan ID `monthly` · 续订周期 **1 个月**
+   - 季订 → base plan ID `quarterly` · **3 个月**
+   - 年订 → base plan ID `yearly` · **1 年**
+   - 价格按地区设定（TW／HK／CN／MY／SG／TH／JP）。
+4. 把 6 个商品都设为 **有效**（Active）。
 5. **设置** → **授权许可测试**（License testing）→ 加入你的 Google 测试账号（Gmail）。
-6. 可选：用 **内部测试** 轨道上传 AAB／APK，用许可测试账号安装；或继续用 Android Studio **Run Debug**（真机须有 Google Play）。
+6. **先**完成应用创建与上传签名 AAB（见下文 § Play release AAB），再把 APK／AAB 放到 **内部测试** 轨道；许可测试账号从该轨道安装后才能做真实测试购买。纯 sideload Debug 通常查不到商品。
 7. 静态回复（可选）：许可测试账号可在 Play 商店对测试购买使用「测试卡片」／延迟结算等选项（Console → 设置 → 授权许可测试说明）。
 
-完成前：Debug 构建用 paywall 底部 **模拟 Plus／Pro** 验证额度；真实购买按钮会提示商品不可用。
+完成前：Debug 构建用 paywall 底部 **模拟 Plus／Pro** 验证额度（仅 DEBUG；Release 无模拟、不会跳过付款）；Console SKU 未建时真实购买按钮会提示商品不可用。
 
 ### Redmi 真机测试（手机 UI 繁體）
 
