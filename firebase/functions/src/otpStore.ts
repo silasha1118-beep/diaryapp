@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import * as admin from "firebase-admin";
 
-const COLLECTION = "aliyunOtpSessions";
+const COLLECTION = "tencentOtpSessions";
 const OTP_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 

@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA); other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
+Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Tencent Cloud SMS via Cloud Functions (custom token; no reCAPTCHA); other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
@@ -164,8 +164,8 @@ cd C:\dev\diaryapp\android
 > `setAutoRetrievedSmsCodeForPhoneNumber` + `setAppVerificationDisabledForTesting(true)`，发送后应 **自动登录**（不必手输）。  
 > 若仍出现验证码栏：输入 `123456`；失败时红字会带 `project=` 与 Firebase `error=`（方便发现 json 指错项目／session 过期被误报成「验证码不符」）。  
 > 测 `+852` 真短信时临时删除测试号即可；删完不要再输 `123456`。  
-> Release `+86` 待 Tencent／DA-102 KYC；`+852` release 仍走 Firebase（60s auto-retrieve）。  
-> Logcat：`VaultAuth|FirebasePhoneSMS`。
+> **`+86` → Tencent Cloud SMS** when Functions secrets are set (DEBUG + release); missing secrets → Firebase fallback（Console 测试号仍可用）。见 [`firebase/TENCENT_SMS.md`](../firebase/TENCENT_SMS.md)。`+852` release 仍走 Firebase（60s auto-retrieve）。  
+> Logcat：`VaultAuth|FirebasePhoneSMS|TencentSmsAuth`。
 
 ## Cloud Mirror AI (xAI Grok)
 
@@ -208,7 +208,7 @@ android/
   app/google-services.json.example
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
-    auth/        # SMS OTP (DEBUG +86 → Firebase; release +86 → Aliyun CF / Firebase fallback)
+    auth/        # SMS OTP (+86 → Tencent CF / Firebase fallback; other dials → Firebase)
     config/      # AuthConfig, FirebaseBootstrap, DiaryMediaConfig, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
     media/       # DiaryMediaFileStore (filesDir/diary_media/{entryId}/)
