@@ -8,13 +8,13 @@ import com.diaryvault.app.BuildConfig
  * - `DIARY_SMS_PROVIDER` — `stub` | `firebase` | `twilio`
  *   Empty / unset: **firebase** when `google-services.json` is present, else **stub**.
  * - When provider is **firebase**, dial routing still applies:
- *   **DEBUG `+86` → Firebase Phone Auth** (Console *Phone numbers for testing*);
- *   **Release `+86` → Aliyun** (Cloud Functions; AccessKeys server-side only) when configured,
- *   else Firebase fallback when keys / Functions are missing;
+ *   **`+86` → Tencent Cloud SMS** (Cloud Functions; SecretId/SecretKey server-side only) when configured
+ *   (DEBUG + release — company testing must not skip the real path);
+ *   missing Tencent secrets → Firebase Phone Auth so Console test numbers work;
  *   other dials → Firebase Phone Auth (Play Integrity preferred).
  * - Firebase uses local `android/app/google-services.json` (gitignored).
  * - Optional `DIARY_FIREBASE_PROJECT_ID` is a label only (default `diaryappsilas`).
- * - Aliyun keys must **not** be placed in BuildConfig / APK — see `firebase/ALIYUN_SMS.md`.
+ * - Tencent keys must **not** be placed in BuildConfig / APK — see `firebase/TENCENT_SMS.md`.
  */
 object AuthConfig {
     enum class SMSProviderKind(val raw: String) {
