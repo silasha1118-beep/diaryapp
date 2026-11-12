@@ -1,6 +1,6 @@
 # 日記金庫 — Android (Kotlin + Jetpack Compose)
 
-Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA); other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
+Compose app that mirrors the iOS `DiaryVault/` product: phone SMS OTP → three tabs（金庫／鏡子／設定）→ vault list, Mirror chat, Settings. **Dial routing:** `+86` → Aliyun SMS via Cloud Functions (custom token; no reCAPTCHA) when secrets are set — see [`../firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md); missing Aliyun → Firebase Phone Auth fallback; other dials → **Firebase Phone Auth**. Firestore text sync matches iOS phase 1 when `google-services.json` is present; otherwise SMS falls back to a local stub.
 
 **Package:** `com.diaryvault.app`  
 **Display name:** 日記金庫  
@@ -158,14 +158,12 @@ cd C:\dev\diaryapp\android
 
 **模拟器：** 仍用 Console 测试号 + 固定码（debug 模拟器会跳过 Integrity／Chrome）。**真短信请用实体机 + Google Play。**
 
-> **Debug 固定码登录（+86 与 +852 相同规则）：**  
-> 号码必须在 Firebase Console → Authentication → Phone → **Phone numbers for testing**，且本机 `google-services.json` 的 **project_id 必须是 `diaryappsilas`**（与 Console 同一项目）。  
-> Debug 对内置测试号（`+85284028001` / `+8615014531587` → `123456`）会调用 Firebase 官方  
+> **Debug 固定码登录（+86 与 +852）：**  
+> **`+86` 优先走阿里云**（secrets 已设且 Functions 已部署）。若阿里云 secrets／Functions 未就绪，会 **fallback 到 Firebase** — 此时号码必须在 Firebase Console → Authentication → Phone → **Phone numbers for testing**，且本机 `google-services.json` 的 **project_id 必须是 `diaryappsilas`**。  
+> Debug 对内置测试号（`+85284028001` / `+8615014531587` → `123456`）在 **Firebase 路径**会调用  
 > `setAutoRetrievedSmsCodeForPhoneNumber` + `setAppVerificationDisabledForTesting(true)`，发送后应 **自动登录**（不必手输）。  
-> 若仍出现验证码栏：输入 `123456`；失败时红字会带 `project=` 与 Firebase `error=`（方便发现 json 指错项目／session 过期被误报成「验证码不符」）。  
-> 测 `+852` 真短信时临时删除测试号即可；删完不要再输 `123456`。  
-> Release `+86` 待 Tencent／DA-102 KYC；`+852` release 仍走 Firebase（60s auto-retrieve）。  
-> Logcat：`VaultAuth|FirebasePhoneSMS`。
+> 若阿里云已开通：`+86` 收真短信，**不要**再输 Console 固定码。阿里云设置见 [`firebase/ALIYUN_SMS.md`](../firebase/ALIYUN_SMS.md)。  
+> `+852` release 仍走 Firebase（60s auto-retrieve）。Logcat：`VaultAuth|AliyunSmsAuth|FirebasePhoneSMS`。
 
 ## Cloud Mirror AI (xAI Grok)
 
@@ -208,7 +206,7 @@ android/
   app/google-services.json.example
   app/src/main/java/com/diaryvault/app/
     account/     # AccountSession (Firebase Auth state)
-    auth/        # SMS OTP (DEBUG +86 → Firebase; release +86 → Aliyun CF / Firebase fallback)
+    auth/        # SMS OTP (+86 → Aliyun CF / Firebase fallback; other dials → Firebase)
     config/      # AuthConfig, FirebaseBootstrap, DiaryMediaConfig, AI / quotas
     data/        # AppPreferences, DiaryStore (JSON + soft-delete + sync)
     media/       # DiaryMediaFileStore (filesDir/diary_media/{entryId}/)
