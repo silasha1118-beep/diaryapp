@@ -2,15 +2,19 @@
  * DiaryVault Cloud Functions — mainland +86 SMS via Alibaba Cloud Dysmsapi,
  * then Firebase Auth custom token so clients keep `users/{uid}` Firestore sync.
  *
- * Env / secrets (never ship to the Android APK):
- *   ALIYUN_SMS_ACCESS_KEY_ID
- *   ALIYUN_SMS_ACCESS_KEY_SECRET
- *   ALIYUN_SMS_SIGN_NAME
- *   ALIYUN_SMS_TEMPLATE_CODE
- *   ALIYUN_SMS_TEMPLATE_PARAM_KEY   (optional, default `code`)
- *   ALIYUN_SMS_ALLOW_STUB           (optional `true` — local OTP when keys missing)
+ * Secrets (never ship to the Android APK) — set before deploy:
+ *   firebase functions:secrets:set ALIYUN_SMS_ACCESS_KEY_ID
+ *   firebase functions:secrets:set ALIYUN_SMS_ACCESS_KEY_SECRET
+ *   firebase functions:secrets:set ALIYUN_SMS_SIGN_NAME
+ *   firebase functions:secrets:set ALIYUN_SMS_TEMPLATE_CODE
  *
- * See ../ALIYUN_SMS.md for Silas Console setup.
+ * Optional env (not Secret Manager):
+ *   ALIYUN_SMS_TEMPLATE_PARAM_KEY   (default `code`)
+ *   ALIYUN_SMS_ALLOW_STUB           (`true` — local OTP when keys missing; never in prod)
+ *
+ * See ../ALIYUN_SMS.md for Silas Console + PowerShell setup.
+ *
+ * DA-159: prefer Aliyun for +86 (supersedes open Tencent PR #119 path for ops).
  */
 
 import "./globalOptions";
@@ -19,6 +23,7 @@ import * as admin from "firebase-admin";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import {
+  aliyunSmsSecrets,
   aliyunStubAllowed,
   readAliyunSmsConfig,
   sendAliyunSms,
@@ -63,7 +68,11 @@ function assertChinaMobile(phoneRaw: unknown): { e164: string; national: string 
  * Response: `{ sessionId, stub?, stubDebugHint? }`
  */
 export const sendAliyunSmsOtp = onCall(
-  { region: FUNCTIONS_REGION, enforceAppCheck: false },
+  {
+    region: FUNCTIONS_REGION,
+    enforceAppCheck: false,
+    secrets: [...aliyunSmsSecrets],
+  },
   async (request) => {
     const { e164, national } = assertChinaMobile(request.data?.phoneE164);
     const config = readAliyunSmsConfig();
@@ -73,7 +82,7 @@ export const sendAliyunSmsOtp = onCall(
       if (!aliyunStubAllowed()) {
         throw new HttpsError(
           "failed-precondition",
-          "Aliyun SMS is not configured. Set ALIYUN_SMS_* env/secrets, or ALIYUN_SMS_ALLOW_STUB=true for local OTP.",
+          "Aliyun SMS is not configured. Set ALIYUN_SMS_* secrets, or ALIYUN_SMS_ALLOW_STUB=true for local OTP.",
         );
       }
       const sessionId = await createOtpSession(e164, code, true);
@@ -102,7 +111,12 @@ export const sendAliyunSmsOtp = onCall(
  * Creates the Auth user with `phoneNumber` when needed so Firestore identity matches Phone Auth.
  */
 export const verifyAliyunSmsOtp = onCall(
-  { region: FUNCTIONS_REGION, enforceAppCheck: false },
+  {
+    region: FUNCTIONS_REGION,
+    enforceAppCheck: false,
+    // Bound so verify can re-read config if send ever needs parity; OTP itself is in Firestore.
+    secrets: [...aliyunSmsSecrets],
+  },
   async (request) => {
     const sessionId =
       typeof request.data?.sessionId === "string" ? request.data.sessionId.trim() : "";
