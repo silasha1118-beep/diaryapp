@@ -114,6 +114,9 @@
 "paywall.period.monthly" = "Monthly";
 "paywall.period.quarterly" = "Quarterly";
 "paywall.period.yearly" = "Yearly";
+"paywall.length.monthly" = "Length: 1 month";
+"paywall.length.quarterly" = "Length: 3 months";
+"paywall.length.yearly" = "Length: 1 year";
 "paywall.buy" = "Subscribe";
 "paywall.monthly" = "Author Plus · Monthly";
 "paywall.yearly" = "Author Plus · Yearly";

@@ -24,6 +24,14 @@ struct PaywallView: View {
             case .yearly: return "paywall.period.yearly"
             }
         }
+
+        var lengthKey: String {
+            switch self {
+            case .monthly: return "paywall.length.monthly"
+            case .quarterly: return "paywall.length.quarterly"
+            case .yearly: return "paywall.length.yearly"
+            }
+        }
     }
 
     var body: some View {
@@ -48,6 +56,7 @@ struct PaywallView: View {
                         paidTierCard(
                             title: localization.text("paywall.plus.title"),
                             summary: localization.text("paywall.plus.summary"),
+                            tier: .authorPlus,
                             products: subscriptions.plusProducts,
                             period: $plusPeriod,
                             accentPro: false,
@@ -59,6 +68,7 @@ struct PaywallView: View {
                         paidTierCard(
                             title: localization.text("paywall.pro.title"),
                             summary: localization.text("paywall.pro.summary"),
+                            tier: .authorPro,
                             products: subscriptions.proProducts,
                             period: $proPeriod,
                             accentPro: true,
@@ -87,17 +97,6 @@ struct PaywallView: View {
                             .buttonStyle(.plain)
                         }
 
-                        Button {
-                            Task { await subscriptions.restore() }
-                        } label: {
-                            Text(localization.text("paywall.restore"))
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(VaultTheme.inkMuted)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(subscriptions.isLoading)
-
                         if let key = subscriptions.statusMessage {
                             Text(statusText(for: key))
                                 .font(.system(size: 13))
@@ -108,13 +107,7 @@ struct PaywallView: View {
                         debugDiagnostics
                         #endif
 
-                        legalLinks
-
-                        Text(localization.text("paywall.disclosure.short"))
-                            .font(.system(size: 11))
-                            .foregroundStyle(VaultTheme.inkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.top, 4)
+                        SubscriptionDisclosureFooter()
                     }
                     .padding(24)
                 }
@@ -154,6 +147,7 @@ struct PaywallView: View {
     private func paidTierCard(
         title: String,
         summary: String,
+        tier: BillingConfig.Tier,
         products: [Product],
         period: Binding<BillingPeriod>,
         accentPro: Bool,
@@ -180,9 +174,12 @@ struct PaywallView: View {
                 .foregroundStyle(VaultTheme.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
+            SubscriptionBenefitsList(tier: tier)
+
             periodPicker(period)
 
             if let selected {
+                offerSummary(for: selected, period: period.wrappedValue, title: title)
                 purchaseButton(for: selected, isActive: isActiveProduct, accentPro: accentPro)
             } else if subscriptions.isLoading {
                 ProgressView()
@@ -203,6 +200,24 @@ struct PaywallView: View {
                     lineWidth: accentPro ? 1.5 : 1
                 )
         )
+    }
+
+    /// Explicit title + length + price line (Guideline 3.1.2).
+    private func offerSummary(for product: Product, period: BillingPeriod, title: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(displayName(for: product).isEmpty ? title : displayName(for: product))
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(VaultTheme.ink)
+            Text(
+                localization.text(period.lengthKey)
+                    + " · "
+                    + product.displayPrice
+            )
+            .font(.system(size: 14))
+            .foregroundStyle(VaultTheme.inkMuted)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
     }
 
     private func periodPicker(_ period: Binding<BillingPeriod>) -> some View {
@@ -244,7 +259,7 @@ struct PaywallView: View {
         }
         .buttonStyle(.plain)
         .disabled(subscriptions.isLoading || isActive)
-        .accessibilityLabel(displayName(for: product))
+        .accessibilityLabel(displayName(for: product) + " " + product.displayPrice)
     }
 
     private var missingProductsBanner: some View {
@@ -256,20 +271,6 @@ struct PaywallView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(VaultTheme.paperDeep.opacity(0.55))
             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-    }
-
-    private var legalLinks: some View {
-        HStack(spacing: 16) {
-            if let privacy = LegalConfig.privacyPolicyURL {
-                Link(localization.text("settings.legal.privacy"), destination: privacy)
-                    .font(.system(size: 13, weight: .medium))
-            }
-            Link(
-                localization.text("settings.legal.terms"),
-                destination: LegalConfig.effectiveTermsURL
-            )
-            .font(.system(size: 13, weight: .medium))
-        }
     }
 
     #if DEBUG

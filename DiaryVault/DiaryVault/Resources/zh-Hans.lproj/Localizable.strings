@@ -116,6 +116,9 @@
 "paywall.period.monthly" = "月订";
 "paywall.period.quarterly" = "季订";
 "paywall.period.yearly" = "年订";
+"paywall.length.monthly" = "订阅长度：1 个月";
+"paywall.length.quarterly" = "订阅长度：3 个月";
+"paywall.length.yearly" = "订阅长度：1 年";
 "paywall.buy" = "订阅";
 "paywall.restore" = "恢复购买";
 "paywall.reload" = "重新加载方案";
