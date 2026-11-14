@@ -116,6 +116,9 @@
 "paywall.period.monthly" = "月額";
 "paywall.period.quarterly" = "四半期";
 "paywall.period.yearly" = "年額";
+"paywall.length.monthly" = "期間：1か月";
+"paywall.length.quarterly" = "期間：3か月";
+"paywall.length.yearly" = "期間：1年";
 "paywall.buy" = "登録する";
 "paywall.restore" = "購入を復元";
 "paywall.reload" = "プランを再読み込み";
