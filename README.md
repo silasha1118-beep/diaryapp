@@ -13,6 +13,18 @@ See **[android/README.md](android/README.md)** for Android Studio / `./gradlew :
 
 Android **account / Play Billing** in this PR: **stub hooks only** (Settings shows local session / phone stub + Author Plus product ID placeholders). Full SMS OTP / Play Billing is deferred — iOS phone OTP + StoreKit is the first path.
 
+### Join Android closed testing (Play)
+
+This is **Google Play closed testing**, not a public production release on the Play Store.
+
+**Join closed test (web):** [Play closed testing — com.silasha.diaryvault](https://play.google.com/apps/testing/com.silasha.diaryvault)
+
+1. Open the link while signed into the **Gmail** account you want to use as a tester (must be allowed on the closed-test track).
+2. Accept / opt in as a tester.
+3. Install from the Play Store link shown after joining (availability can lag a short while).
+
+**繁體中文（簡要）：** 此為 Google Play **封閉測試**，並非正式公開上架。請用獲准的 Gmail 開啟上方連結加入測試，再從 Play 商店安裝。
+
 ## Open in Xcode
 
 1. Clone this repo on a Mac with **Xcode 15+** (iOS 17 deployment target).
