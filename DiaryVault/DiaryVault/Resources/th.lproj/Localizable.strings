@@ -116,6 +116,9 @@
 "paywall.period.monthly" = "รายเดือน";
 "paywall.period.quarterly" = "รายไตรมาส";
 "paywall.period.yearly" = "รายปี";
+"paywall.length.monthly" = "ระยะเวลา: 1 เดือน";
+"paywall.length.quarterly" = "ระยะเวลา: 3 เดือน";
+"paywall.length.yearly" = "ระยะเวลา: 1 ปี";
 "paywall.buy" = "สมัคร";
 "paywall.restore" = "กู้คืนการซื้อ";
 "paywall.reload" = "โหลดแผนใหม่";

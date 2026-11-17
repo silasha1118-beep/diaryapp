@@ -41,6 +41,7 @@
 		A10000000000000000000028 /* PhoneOTPLoginForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000028 /* PhoneOTPLoginForm.swift */; };
 		A10000000000000000000020 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000020 /* PaywallView.swift */; };
 		A10000000000000000000034 /* UpgradeCheckoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000034 /* UpgradeCheckoutSheet.swift */; };
+		A10000000000000000000041 /* SubscriptionDisclosureFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000041 /* SubscriptionDisclosureFooter.swift */; };
 		A10000000000000000000021 /* DiaryVault.storekit in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* DiaryVault.storekit */; };
 		A10000000000000000000025 /* FirebaseAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000025 /* FirebaseAppDelegate.swift */; };
 		A10000000000000000000029 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000029 /* AppleSignInCoordinator.swift */; };
@@ -100,6 +101,7 @@
 		B10000000000000000000028 /* PhoneOTPLoginForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneOTPLoginForm.swift; sourceTree = "<group>"; };
 		B10000000000000000000020 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		B10000000000000000000034 /* UpgradeCheckoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradeCheckoutSheet.swift; sourceTree = "<group>"; };
+		B10000000000000000000041 /* SubscriptionDisclosureFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionDisclosureFooter.swift; sourceTree = "<group>"; };
 		B10000000000000000000021 /* DiaryVault.storekit */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DiaryVault.storekit; sourceTree = "<group>"; };
 		B10000000000000000000022 /* DiaryVault.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiaryVault.entitlements; sourceTree = "<group>"; };
 		B10000000000000000000025 /* FirebaseAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseAppDelegate.swift; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 			children = (
 				B10000000000000000000020 /* PaywallView.swift */,
 				B10000000000000000000034 /* UpgradeCheckoutSheet.swift */,
+				B10000000000000000000041 /* SubscriptionDisclosureFooter.swift */,
 			);
 			path = Paywall;
 			sourceTree = "<group>";
@@ -461,6 +464,7 @@
 				A10000000000000000000011 /* MirrorChatView.swift in Sources */,
 				A10000000000000000000020 /* PaywallView.swift in Sources */,
 				A10000000000000000000034 /* UpgradeCheckoutSheet.swift in Sources */,
+				A10000000000000000000041 /* SubscriptionDisclosureFooter.swift in Sources */,
 				A10000000000000000000012 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -536,7 +540,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = DiaryVault/DiaryVault.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DiaryVault/Info.plist;
@@ -567,7 +571,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = DiaryVault/DiaryVault.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DiaryVault/Info.plist;

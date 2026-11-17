@@ -3,7 +3,7 @@ import StoreKit
 
 /// Compact upgrade sheet from vault / Mirror hard-cap CTAs:
 /// pick **Plus or Pro** → pick **月／季／年** → 訂閱 → Apple purchase sheet.
-/// Not the full Settings Plans page (no Free card, no long comparison copy).
+/// Includes Guideline 3.1.2 title / length / price / benefits / legal / restore.
 struct UpgradeCheckoutSheet: View {
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var subscriptions: SubscriptionStore
@@ -31,6 +31,14 @@ struct UpgradeCheckoutSheet: View {
             }
         }
 
+        var lengthKey: String {
+            switch self {
+            case .monthly: return "paywall.length.monthly"
+            case .quarterly: return "paywall.length.quarterly"
+            case .yearly: return "paywall.length.yearly"
+            }
+        }
+
         var rank: Int {
             switch self {
             case .monthly: return 0
@@ -50,6 +58,12 @@ struct UpgradeCheckoutSheet: View {
 
     private var selectedProduct: Product? {
         products.first { BillingConfig.periodRank(for: $0.id) == period.rank }
+    }
+
+    private var tierTitle: String {
+        selectedTier == .authorPro
+            ? localization.text("paywall.pro.title")
+            : localization.text("paywall.plus.title")
     }
 
     var body: some View {
@@ -80,8 +94,14 @@ struct UpgradeCheckoutSheet: View {
                             .foregroundStyle(VaultTheme.inkMuted)
                             .fixedSize(horizontal: false, vertical: true)
 
+                        SubscriptionBenefitsList(tier: selectedTier)
+
                         periodPicker
                             .opacity(appeared ? 1 : 0)
+
+                        if let product = selectedProduct {
+                            offerSummary(for: product)
+                        }
 
                         subscribeButton
                             .opacity(appeared ? 1 : 0)
@@ -101,10 +121,7 @@ struct UpgradeCheckoutSheet: View {
                                 .foregroundStyle(VaultTheme.inkMuted)
                         }
 
-                        Text(localization.text("upgrade.checkout.legal"))
-                            .font(.system(size: 11))
-                            .foregroundStyle(VaultTheme.inkMuted)
-                            .fixedSize(horizontal: false, vertical: true)
+                        SubscriptionDisclosureFooter()
                             .padding(.top, 4)
                     }
                     .padding(24)
@@ -196,6 +213,24 @@ struct UpgradeCheckoutSheet: View {
         }
     }
 
+    /// Explicit title + length + price (Guideline 3.1.2).
+    private func offerSummary(for product: Product) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(displayName(for: product))
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(VaultTheme.ink)
+            Text(
+                localization.text(period.lengthKey)
+                    + " · "
+                    + product.displayPrice
+            )
+            .font(.system(size: 14))
+            .foregroundStyle(VaultTheme.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+
     private var subscribeButton: some View {
         let product = selectedProduct
         let isActive = product.map { subscriptions.activeProductID == $0.id } ?? false
@@ -226,6 +261,28 @@ struct UpgradeCheckoutSheet: View {
         .disabled(subscriptions.isLoading || product == nil || isActive)
     }
 
+    private func displayName(for product: Product) -> String {
+        if !product.displayName.isEmpty {
+            return product.displayName
+        }
+        switch product.id {
+        case BillingConfig.plusMonthlyProductID:
+            return localization.text("paywall.plus.monthly")
+        case BillingConfig.plusQuarterlyProductID:
+            return localization.text("paywall.plus.quarterly")
+        case BillingConfig.plusYearlyProductID:
+            return localization.text("paywall.plus.yearly")
+        case BillingConfig.proMonthlyProductID:
+            return localization.text("paywall.pro.monthly")
+        case BillingConfig.proQuarterlyProductID:
+            return localization.text("paywall.pro.quarterly")
+        case BillingConfig.proYearlyProductID:
+            return localization.text("paywall.pro.yearly")
+        default:
+            return tierTitle
+        }
+    }
+
     private func statusText(for key: String) -> String {
         let map = [
             "products.empty": "paywall.status.productsEmpty",
@@ -235,6 +292,9 @@ struct UpgradeCheckoutSheet: View {
             "purchase.pending": "paywall.status.purchasePending",
             "purchase.unknown": "paywall.status.purchaseUnknown",
             "purchase.error": "paywall.status.purchaseError",
+            "restore.success": "paywall.status.restoreSuccess",
+            "restore.none": "paywall.status.restoreNone",
+            "restore.error": "paywall.status.restoreError",
         ]
         return localization.text(map[key] ?? key)
     }
