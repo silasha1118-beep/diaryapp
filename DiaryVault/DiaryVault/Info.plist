@@ -99,15 +99,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!-- Optional cloud AI — leave empty in repo; set via Xcode scheme env instead. -->
+	<!-- Optional cloud AI — empty by default. Debug: Xcode scheme env. Archive/TestFlight: Secrets.xcconfig → $(DIARY_AI_*) build settings (see Secrets.xcconfig.example). Never commit real keys. -->
 	<key>DIARY_AI_PROVIDER</key>
-	<string></string>
+	<string>$(DIARY_AI_PROVIDER)</string>
 	<key>DIARY_AI_BASE_URL</key>
-	<string></string>
+	<string>$(DIARY_AI_BASE_URL)</string>
 	<key>DIARY_AI_API_KEY</key>
-	<string></string>
+	<string>$(DIARY_AI_API_KEY)</string>
 	<key>DIARY_AI_MODEL</key>
-	<string></string>
+	<string>$(DIARY_AI_MODEL)</string>
 	<key>DIARY_AI_MAX_TOKENS</key>
 	<string></string>
 	<key>DIARY_AI_MAX_CONTEXT_ENTRIES</key>

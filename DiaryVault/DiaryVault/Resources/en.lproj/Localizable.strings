@@ -220,6 +220,8 @@
 "mirror.intro" = "I’m a mirror grounded in what you’ve written. I’ll reflect and ask — I won’t tell you what to do.";
 "mirror.mode.mock" = "Mock mirror";
 "mirror.mode.cloud" = "Cloud mirror";
+"mirror.mode.needsKey" = "Mirror needs an xAI key — set DIARY_AI_API_KEY (scheme env for Debug, or Secrets.xcconfig for Archive / TestFlight), then rebuild";
+"mirror.error.notConfigured" = "Cloud Mirror is not configured. Add DIARY_AI_API_KEY or XAI_API_KEY (Debug: Xcode scheme env; TestFlight: Secrets.xcconfig — see Secrets.xcconfig.example). Never commit the key.";
 "mirror.style.hint" = "Reflect · ask — not coach";
 "mirror.placeholder" = "Say what’s on your mind…";
 "mirror.send" = "Send";

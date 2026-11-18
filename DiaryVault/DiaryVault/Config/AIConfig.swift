@@ -8,8 +8,11 @@ enum AIProvider: String {
 
 /// Cloud LLM configuration. No secrets belong in the repo.
 ///
-/// Wire a cloud chat API via scheme env / Info.plist:
-/// - `DIARY_AI_API_KEY` or `XAI_API_KEY` — required to leave mock mode (never commit)
+/// Wire a cloud chat API (never commit keys):
+/// - **Debug Run:** Xcode scheme env `DIARY_AI_API_KEY` / `XAI_API_KEY` (not present in Archive / TestFlight).
+/// - **Archive / TestFlight:** gitignored repo-root `Secrets.xcconfig` (see `Secrets.xcconfig.example`)
+///   → `DiaryVault/Config/DiaryVault.xcconfig` → Info.plist `$(DIARY_AI_*)`.
+/// - `DIARY_AI_API_KEY` or `XAI_API_KEY` — required for live Mirror (UI blocks send when missing; no mock replies)
 /// - `DIARY_AI_PROVIDER` — optional; `openai` / `xai` (default) or `anthropic`.
 ///   Auto-detects `anthropic` when `DIARY_AI_BASE_URL` contains `anthropic`.
 /// - `DIARY_AI_BASE_URL` — optional; defaults to **https://api.x.ai** (openai/xai) or Anthropic host
@@ -119,7 +122,7 @@ enum AIConfig {
         intValue(for: "DIARY_AI_PRO_DAILY_REQUEST_LIMIT", default: defaultProDailyRequestLimit)
     }
 
-    /// Prefer mock unless an API key is present.
+    /// Live cloud Mirror when a non-empty API key is present (scheme env or Info.plist).
     static var useCloudClient: Bool {
         !(apiKey?.isEmpty ?? true)
     }
@@ -128,13 +131,22 @@ enum AIConfig {
     static var dataResidencyLabel: String { "Taiwan" }
 
     private static func value(for key: String) -> String? {
-        if let env = ProcessInfo.processInfo.environment[key], !env.isEmpty {
-            return env
+        if let env = ProcessInfo.processInfo.environment[key], let cleaned = sanitized(env) {
+            return cleaned
         }
-        if let plist = Bundle.main.object(forInfoDictionaryKey: key) as? String, !plist.isEmpty {
-            return plist
+        if let plist = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+           let cleaned = sanitized(plist) {
+            return cleaned
         }
         return nil
+    }
+
+    /// Drop blanks and unexpanded `$(BUILD_SETTING)` placeholders left in Info.plist.
+    private static func sanitized(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        if trimmed.hasPrefix("$(") && trimmed.hasSuffix(")") { return nil }
+        return trimmed
     }
 
     private static func intValue(for key: String, default defaultValue: Int) -> Int {

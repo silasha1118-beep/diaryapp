@@ -220,6 +220,8 @@
 "mirror.intro" = "私は、あなたが書いたことに根ざした鏡です。映し、問いかけます——何をすべきかは言いません。";
 "mirror.mode.mock" = "モックミラー";
 "mirror.mode.cloud" = "クラウドミラー";
+"mirror.mode.needsKey" = "ミラーには xAI キーが必要です — DIARY_AI_API_KEY を設定（Debug: Scheme 環境変数 / Archive・TestFlight: Secrets.xcconfig）して再ビルド";
+"mirror.error.notConfigured" = "クラウドミラー未設定です。DIARY_AI_API_KEY または XAI_API_KEY を追加してください（Debug: Scheme 環境変数 / TestFlight: Secrets.xcconfig — Secrets.xcconfig.example 参照）。キーはコミットしないでください。";
 "mirror.style.hint" = "映す · 問う — コーチではない";
 "mirror.placeholder" = "いまの気持ちを書いて…";
 "mirror.send" = "送信";

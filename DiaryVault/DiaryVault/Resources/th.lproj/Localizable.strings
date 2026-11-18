@@ -220,6 +220,8 @@
 "mirror.intro" = "ฉันเป็นกระจกที่อิงจากสิ่งที่คุณเขียน จะสะท้อนและถาม — ไม่บอกว่าคุณต้องทำอะไร";
 "mirror.mode.mock" = "กระจกจำลอง";
 "mirror.mode.cloud" = "กระจกคลาวด์";
+"mirror.mode.needsKey" = "กระจกต้องการคีย์ xAI — ตั้ง DIARY_AI_API_KEY (Debug: Scheme env / Archive·TestFlight: Secrets.xcconfig) แล้วคอมไพล์ใหม่";
+"mirror.error.notConfigured" = "ยังไม่ได้ตั้งค่า Cloud Mirror เพิ่ม DIARY_AI_API_KEY หรือ XAI_API_KEY (Debug: Scheme env / TestFlight: Secrets.xcconfig — ดู Secrets.xcconfig.example) อย่า commit คีย์";
 "mirror.style.hint" = "สะท้อน · ถาม — ไม่ใช่โค้ช";
 "mirror.placeholder" = "เล่าสิ่งที่คิดอยู่…";
 "mirror.send" = "ส่ง";
