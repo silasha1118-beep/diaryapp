@@ -68,23 +68,25 @@ struct MirrorChatView: View {
         }
     }
 
-    /// Show exhausted banner only (soft Free ladders removed — hard stop → paywall).
+    /// Needs-key banner (Android parity) or exhausted quota (hard stop → paywall).
     private var showQuotaBanner: Bool {
-        guard AIConfig.useCloudClient else { return false }
+        if !AIConfig.useCloudClient { return true }
         return MirrorUsageGuard.isExhausted(tier: billingTier)
     }
 
     private var quotaBanner: some View {
         let _ = quotaTick
-        let exhausted = MirrorUsageGuard.isExhausted(tier: billingTier)
+        let cloudReady = AIConfig.useCloudClient
+        let exhausted = cloudReady && MirrorUsageGuard.isExhausted(tier: billingTier)
+        let alert = !cloudReady || exhausted
         return HStack(alignment: .center, spacing: 10) {
-            Image(systemName: exhausted ? "exclamationmark.circle" : "sparkles")
+            Image(systemName: alert ? "exclamationmark.circle" : "sparkles")
                 .font(.system(size: 13))
-                .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
+                .foregroundStyle(alert ? VaultTheme.seal : VaultTheme.inkMuted)
 
-            Text(quotaStatusText(exhausted: exhausted))
+            Text(quotaStatusText(cloudReady: cloudReady, exhausted: exhausted))
                 .font(.system(size: 13))
-                .foregroundStyle(exhausted ? VaultTheme.seal : VaultTheme.inkMuted)
+                .foregroundStyle(alert ? VaultTheme.seal : VaultTheme.inkMuted)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer(minLength: 8)
@@ -103,13 +105,16 @@ struct MirrorChatView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .background(
-            exhausted
+            alert
                 ? VaultTheme.seal.opacity(0.08)
                 : VaultTheme.paperDeep.opacity(0.45)
         )
     }
 
-    private func quotaStatusText(exhausted: Bool) -> String {
+    private func quotaStatusText(cloudReady: Bool, exhausted: Bool) -> String {
+        guard cloudReady else {
+            return localization.text("mirror.mode.needsKey")
+        }
         if let remaining = MirrorUsageGuard.remaining(tier: billingTier) {
             let limit = MirrorUsageGuard.effectiveLimit(tier: billingTier)
             if exhausted {
@@ -254,6 +259,13 @@ struct MirrorChatView: View {
         // Hard-capped (Free lifetime / paid daily) — Plus also offers Author Pro CTA.
         if MirrorUsageGuard.isExhausted(tier: billingTier) {
             applyHardQuotaGate(tier: billingTier)
+            return
+        }
+
+        // Android parity: never invent mock Mirror replies when cloud AI is not configured.
+        guard AIConfig.useCloudClient else {
+            errorText = localization.text("mirror.error.notConfigured")
+            showQuotaUpgrade = false
             return
         }
 

@@ -285,13 +285,17 @@ XAI_API_KEY=xai-your-key-here
 
 3. Sync Gradle → rebuild Debug → Mirror → send. Without a key the app builds and Mirror shows a clear error (no mock replies). See `android/README.md` and `android/local.properties.example`.
 
-#### iOS (Xcode scheme env)
+#### iOS
+
+**Important:** Xcode **Scheme → Run → Environment Variables** only apply when you Run from Xcode. They are **not** baked into Archive / TestFlight / App Store builds. Without a key, Mirror shows a clear “needs key” banner and does **not** invent mock replies (same as Android).
+
+##### Debug (Run from Xcode)
 
 1. **Product → Scheme → Edit Scheme… → Run → Arguments → Environment Variables**, add:
 
    | Variable | Required | Example / default |
    |----------|----------|-------------------|
-   | `DIARY_AI_API_KEY` or `XAI_API_KEY` | **Yes** (to leave mock) | xAI key (scheme-local only) |
+   | `DIARY_AI_API_KEY` or `XAI_API_KEY` | **Yes** (for live Mirror) | xAI key (scheme-local only) |
    | `DIARY_AI_PROVIDER` | No | `openai` / `xai` (default) or `anthropic` |
    | `DIARY_AI_BASE_URL` | No | xAI: `https://api.x.ai` · Anthropic: `https://api.anthropic.com` |
    | `DIARY_AI_MODEL` | No | xAI: `grok-4.7` · Anthropic: `claude-sonnet-4-5` |
@@ -301,8 +305,20 @@ XAI_API_KEY=xai-your-key-here
    | `DIARY_AI_DAILY_REQUEST_LIMIT` | No | `8` (Author Plus daily; `0` = unlimited for Plus) |
    | `DIARY_AI_PRO_DAILY_REQUEST_LIMIT` | No | `16` (Author Pro daily; `0` = unlimited for Pro) |
 
-2. Leave Info.plist AI keys empty in the repo. Prefer scheme env (or a gitignored `Secrets.xcconfig`).
-3. Restart the app.
+2. Restart the app from Xcode.
+
+##### Archive / TestFlight (build-time Info.plist)
+
+1. Get a key at https://console.x.ai → API Keys.
+2. Copy `Secrets.xcconfig.example` → repo-root **`Secrets.xcconfig`** (gitignored) and set:
+
+   ```
+   DIARY_AI_API_KEY = xai-your-key-here
+   ```
+
+3. Confirm `DiaryVault/Config/DiaryVault.xcconfig` is the target’s base configuration (already wired) so `$(DIARY_AI_API_KEY)` expands into Info.plist.
+4. **Product → Archive** → upload to TestFlight. Open Mirror → send; replies should come from live Grok (no 「模擬鏡子」disclaimer).
+5. **Never commit** `Secrets.xcconfig`. The key ends up in the app binary (same tradeoff as Android `BuildConfig`) until a server-side Mirror proxy exists.
 
 **Anthropic (Claude)** remains available as an alternate OpenAI-incompatible path (`DIARY_AI_PROVIDER=anthropic`) but is region-blocked for this product — prefer xAI.
 
@@ -318,7 +334,7 @@ Cost / billing notes: see project docs `ai-cost-and-billing.md` and `account-and
 | **Account gate (phone SMS OTP)** | Firebase Phone Auth when plist present; else stub SMS; **Sign in with Apple** optional backup (paid team); DEBUG local session; Settings has the same |
 | **StoreKit 2 Author Plus purchase / restore** | Works against local `.storekit` (Personal Team OK) or Sandbox when Connect products exist |
 | Vault list / create / detail / edit / delete | Works — JSON on device; Firestore sync when Firebase Auth signed in; delete is soft-delete (`deleted` + `deletedAt`), Vault hides deleted rows |
-| Mirror chat | **Android**: live **xAI Grok** when `XAI_API_KEY` / `DIARY_AI_API_KEY` is in `local.properties` (clear error if missing). **iOS**: mock until scheme key set; same OpenAI-compatible / Anthropic clients |
+| Mirror chat | **Android**: live **xAI Grok** when `XAI_API_KEY` / `DIARY_AI_API_KEY` is in `local.properties` (clear error if missing). **iOS**: live Grok when key is in scheme env (Debug) or `Secrets.xcconfig` → Info.plist (Archive/TestFlight); clear error if missing — no silent mock |
 | Diary → Mirror context | Recent entries passed as prompt excerpts (RAG-lite) |
 | Usage safeguards | Max context entries, max tokens, Free lifetime / Plus–Pro daily Mirror + vault upload quotas |
 | Language switch 繁中 / 簡中 / English | Works (Settings + onboarding) |
@@ -390,4 +406,4 @@ In-app switchable (not only system locale):
 
 ## License / secrets
 
-Do not commit API keys or signing secrets. Prefer Xcode scheme environment variables or a gitignored `Secrets.xcconfig`. IAP product IDs are public identifiers, not secrets.
+Do not commit API keys or signing secrets. Prefer Xcode scheme environment variables (Debug Run only) or a gitignored `Secrets.xcconfig` (Archive / TestFlight). IAP product IDs are public identifiers, not secrets.

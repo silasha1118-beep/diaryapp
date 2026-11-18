@@ -43,6 +43,9 @@ enum MirrorAIError: LocalizedError {
 }
 
 enum MirrorAIClientFactory {
+    /// Cloud client when `DIARY_AI_API_KEY` / `XAI_API_KEY` is set; otherwise a local mock
+    /// kept for unit/demo hooks. ``MirrorChatView`` refuses to send without a key (Android parity)
+    /// so TestFlight never shows silent template reflections.
     @MainActor
     static func make() -> any MirrorAIService {
         guard AIConfig.useCloudClient else {

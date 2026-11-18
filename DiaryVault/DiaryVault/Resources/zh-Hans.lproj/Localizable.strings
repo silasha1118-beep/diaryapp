@@ -220,6 +220,8 @@
 "mirror.intro" = "我是一面依你所写而立的镜子。我会映照、提问——不会告诉你该怎么做。";
 "mirror.mode.mock" = "模拟镜子";
 "mirror.mode.cloud" = "云端镜子";
+"mirror.mode.needsKey" = "镜子需要 xAI 密钥 — 设置 DIARY_AI_API_KEY（Debug：Xcode Scheme 环境变量；Archive／TestFlight：Secrets.xcconfig）后重新编译";
+"mirror.error.notConfigured" = "云端镜子尚未配置。请加入 DIARY_AI_API_KEY 或 XAI_API_KEY（Debug：Xcode Scheme 环境变量；TestFlight：Secrets.xcconfig，见 Secrets.xcconfig.example）。切勿提交密钥。";
 "mirror.style.hint" = "反映 · 提问 — 非教练";
 "mirror.placeholder" = "说说此刻在想什么…";
 "mirror.send" = "发送";

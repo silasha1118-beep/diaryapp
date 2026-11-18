@@ -1,0 +1,10 @@
+// Shared build settings for DiaryVault Debug + Release (Archive / TestFlight).
+// Optional local overrides (never commit): repo-root Secrets.xcconfig — see Secrets.xcconfig.example.
+// Scheme Run env vars still win at runtime via ProcessInfo (Debug only); Archive needs these plist keys.
+
+DIARY_AI_API_KEY =
+DIARY_AI_PROVIDER =
+DIARY_AI_BASE_URL =
+DIARY_AI_MODEL =
+
+#include? "../../Secrets.xcconfig"
