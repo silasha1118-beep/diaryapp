@@ -5,6 +5,7 @@ struct MirrorChatView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var localization: LocalizationManager
     @EnvironmentObject private var subscriptions: SubscriptionStore
+    @EnvironmentObject private var account: AccountSession
 
     @State private var messages: [MirrorMessage] = []
     @State private var draft = ""
@@ -14,6 +15,8 @@ struct MirrorChatView: View {
     @State private var showUpgradeCheckout = false
     @State private var client: (any MirrorAIService) = MockMirrorAIClient()
     @State private var quotaTick = 0
+    @State private var didLoadPersisted = false
+    @State private var mirrorAccountKey = MirrorChatStore.accountKey(userID: nil)
 
     private var billingTier: BillingConfig.Tier { subscriptions.tier }
 
@@ -34,19 +37,22 @@ struct MirrorChatView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 client = MirrorAIClientFactory.make()
-                if messages.isEmpty {
-                    messages = [
-                        MirrorMessage(
-                            role: .system,
-                            text: localization.text("mirror.intro")
-                        )
-                    ]
-                }
+                reloadMessagesIfNeeded(force: !didLoadPersisted)
                 quotaTick &+= 1
+            }
+            .onChange(of: account.userID) { _, _ in
+                reloadMessagesIfNeeded(force: true)
             }
             .onChange(of: localization.language) { _, _ in
                 if let first = messages.first, first.role == .system {
-                    messages[0] = MirrorMessage(role: .system, text: localization.text("mirror.intro"))
+                    messages[0] = MirrorMessage(
+                        id: first.id,
+                        role: .system,
+                        text: localization.text("mirror.intro"),
+                        citedEntryIDs: first.citedEntryIDs,
+                        createdAt: first.createdAt
+                    )
+                    persistMessages()
                 }
             }
             .onChange(of: subscriptions.tier) { _, _ in
@@ -205,12 +211,7 @@ struct MirrorChatView: View {
                     .padding(message.role == .system ? 4 : 16)
                     .background(background(for: message.role))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                if !message.citedEntryIDs.isEmpty {
-                    Text(localization.text("mirror.cited"))
-                        .font(.system(size: 12))
-                        .foregroundStyle(VaultTheme.inkMuted)
-                }
+                // Citation caption removed (DA-170) — diary grounding stays in the model prompt only.
             }
 
             if message.role != .user { Spacer(minLength: 48) }
@@ -283,6 +284,7 @@ struct MirrorChatView: View {
         // Free tab bar (首頁 / Vault) while Mirror awaits a reply.
         KeyboardDismiss.resign()
         messages.append(MirrorMessage(role: .user, text: text))
+        persistMessages()
         isThinking = true
 
         let context = MirrorContext(
@@ -295,6 +297,7 @@ struct MirrorChatView: View {
         do {
             let reply = try await client.reply(to: text, context: context)
             messages.append(reply)
+            persistMessages()
         } catch let error as MirrorAIError {
             switch error {
             case .rateLimited(let limit, let tier):
@@ -308,6 +311,34 @@ struct MirrorChatView: View {
 
         isThinking = false
         quotaTick &+= 1
+    }
+
+    private func reloadMessagesIfNeeded(force: Bool) {
+        let key = MirrorChatStore.accountKey(userID: account.userID)
+        if !force, didLoadPersisted, key == mirrorAccountKey { return }
+        mirrorAccountKey = key
+        let loaded = MirrorChatStore.load(accountKey: key)
+        if loaded.isEmpty {
+            messages = [
+                MirrorMessage(role: .system, text: localization.text("mirror.intro"))
+            ]
+        } else {
+            messages = loaded
+            if let first = messages.first, first.role == .system {
+                messages[0] = MirrorMessage(
+                    id: first.id,
+                    role: .system,
+                    text: localization.text("mirror.intro"),
+                    citedEntryIDs: first.citedEntryIDs,
+                    createdAt: first.createdAt
+                )
+            }
+        }
+        didLoadPersisted = true
+    }
+
+    private func persistMessages() {
+        MirrorChatStore.save(accountKey: mirrorAccountKey, messages: messages)
     }
 
     private func presentUpgradeCheckout() {
