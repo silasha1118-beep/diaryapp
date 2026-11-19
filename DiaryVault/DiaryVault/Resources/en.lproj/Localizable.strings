@@ -267,7 +267,6 @@
 "settings.account.link.phone.alreadyLinked" = "Phone is already linked to this account.";
 "settings.account.link.apple.title" = "Link Apple";
 "settings.account.link.apple.banner" = "You signed in with phone. Link Apple so you can open the same vault either way.";
-"settings.account.link.apple.note" = "Attaches Apple to this same account — it doesn’t create a new one.";
 "settings.account.link.apple.success" = "Apple linked to this account.";
 "settings.account.link.apple.alreadyInUse" = "This Apple ID already belongs to another account and cannot be overwritten.";
 "settings.account.link.apple.alreadyLinked" = "Apple is already linked to this account.";
@@ -275,13 +274,9 @@
 "settings.account.link.needSignedIn" = "Sign in first, then link the other method.";
 "settings.account.link.mergeGuidance" = "To combine data from both sides, choose which account to keep and export/import diaries manually. The app will not silently overwrite the other account.";
 "settings.account.link.bothDone" = "Phone and Apple are linked to the same account.";
-"settings.account.link.footer" = "While signed in, you can link any missing sign-in method to this account. If that method already belongs elsewhere, you’ll see a clear error.";
 "settings.account.signOut" = "Sign out";
-"settings.account.footer" = "Session is local to this device. Primary sign-in is phone SMS OTP for all regions; Sign in with Apple stays visible below when available. Sign out returns you to the account gate.";
-"settings.account.phone.footer" = "Enter your mobile number, send a code, then verify. Supported regions include Taiwan, Hong Kong, Mainland China, Malaysia, Singapore, Thailand, and Japan. Sign in with Apple is available below when you’re not already signed in with Apple.";
 "settings.account.phone.success" = "Phone sign-in succeeded.";
 "settings.section.developer" = "Developer";
-"settings.developer.footer" = "DEBUG builds only. Hidden completely in Release.";
 "settings.section.cloud" = "Sync";
 "settings.cloud.status" = "Status";
 "settings.cloud.status.synced" = "Synced";
@@ -296,7 +291,6 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "Entries on server";
 "settings.cloud.syncNow" = "Sync now";
-"settings.cloud.footer" = "Signed-in text diaries sync to your account. Tap Sync now if content looks out of date.";
 "settings.section.billing" = "Subscription";
 "settings.billing.plan" = "Plan";
 "settings.billing.free" = "Free";
@@ -305,13 +299,10 @@
 "settings.billing.product" = "Product";
 "settings.billing.expires" = "Period end";
 "settings.billing.manage" = "View plans / restore";
-"settings.billing.footer" = "Free, Author Plus, and Author Pro. Manage or restore purchases here. Subscriptions renew through your Apple ID.";
 "settings.section.language" = "Language";
 "settings.language" = "App language";
-"settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — switch anytime. First launch follows your system language (App Store locale).";
 "settings.section.advice" = "Advice";
 "settings.reminders" = "Gentle contextual reminders";
-"settings.reminders.footer" = "When on, the mirror may softly surface reflections at relevant moments. Never high-frequency or pushy.";
 "settings.section.ai" = "Mirror";
 "settings.ai.mode" = "Client";
 "settings.ai.mock" = "Mock (local)";
@@ -327,10 +318,8 @@
 "settings.ai.quota.exhausted.pro" = "Today’s Mirror use is finished. Try again tomorrow.";
 "settings.ai.residency" = "Data residency";
 "settings.ai.residency.value" = "Taiwan";
-"settings.ai.footer" = "Mirror reflections use your recent pages. Daily limits depend on your plan.";
 "settings.section.legacy" = "Legacy";
 "settings.legacy.stub" = "Memorial and legacy options will arrive in a later release.";
-"settings.legacy.footer" = "Roadmap only. Omitted from this MVP scaffold.";
 "settings.section.vault" = "Vault";
 "settings.name" = "Display name";
 "settings.resetOnboarding" = "Show onboarding again";
@@ -356,9 +345,7 @@
 "settings.data.deleteAccount.done" = "Account and vault data deleted on this device (and cloud sync when signed in).";
 "settings.data.deleteAccount.reauth" = "Your vault on this device was cleared. Sign in once more to finish removing the cloud account, then try delete again.";
 "settings.data.deleteAccount.remoteFailed" = "Your vault and session on this device were cleared. Cloud account removal didn’t finish — try signing in again later.";
-"settings.data.footer" = "Open Export & import to share a vault JSON or merge one in by entry ID (duplicates skipped). You can delete your account and vault data when signed in. Signed-in text diaries sync to the cloud; signed-out stays on this device.";
 "settings.section.legal" = "Legal";
 "settings.legal.privacy" = "Privacy Policy";
 "settings.legal.terms" = "Terms of Use (EULA)";
-"settings.legal.footer" = "Review our privacy policy and terms before you continue writing.";
 "settings.legal.privacy.stubNote" = "Replace this sheet with a hosted Privacy Policy URL (DIARY_PRIVACY_POLICY_URL) before App Review. Describe SMS auth, on-device diary storage, signed-in Firestore text sync, cloud Mirror AI, and StoreKit purchases.";

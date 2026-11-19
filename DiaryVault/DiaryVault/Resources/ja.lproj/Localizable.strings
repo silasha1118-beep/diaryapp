@@ -266,7 +266,6 @@
 "settings.account.link.phone.alreadyLinked" = "このアカウントには既に電話が連携されています。";
 "settings.account.link.apple.title" = "Apple を連携";
 "settings.account.link.apple.banner" = "現在電話でサインインしています。Apple を連携すると、どちらでも同じボールトを開けます。";
-"settings.account.link.apple.note" = "Apple をこの同じアカウントに紐づけます——新しいアカウントは作りません。";
 "settings.account.link.apple.success" = "Apple をこのアカウントに連携しました。";
 "settings.account.link.apple.alreadyInUse" = "この Apple ID は別のアカウントに既に紐づいており、上書きできません。";
 "settings.account.link.apple.alreadyLinked" = "このアカウントには既に Apple が連携されています。";
@@ -274,13 +273,9 @@
 "settings.account.link.needSignedIn" = "先にサインインしてから、もう一方の方法を連携してください。";
 "settings.account.link.mergeGuidance" = "両方のデータをまとめたい場合は、残すアカウントを決め、日記を手動でエクスポート／インポートしてください。他方のアカウントを自動で上書きしません。";
 "settings.account.link.bothDone" = "電話と Apple は同一アカウントに連携済みです。";
-"settings.account.link.footer" = "サインイン中は、足りない方法をこのアカウントに連携できます。既に別アカウントへ紐づいている場合は明確なエラーを出します。";
 "settings.account.signOut" = "サインアウト";
-"settings.account.footer" = "セッションはこの端末のみ。全地域のメインは電話 SMS OTP；Sign in with Apple は下に表示されます。サインアウトするとアカウントゲートに戻ります。";
-"settings.account.phone.footer" = "携帯番号を入力し、コードを送信して確認します。台湾・香港・中国本土・マレーシア・シンガポール・タイ・日本に対応。Apple でサインインしていないとき、下に「Apple でサインイン」が表示されます。";
 "settings.account.phone.success" = "電話サインインに成功しました。";
 "settings.section.developer" = "開発者";
-"settings.developer.footer" = "DEBUG ビルドのみ。Release では完全に非表示。";
 "settings.section.cloud" = "同期";
 "settings.cloud.status" = "状態";
 "settings.cloud.status.synced" = "同期済み";
@@ -295,7 +290,6 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "サーバー上の件数";
 "settings.cloud.syncNow" = "今すぐ同期";
-"settings.cloud.footer" = "サインイン後にテキスト日記を同期。古く見えるときは「今すぐ同期」。";
 "settings.section.billing" = "サブスクリプション";
 "settings.billing.plan" = "プラン";
 "settings.billing.free" = "無料";
@@ -304,13 +298,10 @@
 "settings.billing.product" = "商品";
 "settings.billing.expires" = "期間終了";
 "settings.billing.manage" = "プランを見る／復元";
-"settings.billing.footer" = "無料、Author Plus、Author Pro。ここでプラン確認や復元ができます。サブスクリプションは Apple ID で更新されます。";
 "settings.section.language" = "言語";
 "settings.language" = "アプリの言語";
-"settings.language.footer" = "繁中／簡中／English／日本語／ไทย——いつでも切り替え。初回起動はシステムの言語に従います。";
 "settings.section.advice" = "アドバイス";
 "settings.reminders" = "やさしい文脈リマインダー";
-"settings.reminders.footer" = "オンのとき、ミラーは関連する瞬間にやわらかく映し返しを示せます。高頻度や押しつけはしません。";
 "settings.section.ai" = "ミラー";
 "settings.ai.mode" = "クライアント";
 "settings.ai.mock" = "モック（ローカル）";
@@ -326,10 +317,8 @@
 "settings.ai.quota.exhausted.pro" = "本日のミラーは使い切りました。明日またお試しください。";
 "settings.ai.residency" = "データ所在";
 "settings.ai.residency.value" = "台湾";
-"settings.ai.footer" = "ミラーは最近の日記をもとに応答します。1日の回数はプランによります。";
 "settings.section.legacy" = "レガシー";
 "settings.legacy.stub" = "追悼・遺産関連の設定は今後のリリースで提供予定です。";
-"settings.legacy.footer" = "ロードマップのみ。この MVP 足場では省略。";
 "settings.section.vault" = "ボールト";
 "settings.name" = "表示名";
 "settings.resetOnboarding" = "オンボーディングを再表示";
@@ -355,9 +344,7 @@
 "settings.data.deleteAccount.done" = "この端末のアカウントとボールトデータを削除しました（サインイン時はクラウド同期も含む）。";
 "settings.data.deleteAccount.reauth" = "ローカルボールトを消去しました。クラウドアカウント削除を完了するには再度サインインし、削除をやり直してください。";
 "settings.data.deleteAccount.remoteFailed" = "ローカルのボールトとセッションを消去しました。クラウドアカウント削除は完了しませんでした——後でもう一度サインインして試してください。";
-"settings.data.footer" = "「書き出しと取り込み」を開いてボールトを書き出す／取り込めます（JSON）。取り込みは ID でマージし重複をスキップ。サインイン中はアカウントとボールトデータを削除できます。サインイン中のテキスト日記はクラウド同期；未サインインは端末のみ。";
 "settings.section.legal" = "法務";
 "settings.legal.privacy" = "プライバシーポリシー";
 "settings.legal.terms" = "利用規約（EULA）";
-"settings.legal.footer" = "書き続ける前に、プライバシーポリシーと利用規約をご確認ください。";
 "settings.legal.privacy.stubNote" = "App Review 前にホストしたプライバシーポリシー URL（DIARY_PRIVACY_POLICY_URL）でこのシートを置き換えてください。SMS 認証、端末内日記、クラウドミラー AI、StoreKit 購入を説明してください。";

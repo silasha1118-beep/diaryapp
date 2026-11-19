@@ -266,7 +266,6 @@
 "settings.account.link.phone.alreadyLinked" = "此帳號已連結手機。";
 "settings.account.link.apple.title" = "連結 Apple";
 "settings.account.link.apple.banner" = "你目前以手機登入。連結 Apple 後，可用任一方式開啟同一金庫。";
-"settings.account.link.apple.note" = "會把 Apple 綁到目前這個帳號，不會另開新帳號。";
 "settings.account.link.apple.success" = "Apple 已連結到此帳號。";
 "settings.account.link.apple.alreadyInUse" = "這個 Apple ID 已屬於另一個帳號，無法直接覆寫。";
 "settings.account.link.apple.alreadyLinked" = "此帳號已連結 Apple。";
@@ -274,13 +273,9 @@
 "settings.account.link.needSignedIn" = "請先登入後再連結另一種登入方式。";
 "settings.account.link.mergeGuidance" = "若要合併兩端資料，請先確認要用哪一個帳號為主，再手動匯出／匯入日記；App 不會自動覆寫另一個帳號。";
 "settings.account.link.bothDone" = "手機與 Apple 已連結到同一帳號。";
-"settings.account.link.footer" = "已登入時可把缺少的登入方式連結到此帳號。若對方已綁在別的帳號，會顯示清楚錯誤。";
 "settings.account.signOut" = "登出";
-"settings.account.footer" = "會話僅存於此裝置。全區主登入為手機 SMS OTP；「透過 Apple 登入」始終顯示於下方。登出後會回到帳號閘門。";
-"settings.account.phone.footer" = "輸入手機號碼、傳送驗證碼後驗證。支援台灣、香港、中國大陸、馬來西亞、新加坡、泰國與日本。未以 Apple 登入時，下方會顯示「透過 Apple 登入」。";
 "settings.account.phone.success" = "手機登入成功。";
 "settings.section.developer" = "開發者";
-"settings.developer.footer" = "僅 DEBUG 編譯可見；Release 完全隱藏。";
 "settings.section.cloud" = "同步";
 "settings.cloud.status" = "狀態";
 "settings.cloud.status.synced" = "已同步";
@@ -295,7 +290,6 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "伺服器日記數";
 "settings.cloud.syncNow" = "立即同步";
-"settings.cloud.footer" = "登入後文字日記會同步。內容過時時點「立即同步」。";
 "settings.section.billing" = "訂閱";
 "settings.billing.plan" = "方案";
 "settings.billing.free" = "免費";
@@ -304,13 +298,10 @@
 "settings.billing.product" = "產品";
 "settings.billing.expires" = "週期結束";
 "settings.billing.manage" = "查看方案／恢復購買";
-"settings.billing.footer" = "免費、Author Plus 與 Author Pro。可在此查看方案或恢復購買。訂閱透過你的 Apple ID 續訂。";
 "settings.section.language" = "語言";
 "settings.language" = "App 語言";
-"settings.language.footer" = "繁中／簡中／English／日本語／ไทย——可隨時切換。首次啟動依系統語言（App Store 地區）。";
 "settings.section.advice" = "建議";
 "settings.reminders" = "溫和情境提醒";
-"settings.reminders.footer" = "開啟時，鏡子可在相關節點溫柔浮現反映。不做高頻或操控式推播。";
 "settings.section.ai" = "鏡子";
 "settings.ai.mode" = "用戶端";
 "settings.ai.mock" = "模擬（本機）";
@@ -326,10 +317,8 @@
 "settings.ai.quota.exhausted.pro" = "今日鏡子已使用完畢。請明天再試。";
 "settings.ai.residency" = "資料落地";
 "settings.ai.residency.value" = "台灣";
-"settings.ai.footer" = "鏡子會依你最近的日記回應。每日次數依方案而定。";
 "settings.section.legacy" = "遺產／紀念";
 "settings.legacy.stub" = "紀念與遺產相關設定將於之後版本提供。";
-"settings.legacy.footer" = "僅路線圖。本 MVP 骨架刻意省略。";
 "settings.section.vault" = "金庫";
 "settings.name" = "顯示名稱";
 "settings.resetOnboarding" = "重新顯示導覽";
@@ -355,9 +344,7 @@
 "settings.data.deleteAccount.done" = "已刪除此裝置上的帳號與金庫資料（已登入時含雲端同步）。";
 "settings.data.deleteAccount.reauth" = "本機金庫已清空。請再登入一次以完成刪除雲端帳號，然後重試刪除。";
 "settings.data.deleteAccount.remoteFailed" = "本機會話與金庫已清空。雲端帳號刪除未完成——請稍後再登入重試。";
-"settings.data.footer" = "點開「匯出與匯入」即可匯出或匯入金庫（JSON）。匯入依條目 ID 合併到已登入帳號並略過重複。已登入時可刪除帳號與金庫資料。已登入的文字日記會同步至雲端；未登入僅存本機。";
 "settings.section.legal" = "法律資訊";
 "settings.legal.privacy" = "隱私權政策";
 "settings.legal.terms" = "使用條款（EULA）";
-"settings.legal.footer" = "繼續書寫前，請閱讀隱私權政策與使用條款。";
 "settings.legal.privacy.stubNote" = "送審前請以託管的隱私權政策網址（DIARY_PRIVACY_POLICY_URL）取代此摘要。須說明簡訊登入、本機日記、雲端鏡子 AI 與 StoreKit 購買。";
