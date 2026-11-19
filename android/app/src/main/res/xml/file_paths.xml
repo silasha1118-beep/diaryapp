@@ -2,6 +2,8 @@
 <paths>
     <!-- Camera / video capture staging under cache/media_capture -->
     <cache-path name="media_capture" path="media_capture/" />
+    <!-- Vault JSON export for system share sheet -->
+    <cache-path name="exports" path="exports/" />
     <!-- Local diary media for rare share / debug (playback uses absolute File) -->
     <files-path name="diary_media" path="diary_media/" />
 </paths>

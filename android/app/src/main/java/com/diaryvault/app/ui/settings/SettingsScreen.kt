@@ -1,5 +1,10 @@
 package com.diaryvault.app.ui.settings
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,20 +41,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import com.diaryvault.app.R
 import com.diaryvault.app.VaultViewModel
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.ui.components.AuthDialPhoneRow
 import com.diaryvault.app.ui.components.localizedString
 import com.diaryvault.app.ui.theme.VaultColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val CardBg = Color.White
 private val CardRadius = 14.dp
@@ -57,9 +68,10 @@ private val Destructive = Color(0xFFC0392B)
 private val DividerColor = Color(0xFFE8E2D8)
 
 /**
- * Settings sections aligned with iOS SettingsView + HarmonyOS SettingsTab order:
- * 帳號 → 連結手機 → 同步 → 訂閱 → 隱私與資料 → 語言 → 建議 → 金庫 → 法律資訊
+ * Settings sections aligned with iOS SettingsView (#126) order:
+ * 帳號 → 連結手機 → 訂閱 → 同步 → 隱私與資料 → 語言 → 建議 → 金庫 → 法律資訊
  * Customer UI only — no Developer / Firebase backend dumps (matches iOS SettingsDeveloperTools off).
+ * No gray section footers (parity with iOS #126); transfer rows nest under one expandable group (#125).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +80,8 @@ fun SettingsScreen(
     onOpenRecentlyDeleted: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val language by viewModel.language.collectAsState()
     val reminders by viewModel.gentleReminders.collectAsState()
     val name by viewModel.displayName.collectAsState()
@@ -84,8 +98,83 @@ fun SettingsScreen(
     var phoneNational by remember { mutableStateOf("") }
     var dialRes by remember { mutableIntStateOf(R.string.auth_dial_tw) }
     var dialExpanded by remember { mutableStateOf(false) }
-    var exportReady by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var transferExpanded by remember { mutableStateOf(false) }
+    var exportError by remember { mutableStateOf<String?>(null) }
+    var importError by remember { mutableStateOf<String?>(null) }
+    var importResultMessage by remember { mutableStateOf<String?>(null) }
+    var showImportConfirm by remember { mutableStateOf(false) }
+    var isImporting by remember { mutableStateOf(false) }
+
+    val importPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            isImporting = true
+            importError = null
+            importResultMessage = null
+            try {
+                val bytes = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                        ?: throw IllegalArgumentException("unreadable")
+                }
+                val outcome = withContext(Dispatchers.IO) { viewModel.importVaultJson(bytes) }
+                var message = context.getString(
+                    R.string.settings_data_import_result,
+                    outcome.added,
+                    outcome.skippedDuplicates,
+                    outcome.totalInFile,
+                )
+                if (outcome.mediaStripped > 0) {
+                    message += "\n" + context.getString(
+                        R.string.settings_data_import_media_note,
+                        outcome.mediaStripped,
+                    )
+                }
+                importResultMessage = message
+            } catch (_: Exception) {
+                importError = context.getString(R.string.settings_data_import_error)
+            } finally {
+                isImporting = false
+            }
+        }
+    }
+
+    fun presentExportShare() {
+        exportError = null
+        scope.launch {
+            try {
+                val file = withContext(Dispatchers.IO) { viewModel.exportVaultJsonFile() }
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file,
+                )
+                val share = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(
+                        Intent.EXTRA_SUBJECT,
+                        context.getString(R.string.settings_data_export_share_subject),
+                    )
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        context.getString(R.string.settings_data_export_share_message),
+                    )
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(
+                    Intent.createChooser(
+                        share,
+                        context.getString(R.string.settings_data_export),
+                    ),
+                )
+            } catch (_: Exception) {
+                exportError = context.getString(R.string.settings_data_export_error)
+            }
+        }
+    }
 
     val dialOptionRes = listOf(
         R.string.auth_dial_tw,
@@ -244,7 +333,22 @@ fun SettingsScreen(
                 }
             }
 
-            // 3. 同步
+            // 3. 訂閱 (iOS #126 — above Sync)
+            SettingsCard(
+                header = localizedString(R.string.settings_section_billing),
+            ) {
+                SettingsRow(localizedString(R.string.settings_billing_plan), planName)
+                SettingsDivider()
+                SettingsRow(localizedString(R.string.settings_billing_expires), periodEnd)
+                SettingsDivider()
+                SettingsActionRow(
+                    title = localizedString(R.string.settings_billing_manage),
+                    color = VaultColors.seal,
+                    onClick = { /* stub paywall */ },
+                )
+            }
+
+            // 4. 同步
             SettingsCard(
                 header = localizedString(R.string.settings_section_cloud),
             ) {
@@ -274,44 +378,97 @@ fun SettingsScreen(
                 )
             }
 
-            // 4. 訂閱
-            SettingsCard(
-                header = localizedString(R.string.settings_section_billing),
-            ) {
-                SettingsRow(localizedString(R.string.settings_billing_plan), planName)
-                SettingsDivider()
-                SettingsRow(localizedString(R.string.settings_billing_expires), periodEnd)
-                SettingsDivider()
-                SettingsActionRow(
-                    title = localizedString(R.string.settings_billing_manage),
-                    color = VaultColors.seal,
-                    onClick = { /* stub paywall */ },
-                )
-            }
-
-            // 5. 隱私與資料
+            // 5. 隱私與資料 — nest export+import; delete stays outer (#125)
             SettingsCard(
                 header = localizedString(R.string.settings_section_data),
             ) {
-                SettingsActionRow(
-                    title = localizedString(R.string.settings_data_export),
-                    color = VaultColors.seal,
-                    onClick = { exportReady = true },
+                SettingsExpandRow(
+                    title = localizedString(R.string.settings_data_transfer),
+                    expanded = transferExpanded,
+                    onClick = { transferExpanded = !transferExpanded },
                 )
-                if (exportReady) {
+                AnimatedVisibility(visible = transferExpanded) {
+                    Column {
+                        SettingsDivider()
+                        SettingsActionRow(
+                            title = localizedString(R.string.settings_data_export),
+                            color = VaultColors.seal,
+                            onClick = { presentExportShare() },
+                            indented = true,
+                        )
+                        if (exportError != null) {
+                            Text(
+                                exportError ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = VaultColors.seal,
+                                modifier = Modifier.padding(
+                                    start = 28.dp,
+                                    end = 16.dp,
+                                    bottom = 10.dp,
+                                ),
+                            )
+                        }
+                        SettingsDivider()
+                        if (accountSignedIn) {
+                            SettingsActionRow(
+                                title = localizedString(R.string.settings_data_import),
+                                color = if (isImporting) VaultColors.inkMuted else VaultColors.seal,
+                                onClick = {
+                                    if (!isImporting) {
+                                        importError = null
+                                        importResultMessage = null
+                                        showImportConfirm = true
+                                    }
+                                },
+                                indented = true,
+                            )
+                        } else {
+                            Text(
+                                localizedString(R.string.settings_data_import_sign_in_required),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = VaultColors.inkMuted,
+                                modifier = Modifier.padding(
+                                    start = 28.dp,
+                                    end = 16.dp,
+                                    top = 10.dp,
+                                    bottom = 12.dp,
+                                ),
+                            )
+                        }
+                        if (importResultMessage != null) {
+                            Text(
+                                importResultMessage ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = VaultColors.inkMuted,
+                                modifier = Modifier.padding(
+                                    start = 28.dp,
+                                    end = 16.dp,
+                                    bottom = 10.dp,
+                                ),
+                            )
+                        }
+                        if (importError != null) {
+                            Text(
+                                importError ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = VaultColors.seal,
+                                modifier = Modifier.padding(
+                                    start = 28.dp,
+                                    end = 16.dp,
+                                    bottom = 10.dp,
+                                ),
+                            )
+                        }
+                    }
+                }
+                if (accountSignedIn) {
                     SettingsDivider()
                     SettingsActionRow(
-                        title = localizedString(R.string.settings_data_export_share),
-                        color = VaultColors.seal,
-                        onClick = { /* stub share */ },
+                        title = localizedString(R.string.settings_data_delete),
+                        color = Destructive,
+                        onClick = { /* stub delete — cloud wipe wiring later */ },
                     )
                 }
-                SettingsDivider()
-                SettingsActionRow(
-                    title = localizedString(R.string.settings_data_delete),
-                    color = Destructive,
-                    onClick = { /* stub delete */ },
-                )
             }
 
             // 6. 語言 — tap row → dialog choices (no nested ExposedDropdown frames)
@@ -352,14 +509,23 @@ fun SettingsScreen(
                 }
             }
 
-            // 8. 金庫 — display name + drill-in to soft-delete restore (30 days).
+            // 8. 金庫／紀念 — keep display name + memorial stub (#126); Android keeps recently-deleted drill-in.
             SettingsCard(
                 header = localizedString(R.string.settings_section_vault),
             ) {
-                SettingsRow(
-                    localizedString(R.string.settings_name),
-                    name.ifBlank { "Silas" },
-                    valueColor = VaultColors.ink,
+                if (name.isNotBlank()) {
+                    SettingsRow(
+                        localizedString(R.string.settings_name),
+                        name,
+                        valueColor = VaultColors.ink,
+                    )
+                    SettingsDivider()
+                }
+                Text(
+                    localizedString(R.string.settings_legacy_stub),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = VaultColors.inkMuted,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
                 SettingsDivider()
                 SettingsNavRow(
@@ -397,6 +563,52 @@ fun SettingsScreen(
                 showLanguageDialog = false
             },
             onDismiss = { showLanguageDialog = false },
+        )
+    }
+
+    if (showImportConfirm) {
+        AlertDialog(
+            onDismissRequest = { showImportConfirm = false },
+            title = {
+                Text(
+                    localizedString(R.string.settings_data_import_confirm_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = VaultColors.ink,
+                )
+            },
+            text = {
+                Text(
+                    localizedString(R.string.settings_data_import_confirm_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = VaultColors.inkMuted,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showImportConfirm = false
+                        importPicker.launch(
+                            arrayOf(
+                                "application/json",
+                                "text/json",
+                                "text/plain",
+                                "application/octet-stream",
+                            ),
+                        )
+                    },
+                ) {
+                    Text(
+                        localizedString(R.string.settings_data_import_confirm),
+                        color = VaultColors.seal,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showImportConfirm = false }) {
+                    Text(localizedString(R.string.common_cancel), color = VaultColors.inkMuted)
+                }
+            },
+            containerColor = VaultColors.paper,
         )
     }
 }
@@ -472,11 +684,12 @@ private fun SettingsCard(
     header: String,
     content: @Composable () -> Unit,
 ) {
+    // Slightly looser than the prior 18.dp — parity with iOS #127 (~16pt section gap).
     Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 18.dp),
+            .padding(bottom = 24.dp),
     ) {
         Text(
             header,
@@ -531,6 +744,7 @@ private fun SettingsActionRow(
     title: String,
     color: Color,
     onClick: () -> Unit,
+    indented: Boolean = false,
 ) {
     Text(
         title,
@@ -539,8 +753,43 @@ private fun SettingsActionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(
+                start = if (indented) 28.dp else 16.dp,
+                end = 16.dp,
+                top = 14.dp,
+                bottom = 14.dp,
+            ),
     )
+}
+
+@Composable
+private fun SettingsExpandRow(
+    title: String,
+    expanded: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = VaultColors.ink,
+            modifier = Modifier.weight(1f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            if (expanded) "▾" else "▸",
+            style = MaterialTheme.typography.bodyLarge,
+            color = VaultColors.inkMuted,
+        )
+    }
 }
 
 @Composable
