@@ -11,11 +11,11 @@ enum MirrorPromptBuilder {
         let locale = context.localeIdentifier
         let languageInstruction: String
         if locale.hasPrefix("zh-Hant") || locale.hasPrefix("zh-TW") || locale.hasPrefix("zh-HK") {
-            languageInstruction = "Reply in Traditional Chinese (繁體中文)."
+            languageInstruction = "Reply in Traditional Chinese using Hong Kong wording (繁體中文，港式用字；例如「區號」「短訊」「登入」「影片」「預設」)."
         } else if locale.hasPrefix("zh-Hans") || locale.hasPrefix("zh-CN") {
             languageInstruction = "Reply in Simplified Chinese (简体中文)."
         } else if locale.hasPrefix("zh") {
-            languageInstruction = "Reply in Traditional Chinese (繁體中文)."
+            languageInstruction = "Reply in Traditional Chinese using Hong Kong wording (繁體中文，港式用字)."
         } else if locale.hasPrefix("ja") {
             languageInstruction = "Reply in Japanese (日本語)."
         } else if locale.hasPrefix("th") {
