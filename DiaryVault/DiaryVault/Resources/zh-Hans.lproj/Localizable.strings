@@ -339,6 +339,14 @@
 "settings.data.export.shareSubject" = "日记金库导出";
 "settings.data.export.shareMessage" = "我的日记金库条目（JSON）。";
 "settings.data.export.error" = "无法创建导出文件，请再试一次。";
+"settings.data.import" = "导入金库（JSON）";
+"settings.data.import.confirmTitle" = "导入金库？";
+"settings.data.import.confirmMessage" = "会按条目 ID 合并到当前已登录账号；相同 ID 会跳过（不会覆盖）。不会清空现有金库。文字会同步到此账号的云端；媒体文件不在 JSON 导出内。";
+"settings.data.import.confirm" = "选择 JSON 文件";
+"settings.data.import.signInRequired" = "请先登录，才能将金库 JSON 导入此账号。";
+"settings.data.import.result" = "导入完成：新增 %d 条、跳过 %d 条（相同 ID）、文件内共 %d 条。";
+"settings.data.import.mediaNote" = "已清除 %d 条的媒体元数据（JSON 导出仅含文字）。";
+"settings.data.import.error" = "无法导入该文件。请使用日记金库导出的 JSON。";
 "settings.data.deleteAccount" = "删除账号与金库数据";
 "settings.data.deleteAccount.title" = "删除账号？";
 "settings.data.deleteAccount.message" = "将永久删除此设备与云端同步（已登录时）的日记，然后退出登录。若要保留副本请先导出。订阅请到 Apple ID → 订阅另行管理。";
@@ -346,7 +354,7 @@
 "settings.data.deleteAccount.done" = "已删除此设备上的账号与金库数据（已登录时含云端同步）。";
 "settings.data.deleteAccount.reauth" = "本地金库已清空。请再登录一次以完成删除云端账号，然后重试删除。";
 "settings.data.deleteAccount.remoteFailed" = "本地会话与金库已清空。云端账号删除未完成——请稍后再登录重试。";
-"settings.data.footer" = "可随时导出（JSON）。已登录时可删除账号与金库资料。已登录的文字日记会同步至云端；未登录仅存本机。";
+"settings.data.footer" = "可随时导出或导入（JSON）。导入按条目 ID 合并到已登录账号并跳过重复。已登录时可删除账号与金库资料。已登录的文字日记会同步至云端；未登录仅存本机。";
 "settings.section.legal" = "法律信息";
 "settings.legal.privacy" = "隐私政策";
 "settings.legal.terms" = "使用条款（EULA）";

@@ -339,6 +339,14 @@
 "settings.data.export.shareSubject" = "ส่งออก Diary Vault";
 "settings.data.export.shareMessage" = "บันทึก Diary Vault ของฉัน (JSON)";
 "settings.data.export.error" = "สร้างไฟล์ส่งออกไม่ได้ ลองอีกครั้ง";
+"settings.data.import" = "นำเข้าห้องเก็บ (JSON)";
+"settings.data.import.confirmTitle" = "นำเข้าห้องเก็บ?";
+"settings.data.import.confirmMessage" = "รวมรายการจากไฟล์เข้าบัญชีที่เข้าสู่ระบบตาม ID ข้าม ID ซ้ำ (ไม่เขียนทับ) ไม่ล้างห้องเก็บเดิม ข้อความซิงค์คลาวด์ของบัญชีนี้ สื่อไม่อยู่ในไฟล์ JSON ส่งออก";
+"settings.data.import.confirm" = "เลือกไฟล์ JSON";
+"settings.data.import.signInRequired" = "เข้าสู่ระบบก่อนเพื่อนำเข้า JSON ห้องเก็บเข้าบัญชีนี้";
+"settings.data.import.result" = "นำเข้าเสร็จ: เพิ่ม %d ข้าม %d (ID ซ้ำ) ในไฟล์ %d";
+"settings.data.import.mediaNote" = "ล้างเมตาดาต้าสื่อ %d รายการ (JSON ส่งออกเป็นข้อความเท่านั้น)";
+"settings.data.import.error" = "นำเข้าไฟล์นี้ไม่ได้ ใช้ JSON ที่ส่งออกจาก Diary Vault";
 "settings.data.deleteAccount" = "ลบบัญชีและข้อมูลห้องเก็บ";
 "settings.data.deleteAccount.title" = "ลบบัญชี?";
 "settings.data.deleteAccount.message" = "ลบบันทึกไดอารีบนเครื่องนี้และซิงค์คลาวด์ (เมื่อเข้าสู่ระบบ) อย่างถาวรแล้วออกจากระบบ ส่งออกก่อนถ้าต้องการสำเนา การสมัครจัดการแยกที่ Apple ID → การสมัคร";
@@ -346,7 +354,7 @@
 "settings.data.deleteAccount.done" = "ลบบัญชีและข้อมูลห้องเก็บบนเครื่องนี้แล้ว (รวมซิงค์คลาวด์เมื่อเข้าสู่ระบบ)";
 "settings.data.deleteAccount.reauth" = "ล้างห้องเก็บในเครื่องแล้ว เข้าสู่ระบบอีกครั้งเพื่อลบบัญชีคลาวด์ให้เสร็จ แล้วลองลบใหม่";
 "settings.data.deleteAccount.remoteFailed" = "ล้างห้องเก็บและเซสชันในเครื่องแล้ว การลบบัญชีคลาวด์ไม่เสร็จ — ลองเข้าสู่ระบบใหม่ภายหลัง";
-"settings.data.footer" = "ส่งออกได้ทุกเมื่อ (JSON) เมื่อเข้าสู่ระบบสามารถลบบัญชีและข้อมูลห้องเก็บได้ ไดอารี่ข้อความที่เข้าสู่ระบบจะซิงค์คลาวด์; ยังไม่เข้าจะอยู่บนเครื่อง";
+"settings.data.footer" = "ส่งออกหรือนำเข้าได้ทุกเมื่อ (JSON) นำเข้าผสานตาม ID และข้ามซ้ำ เมื่อเข้าสู่ระบบสามารถลบบัญชีและข้อมูลห้องเก็บได้ ไดอารี่ข้อความที่เข้าสู่ระบบจะซิงค์คลาวด์; ยังไม่เข้าจะอยู่บนเครื่อง";
 "settings.section.legal" = "กฎหมาย";
 "settings.legal.privacy" = "นโยบายความเป็นส่วนตัว";
 "settings.legal.terms" = "ข้อกำหนดการใช้งาน (EULA)";

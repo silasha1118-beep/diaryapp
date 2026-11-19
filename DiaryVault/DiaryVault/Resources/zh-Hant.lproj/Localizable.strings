@@ -339,6 +339,14 @@
 "settings.data.export.shareSubject" = "日記金庫匯出";
 "settings.data.export.shareMessage" = "我的日記金庫條目（JSON）。";
 "settings.data.export.error" = "無法建立匯出檔，請再試一次。";
+"settings.data.import" = "匯入金庫（JSON）";
+"settings.data.import.confirmTitle" = "匯入金庫？";
+"settings.data.import.confirmMessage" = "會依條目 ID 合併到目前已登入帳號；相同 ID 會略過（不會覆寫）。不會清空現有金庫。文字會同步到此帳號的雲端；媒體檔不在 JSON 匯出內。";
+"settings.data.import.confirm" = "選擇 JSON 檔";
+"settings.data.import.signInRequired" = "請先登入，才能將金庫 JSON 匯入此帳號。";
+"settings.data.import.result" = "匯入完成：新增 %d 筆、略過 %d 筆（相同 ID）、檔內共 %d 筆。";
+"settings.data.import.mediaNote" = "已清除 %d 筆的媒體中繼資料（JSON 匯出僅含文字）。";
+"settings.data.import.error" = "無法匯入此檔。請使用日記金庫匯出的 JSON。";
 "settings.data.deleteAccount" = "刪除帳號與金庫資料";
 "settings.data.deleteAccount.title" = "刪除帳號？";
 "settings.data.deleteAccount.message" = "將永久刪除此裝置與雲端同步（已登入時）的日記，然後登出。若要保留副本請先匯出。訂閱請至 Apple ID → 訂閱項目另行管理。";
@@ -346,7 +354,7 @@
 "settings.data.deleteAccount.done" = "已刪除此裝置上的帳號與金庫資料（已登入時含雲端同步）。";
 "settings.data.deleteAccount.reauth" = "本機金庫已清空。請再登入一次以完成刪除雲端帳號，然後重試刪除。";
 "settings.data.deleteAccount.remoteFailed" = "本機會話與金庫已清空。雲端帳號刪除未完成——請稍後再登入重試。";
-"settings.data.footer" = "可隨時匯出（JSON）。已登入時可刪除帳號與金庫資料。已登入的文字日記會同步至雲端；未登入僅存本機。";
+"settings.data.footer" = "可隨時匯出或匯入（JSON）。匯入依條目 ID 合併到已登入帳號並略過重複。已登入時可刪除帳號與金庫資料。已登入的文字日記會同步至雲端；未登入僅存本機。";
 "settings.section.legal" = "法律資訊";
 "settings.legal.privacy" = "隱私權政策";
 "settings.legal.terms" = "使用條款（EULA）";

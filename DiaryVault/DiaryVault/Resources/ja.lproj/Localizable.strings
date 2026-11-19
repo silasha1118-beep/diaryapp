@@ -339,6 +339,14 @@
 "settings.data.export.shareSubject" = "Diary Vault 書き出し";
 "settings.data.export.shareMessage" = "私の Diary Vault 記録（JSON）。";
 "settings.data.export.error" = "書き出しファイルを作れませんでした。もう一度お試しください。";
+"settings.data.import" = "ボールトを取り込む（JSON）";
+"settings.data.import.confirmTitle" = "ボールトを取り込みますか？";
+"settings.data.import.confirmMessage" = "ファイルの記録を ID で現在のサインインアカウントにマージします。同じ ID はスキップ（上書きしません）。既存ボールトは消しません。テキストはこのアカウントのクラウドへ同期；メディアは JSON 書き出しに含まれません。";
+"settings.data.import.confirm" = "JSON ファイルを選ぶ";
+"settings.data.import.signInRequired" = "ボールト JSON をこのアカウントに取り込むにはサインインしてください。";
+"settings.data.import.result" = "取り込み完了：追加 %d、スキップ %d（同一 ID）、ファイル内 %d。";
+"settings.data.import.mediaNote" = "%d 件のメディアメタデータを削除しました（JSON 書き出しはテキストのみ）。";
+"settings.data.import.error" = "このファイルを取り込めませんでした。Diary Vault の JSON 書き出しを使ってください。";
 "settings.data.deleteAccount" = "アカウントとボールトデータを削除";
 "settings.data.deleteAccount.title" = "アカウントを削除しますか？";
 "settings.data.deleteAccount.message" = "この端末とクラウド同期（サインイン時）の日記を完全に削除してサインアウトします。コピーが必要なら先に書き出してください。サブスクリプションは Apple ID → サブスクリプションで別管理です。";
@@ -346,7 +354,7 @@
 "settings.data.deleteAccount.done" = "この端末のアカウントとボールトデータを削除しました（サインイン時はクラウド同期も含む）。";
 "settings.data.deleteAccount.reauth" = "ローカルボールトを消去しました。クラウドアカウント削除を完了するには再度サインインし、削除をやり直してください。";
 "settings.data.deleteAccount.remoteFailed" = "ローカルのボールトとセッションを消去しました。クラウドアカウント削除は完了しませんでした——後でもう一度サインインして試してください。";
-"settings.data.footer" = "いつでも書き出せます（JSON）。サインイン中はアカウントとボールトデータを削除できます。サインイン中のテキスト日記はクラウド同期；未サインインは端末のみ。";
+"settings.data.footer" = "いつでも書き出し／取り込みできます（JSON）。取り込みは ID でマージし重複をスキップ。サインイン中はアカウントとボールトデータを削除できます。サインイン中のテキスト日記はクラウド同期；未サインインは端末のみ。";
 "settings.section.legal" = "法務";
 "settings.legal.privacy" = "プライバシーポリシー";
 "settings.legal.terms" = "利用規約（EULA）";

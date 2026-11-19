@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Internal Settings dumps (Firebase project / Auth UID / product IDs / reset onboarding).
 /// Keep `false` until brand launch — DEBUG alone must not surface this to testers or customers.
@@ -20,6 +21,11 @@ struct SettingsView: View {
     @State private var exportError: String?
     @State private var deleteOutcomeMessage: String?
     @State private var isDeleting = false
+    @State private var showImportConfirm = false
+    @State private var showImportPicker = false
+    @State private var importResultMessage: String?
+    @State private var importError: String?
+    @State private var isImporting = false
 
     var body: some View {
         NavigationStack {
@@ -87,6 +93,25 @@ struct SettingsView: View {
                 Button(localization.text("common.cancel"), role: .cancel) {}
             } message: {
                 Text(localization.text("settings.data.deleteAccount.message"))
+            }
+            .confirmationDialog(
+                localization.text("settings.data.import.confirmTitle"),
+                isPresented: $showImportConfirm,
+                titleVisibility: .visible
+            ) {
+                Button(localization.text("settings.data.import.confirm")) {
+                    showImportPicker = true
+                }
+                Button(localization.text("common.cancel"), role: .cancel) {}
+            } message: {
+                Text(localization.text("settings.data.import.confirmMessage"))
+            }
+            .fileImporter(
+                isPresented: $showImportPicker,
+                allowedContentTypes: [.json, .plainText],
+                allowsMultipleSelection: false
+            ) { result in
+                handleImportPicker(result)
             }
         }
     }
@@ -269,6 +294,28 @@ struct SettingsView: View {
             }
             if let exportError {
                 Text(exportError)
+                    .font(.system(size: 13))
+                    .foregroundStyle(VaultTheme.seal)
+            }
+            if account.isSignedIn {
+                settingsActionButton(titleKey: "settings.data.import") {
+                    importError = nil
+                    importResultMessage = nil
+                    showImportConfirm = true
+                }
+                .disabled(isImporting)
+            } else {
+                Text(localization.text("settings.data.import.signInRequired"))
+                    .font(.system(size: 13))
+                    .foregroundStyle(VaultTheme.inkMuted)
+            }
+            if let importResultMessage {
+                Text(importResultMessage)
+                    .font(.system(size: 13))
+                    .foregroundStyle(VaultTheme.inkMuted)
+            }
+            if let importError {
+                Text(importError)
                     .font(.system(size: 13))
                     .foregroundStyle(VaultTheme.seal)
             }
@@ -493,6 +540,41 @@ struct SettingsView: View {
         } catch {
             exportURL = nil
             exportError = localization.text("settings.data.export.error")
+        }
+    }
+
+    private func handleImportPicker(_ result: Result<[URL], Error>) {
+        importError = nil
+        importResultMessage = nil
+        switch result {
+        case .failure:
+            importError = localization.text("settings.data.import.error")
+        case .success(let urls):
+            guard let url = urls.first else {
+                importError = localization.text("settings.data.import.error")
+                return
+            }
+            isImporting = true
+            defer { isImporting = false }
+            do {
+                let outcome = try diaryStore.importVaultJSON(from: url)
+                importResultMessage = String(
+                    format: localization.text("settings.data.import.result"),
+                    outcome.added,
+                    outcome.skippedDuplicates,
+                    outcome.totalInFile
+                )
+                if outcome.mediaStripped > 0 {
+                    importResultMessage = (importResultMessage ?? "")
+                        + "\n"
+                        + String(
+                            format: localization.text("settings.data.import.mediaNote"),
+                            outcome.mediaStripped
+                        )
+                }
+            } catch {
+                importError = localization.text("settings.data.import.error")
+            }
         }
     }
 
