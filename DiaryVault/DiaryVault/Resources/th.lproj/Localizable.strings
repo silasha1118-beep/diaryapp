@@ -228,7 +228,6 @@
 "mirror.placeholder" = "เล่าสิ่งที่คิดอยู่…";
 "mirror.send" = "ส่ง";
 "mirror.thinking" = "กำลังฟัง…";
-"mirror.cited" = "อิงจากบันทึกของคุณ";
 "mirror.quota.remaining" = "กระจกวันนี้เหลือ %d จาก %d ครั้ง";
 "mirror.quota.remaining.lifetime" = "กระจกตลอดอายุบัญชียังเหลือ %d จาก %d ครั้ง";
 "mirror.quota.softReminder" = "กระจกวันนี้เหลือ %d จาก %d ครั้ง — Author Plus เพิ่มเพดานรายวัน";

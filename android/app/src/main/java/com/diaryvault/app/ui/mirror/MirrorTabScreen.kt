@@ -356,7 +356,7 @@ private fun MirrorBubble(message: MirrorMessage) {
                 ),
                 color = VaultColors.ink,
             )
-            // Citation caption removed (DA-170) — diary grounding stays in the model prompt only.
+            // Citation / grounded caption removed (DA-170 / DA-172) — never reintroduce.
         }
     }
 }

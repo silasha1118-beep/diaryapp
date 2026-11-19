@@ -228,7 +228,6 @@
 "mirror.placeholder" = "いまの気持ちを書いて…";
 "mirror.send" = "送信";
 "mirror.thinking" = "聞いています…";
-"mirror.cited" = "あなたの記録に基づく";
 "mirror.quota.remaining" = "本日のミラー残り %d／%d 回";
 "mirror.quota.remaining.lifetime" = "ミラー生涯残り %d／%d 回";
 "mirror.quota.softReminder" = "本日のミラー残り %d／%d 回——Author Plus で1日の上限が上がります";

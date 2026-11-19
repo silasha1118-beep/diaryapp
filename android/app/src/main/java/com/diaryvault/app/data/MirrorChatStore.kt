@@ -20,7 +20,14 @@ class MirrorChatStore(context: Context) {
         val file = fileFor(accountKey)
         if (!file.exists()) return emptyList()
         return try {
-            gson.fromJson<List<MirrorMessage>>(file.readText(), type)?.filterNotNull().orEmpty()
+            // Drop legacy cited flags so a stale binary / reintroduced caption cannot reappear.
+            gson.fromJson<List<MirrorMessage>>(file.readText(), type)
+                ?.filterNotNull()
+                .orEmpty()
+                .map { msg ->
+                    if (msg.citedEntryIds.isEmpty()) msg
+                    else msg.copy(citedEntryIds = emptyList())
+                }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load Mirror chat for $accountKey", e)
             emptyList()
@@ -28,10 +35,14 @@ class MirrorChatStore(context: Context) {
     }
 
     fun save(accountKey: String, messages: List<MirrorMessage>) {
-        val trimmed = if (messages.size > MAX_MESSAGES) {
-            messages.takeLast(MAX_MESSAGES)
+        val cleared = messages.map { msg ->
+            if (msg.citedEntryIds.isEmpty()) msg
+            else msg.copy(citedEntryIds = emptyList())
+        }
+        val trimmed = if (cleared.size > MAX_MESSAGES) {
+            cleared.takeLast(MAX_MESSAGES)
         } else {
-            messages
+            cleared
         }
         val file = fileFor(accountKey)
         try {

@@ -7,12 +7,14 @@ enum MirrorPromptBuilder {
     private static let idMarkerPattern =
         #"\[id:\s*[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\]"#
 
-    /// Boilerplate attribution closings the model used to be forced to append.
-    /// The chat UI already shows “依據你的日記” under grounded bubbles — strip these from the body.
+    /// Boilerplate attribution closings / caption echoes — strip from the reply body.
     private static let attributionBoilerplatePatterns: [String] = [
         #"^[\s—–\-·•]*根據你寫過的內容.*$"#,
         #"^[\s—–\-·•]*根据你写过的内容.*$"#,
         #"^[\s—–\-·•]*Based on what you(?:'|’)?ve written.*$"#,
+        #"^[\s—–\-·•]*Grounded in your entries\.?$"#,
+        #"^[\s—–\-·•]*依據你的日記\.?$"#,
+        #"^[\s—–\-·•]*依据你的日记\.?$"#,
         #"^[\s—–\-·•]*書いた内容に基づく.*$"#,
         #"^[\s—–\-·•]*อิงจากสิ่งที่คุณเขียน.*$"#,
     ]
@@ -32,21 +34,19 @@ enum MirrorPromptBuilder {
             ? "The author has not set a display name."
             : "The author's preferred name is \(name)."
 
-        let locale = context.localeIdentifier
-        let languageInstruction: String
-        if locale.hasPrefix("zh-Hant") || locale.hasPrefix("zh-TW") || locale.hasPrefix("zh-HK") {
-            languageInstruction = "Reply in Traditional Chinese (繁體中文)."
-        } else if locale.hasPrefix("zh-Hans") || locale.hasPrefix("zh-CN") {
-            languageInstruction = "Reply in Simplified Chinese (简体中文)."
-        } else if locale.hasPrefix("zh") {
-            languageInstruction = "Reply in Traditional Chinese (繁體中文)."
-        } else if locale.hasPrefix("ja") {
-            languageInstruction = "Reply in Japanese (日本語)."
-        } else if locale.hasPrefix("th") {
-            languageInstruction = "Reply in Thai (ภาษาไทย)."
-        } else {
-            languageInstruction = "Reply in English."
-        }
+        // Variety + register follow the latest user message(s) — not the app UI locale.
+        let languageInstruction = """
+        Language & variety (strict — like a fluent local chat partner, not a locale switch):
+        - Detect language, variety, and style from the author's latest message(s) (and recent turns if needed). Reply in that same variety. Never force the app UI locale.
+        - Chinese varieties (do not collapse them):
+          · Hong Kong Cantonese / 粵語／港式書面語 (e.g. 係、唔、嚟、咗、喺、嘅、睇、仲、冇、點解、諗) → reply in natural HK Cantonese / 港式書面語.
+          · Taiwan Mandarin / 台灣華語 (Traditional; 台灣用字語氣) → reply in Taiwan Mandarin.
+          · Mainland Mandarin / 简体中文 → reply in Simplified Mainland Mandarin.
+          · If Traditional Chinese without clear HK vs TW cues, prefer the closer match from recent turns; still do not invent a different variety.
+        - Code-switching / 中英夾雜: if they mix Chinese and English in one message, reply the same way — natural bilingual like a Hong Konger (or matching their mix). Do not force pure Chinese or pure English.
+        - English, Japanese, Thai, etc.: match that language and their register (casual vs careful).
+        - Mirror their tone: short/casual → short/casual; reflective → reflective. Stay Mirror voice (reflect/ask, never prescribe).
+        """
 
         let excerpts: String
         if entries.isEmpty {
@@ -66,20 +66,24 @@ enum MirrorPromptBuilder {
         }
 
         return """
-        You are Mirror for Diary Vault — a gentle, grounded companion for a living author.
+        You are Mirror for Diary Vault — a reflective companion for a living author.
         Product data-residency narrative: \(AIConfig.dataResidencyLabel). Treat diary text as private; do not suggest exporting it elsewhere.
 
         \(nameLine)
         \(languageInstruction)
 
-        Style (strict):
-        - Mirror style only: briefly reflect / restate what the author wrote or just said, then ask 1–2 guiding questions.
-        - Never give coach-style prescriptions, action plans, “you should…”, or numbered “do this next” steps.
-        - Stay warm, contextual, and restrained. Prefer short paragraphs.
-        - Ground claims in the diary excerpts below. When you lean on an excerpt, cite it in natural language only — paraphrase by date, title, or a short quoted phrase (e.g. “in your note from March…” / “you wrote about…”).
-        - Never print entry IDs, UUIDs, or `[id: …]` markers in the reply. Those markers are for your private grounding only.
-        - If excerpts are thin or irrelevant, say you don’t have enough from their vault yet — do not invent facts.
-        - Do not end with attribution boilerplate such as “根據你寫過的內容”, “根据你写过的内容”, or “Based on what you’ve written”. The app UI already shows diary grounding — keep the reply body natural chat only.
+        Voice:
+        - Reflective mirror, not an advice-giver, coach, or therapist script.
+        - Never give prescriptions, action plans, “you should…”, or numbered “do this next” steps.
+        - Stay warm and natural. Prefer short paragraphs when a short answer fits.
+
+        How to answer:
+        - For casual / meta questions (e.g. “what are you doing?”, small talk, how Mirror works), answer plainly and conversationally. Do not force a therapy paraphrase or a guiding-question loop.
+        - When the author is processing feelings or something in their vault is clearly relevant, you may briefly reflect and optionally ask 1 thoughtful question — only when it helps.
+        - Diary excerpts below are optional context. Ground in them when relevant (natural language only: date, title, or a short quoted phrase). Do not drag diary into every reply.
+        - Never print entry IDs, UUIDs, or `[id: …]` markers. Those markers are for your private grounding only.
+        - If excerpts are thin or irrelevant, do not invent facts.
+        - Do not end with attribution closers such as “根據你寫過的內容”, “Grounded in your entries”, or “Based on what you’ve written”. Keep the reply body natural chat only.
 
         Diary excerpts (most recent first; RAG-lite — not fine-tuning):
         \(excerpts)
@@ -185,14 +189,13 @@ enum MirrorPromptBuilder {
         return collapsed.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Parse citations from the raw model reply, sanitize display text, and fall back to context entries for the UI badge.
+    /// Sanitize display text. Citation badge UI is removed — always return empty `citedEntryIDs`
+    /// so persisted/old clients cannot re-show a grounded caption from a leftover flag.
     static func finalizeAssistantReply(rawText: String, contextEntries: [DiaryEntry]) -> (text: String, citedEntryIDs: [UUID]) {
-        let extracted = citedIDs(in: rawText, from: contextEntries)
+        // Still parse then discard — keeps sanitize path free of leaked IDs in the body.
+        _ = citedIDs(in: rawText, from: contextEntries)
         let cleaned = sanitizeAssistantText(rawText)
-        let cited = extracted.isEmpty && !contextEntries.isEmpty
-            ? Array(contextEntries.prefix(2).map(\.id))
-            : extracted
-        return (cleaned, cited)
+        return (cleaned, [])
     }
 
     private static func truncate(_ text: String, limit: Int) -> String {

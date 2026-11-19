@@ -9,7 +9,6 @@ struct MockMirrorAIClient: MirrorAIService {
         // Simulate latency so UI can show a thinking state.
         try await Task.sleep(nanoseconds: 450_000_000)
 
-        let cited = context.recentEntries.prefix(2).map(\.id)
         let snippet = context.recentEntries.first.map { entry in
             let preview = entry.preview
             return preview.isEmpty ? nil : preview
@@ -26,13 +25,13 @@ struct MockMirrorAIClient: MirrorAIService {
         }
 
         let question = L10n.raw("mirror.mock.question", locale: context.localeIdentifier)
-        // Attribution lives under the bubble in MirrorChatView (`mirror.cited`) — do not repeat in body.
+        // Citation badge removed — no citedEntryIDs / under-bubble caption.
         let text = [reflection, "", question].joined(separator: "\n")
 
         return MirrorMessage(
             role: .mirror,
             text: text,
-            citedEntryIDs: Array(cited)
+            citedEntryIDs: []
         )
     }
 }

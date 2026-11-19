@@ -89,7 +89,6 @@ class MockMirrorAIClient : MirrorAIService {
 
         delay(450)
 
-        val cited = context.recentEntries.take(2).map { it.id }
         val snippet = context.recentEntries.firstOrNull()?.preview?.takeIf { it.isNotBlank() }
 
         val reflection = if (snippet != null) {
@@ -98,10 +97,10 @@ class MockMirrorAIClient : MirrorAIService {
             stringLookup(R.string.mirror_mock_no_cite, null)
         }
         val question = stringLookup(R.string.mirror_mock_question, null)
-        // Attribution lives under the bubble (`mirror_cited`) — do not repeat in body.
+        // Citation badge removed — no citedEntryIds / under-bubble caption.
         val text = listOf(reflection, "", question).joinToString("\n")
 
-        return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
+        return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = emptyList())
     }
 }
 

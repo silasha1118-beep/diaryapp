@@ -57,7 +57,6 @@
     <string name="mirror_placeholder">說說此刻在想什麼…</string>
     <string name="mirror_send">送出</string>
     <string name="mirror_thinking">正在傾聽…</string>
-    <string name="mirror_cited">依據你的日記</string>
     <string name="mirror_mock_with_cite">我聽見了。對照你寫過的內容——「%1$s」——那裡似乎仍有對你重要的東西。</string>
     <string name="mirror_mock_no_cite">我聽見了。金庫裡可引用的文字還不多——沒關係，我們可以慢慢寫。</string>
     <string name="mirror_mock_question">這段話裡，哪一部分最接近你此刻的感覺？</string>
