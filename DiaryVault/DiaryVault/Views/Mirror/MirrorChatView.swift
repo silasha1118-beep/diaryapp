@@ -302,11 +302,20 @@ struct MirrorChatView: View {
             switch error {
             case .rateLimited(let limit, let tier):
                 applyHardQuotaGate(tier: tier, limit: limit)
-            default:
-                errorText = error.localizedDescription
+            case .providerBusy:
+                errorText = localization.text("mirror.error.busy")
+                showQuotaUpgrade = false
+            case .notConfigured:
+                errorText = localization.text("mirror.error.notConfigured")
+                showQuotaUpgrade = false
+            case .emptyInput, .network, .decoding:
+                // Never surface raw Cloud AI JSON / HTTP bodies in the chat error line.
+                errorText = localization.text("mirror.error.generic")
+                showQuotaUpgrade = false
             }
         } catch {
-            errorText = error.localizedDescription
+            errorText = localization.text("mirror.error.generic")
+            showQuotaUpgrade = false
         }
 
         isThinking = false

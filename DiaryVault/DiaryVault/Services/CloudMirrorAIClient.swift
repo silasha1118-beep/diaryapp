@@ -38,15 +38,10 @@ struct CloudMirrorAIClient: MirrorAIService {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
-            throw MirrorAIError.network("Cloud AI: no HTTP response")
+            throw MirrorAIError.network("no HTTP response")
         }
         guard (200..<300).contains(http.statusCode) else {
-            let detail = String(data: data, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            let snippet = (detail?.isEmpty == false)
-                ? String(detail!.prefix(180))
-                : "HTTP \(http.statusCode)"
-            throw MirrorAIError.network("Cloud AI \(snippet)")
+            throw MirrorAIError.fromHTTP(statusCode: http.statusCode, body: data)
         }
 
         guard
