@@ -18,7 +18,7 @@ enum class AIProvider {
  *   Auto-detects anthropic when DIARY_AI_BASE_URL contains "anthropic".
  * - DIARY_AI_BASE_URL — optional; default **https://api.x.ai** (app appends `/v1/chat/completions`)
  * - DIARY_AI_MODEL — optional; default **grok-4.7** (openai/xai) or claude-sonnet-4-5 (anthropic)
- * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 400)
+ * - DIARY_AI_MAX_TOKENS — optional; max completion tokens (default 800)
  * - DIARY_AI_MAX_CONTEXT_ENTRIES — optional; diary excerpts in prompt (default 8)
  * - DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT — Free Mirror lifetime hard cap (default 40; alias FREE_DAILY)
  * - DIARY_AI_DAILY_REQUEST_LIMIT — Author Plus daily Mirror cap (default 8; 0 = unlimited for Plus)
@@ -40,7 +40,7 @@ object AIConfig {
     const val DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5"
     /** Anthropic Messages API version header value. */
     const val ANTHROPIC_API_VERSION = "2023-06-01"
-    const val DEFAULT_MAX_TOKENS = 400
+    const val DEFAULT_MAX_TOKENS = 800
     const val DEFAULT_MAX_CONTEXT_ENTRIES = 8
     const val DEFAULT_FREE_LIFETIME_REQUEST_LIMIT = 40
     const val DEFAULT_DAILY_REQUEST_LIMIT = 8

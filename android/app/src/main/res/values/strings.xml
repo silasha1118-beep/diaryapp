@@ -57,7 +57,6 @@
     <string name="mirror_placeholder">Say what’s on your mind…</string>
     <string name="mirror_send">Send</string>
     <string name="mirror_thinking">Listening…</string>
-    <string name="mirror_cited">Grounded in your entries</string>
     <string name="mirror_mock_with_cite">I hear you. Looking at what you already wrote — “%1$s” — it seems something there still matters to you.</string>
     <string name="mirror_mock_no_cite">I hear you. There isn’t enough in your vault yet for me to reflect specific words back — that’s okay.</string>
     <string name="mirror_mock_question">What part of that feels closest to how you are right now?</string>

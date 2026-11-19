@@ -8,13 +8,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Gson shape used by [MirrorChatStore] — keep bubbles round-trippable. */
+/**
+ * Gson shape used by [MirrorChatStore] — keep bubbles round-trippable.
+ * `citedEntryIds` remains on the model for old JSON compat; store load/save clears it.
+ */
 class MirrorChatStoreTest {
     private val gson = Gson()
     private val type = object : TypeToken<List<MirrorMessage>>() {}.type
 
     @Test
-    fun mirrorMessages_roundTripThroughGson() {
+    fun mirrorMessages_roundTripThroughGson_preservesLegacyCitedField() {
         val original = listOf(
             MirrorMessage(id = "u1", role = MirrorRole.User, text = "你好", citedEntryIds = emptyList(), createdAt = 1L),
             MirrorMessage(
@@ -29,6 +32,7 @@ class MirrorChatStoreTest {
         val restored: List<MirrorMessage> = gson.fromJson(json, type)
         assertEquals(original, restored)
         assertEquals(MirrorRole.Mirror, restored[1].role)
+        // Raw Gson still reads the legacy field; MirrorChatStore.load/save strips it.
         assertEquals(listOf("entry-9"), restored[1].citedEntryIds)
     }
 

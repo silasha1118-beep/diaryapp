@@ -228,7 +228,6 @@
 "mirror.placeholder" = "Say what’s on your mind…";
 "mirror.send" = "Send";
 "mirror.thinking" = "Listening…";
-"mirror.cited" = "Grounded in your entries";
 "mirror.quota.remaining" = "%d of %d Mirror requests left today";
 "mirror.quota.remaining.lifetime" = "%d of %d Mirror requests left (lifetime)";
 "mirror.quota.softReminder" = "%d of %d Mirror left today — Author Plus raises the daily limit";

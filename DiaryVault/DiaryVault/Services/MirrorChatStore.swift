@@ -31,16 +31,36 @@ enum MirrorChatStore {
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         do {
             let data = try Data(contentsOf: url)
-            return try decoder.decode([MirrorMessage].self, from: data)
+            // Drop legacy cited flags so a stale binary / reintroduced caption cannot reappear.
+            return try decoder.decode([MirrorMessage].self, from: data).map { message in
+                guard !message.citedEntryIDs.isEmpty else { return message }
+                return MirrorMessage(
+                    id: message.id,
+                    role: message.role,
+                    text: message.text,
+                    citedEntryIDs: [],
+                    createdAt: message.createdAt
+                )
+            }
         } catch {
             return []
         }
     }
 
     static func save(accountKey: String, messages: [MirrorMessage]) {
-        let trimmed = messages.count > maxMessages
-            ? Array(messages.suffix(maxMessages))
-            : messages
+        let cleared = messages.map { message -> MirrorMessage in
+            guard !message.citedEntryIDs.isEmpty else { return message }
+            return MirrorMessage(
+                id: message.id,
+                role: message.role,
+                text: message.text,
+                citedEntryIDs: [],
+                createdAt: message.createdAt
+            )
+        }
+        let trimmed = cleared.count > maxMessages
+            ? Array(cleared.suffix(maxMessages))
+            : cleared
         let url = fileURL(for: accountKey)
         do {
             try FileManager.default.createDirectory(

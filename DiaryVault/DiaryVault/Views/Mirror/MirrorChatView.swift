@@ -211,7 +211,7 @@ struct MirrorChatView: View {
                     .padding(message.role == .system ? 4 : 16)
                     .background(background(for: message.role))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                // Citation caption removed (DA-170) — diary grounding stays in the model prompt only.
+                // Citation / grounded caption removed (DA-170 / DA-172) — never reintroduce.
             }
 
             if message.role != .user { Spacer(minLength: 48) }

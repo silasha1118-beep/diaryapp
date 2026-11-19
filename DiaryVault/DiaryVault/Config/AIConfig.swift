@@ -17,7 +17,7 @@ enum AIProvider: String {
 ///   Auto-detects `anthropic` when `DIARY_AI_BASE_URL` contains `anthropic`.
 /// - `DIARY_AI_BASE_URL` — optional; defaults to **https://api.x.ai** (openai/xai) or Anthropic host
 /// - `DIARY_AI_MODEL` — optional; defaults to **grok-4.7** (openai/xai) or `claude-sonnet-4-5` (anthropic)
-/// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 400)
+/// - `DIARY_AI_MAX_TOKENS` — optional; max completion tokens (default 800)
 /// - `DIARY_AI_MAX_CONTEXT_ENTRIES` — optional; diary excerpts in prompt (default 8)
 /// - `DIARY_AI_FREE_LIFETIME_REQUEST_LIMIT` — Free-tier Mirror lifetime hard cap (default 40; alias `DIARY_AI_FREE_DAILY_REQUEST_LIMIT`)
 /// - `DIARY_AI_DAILY_REQUEST_LIMIT` — Author Plus daily hard cap (default 8; `0` = unlimited for that tier)
@@ -35,7 +35,7 @@ enum AIConfig {
     static let defaultAnthropicModel = "claude-sonnet-4-5"
     /// Anthropic Messages API version header value.
     static let anthropicAPIVersion = "2023-06-01"
-    static let defaultMaxTokens = 400
+    static let defaultMaxTokens = 800
     static let defaultMaxContextEntries = 8
     /// Free tier: lifetime Mirror AI requests (cloud only). Hard stop → paywall.
     static let defaultFreeLifetimeRequestLimit = 40

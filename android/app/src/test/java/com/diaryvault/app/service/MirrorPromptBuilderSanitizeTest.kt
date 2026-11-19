@@ -20,19 +20,19 @@ class MirrorPromptBuilderSanitizeTest {
     }
 
     @Test
-    fun finalize_extractsCitedThenStripsForDisplay() {
+    fun finalize_stripsIdsAndReturnsNoCitedBadgeFlag() {
         val entries = listOf(
             DiaryEntry(id = entryId, title = "tired", body = "好累"),
         )
         val raw = "對照你寫的「好累」[id: $entryId]。\n\nBased on what you've written"
         val finalized = MirrorPromptBuilder.finalizeAssistantReply(raw, entries)
-        assertEquals(listOf(entryId), finalized.citedEntryIds)
+        assertTrue(finalized.citedEntryIds.isEmpty())
         assertFalse(finalized.text.contains(entryId, ignoreCase = true))
         assertFalse(finalized.text.contains("Based on what you've written", ignoreCase = true))
     }
 
     @Test
-    fun finalize_fallsBackToContextEntriesWhenNoIdsLeaked() {
+    fun finalize_neverFallsBackToContextEntriesForBadge() {
         val entries = listOf(
             DiaryEntry(id = entryId, title = "tired", body = "好累"),
             DiaryEntry(id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE", title = "two", body = "二"),
@@ -41,12 +41,12 @@ class MirrorPromptBuilderSanitizeTest {
             "你提到好累——那份沉重現在還在嗎？",
             entries,
         )
-        assertEquals(listOf(entryId, "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"), finalized.citedEntryIds)
+        assertTrue(finalized.citedEntryIds.isEmpty())
         assertEquals("你提到好累——那份沉重現在還在嗎？", finalized.text)
     }
 
     @Test
-    fun systemPrompt_forbidsIdsAndAttributionBoilerplate() {
+    fun systemPrompt_matchesVarietyCodeSwitchAndAllowsCasualReplies() {
         val prompt = MirrorPromptBuilder.systemPrompt(
             context = com.diaryvault.app.model.MirrorContext(
                 userDisplayName = "Silas",
@@ -56,9 +56,18 @@ class MirrorPromptBuilderSanitizeTest {
             ),
             entries = emptyList(),
         )
+        assertTrue(prompt.contains("Language & variety"))
+        assertTrue(prompt.contains("Hong Kong Cantonese"))
+        assertTrue(prompt.contains("Taiwan Mandarin"))
+        assertTrue(prompt.contains("Mainland Mandarin"))
+        assertTrue(prompt.contains("Code-switching") || prompt.contains("中英夾雜"))
+        assertTrue(prompt.contains("Never force the app UI locale"))
         assertTrue(prompt.contains("Never print entry IDs"))
-        assertTrue(prompt.contains("Do not end with attribution boilerplate"))
+        assertTrue(prompt.contains("Do not end with attribution closers"))
+        assertTrue(prompt.contains("Do not force a therapy paraphrase"))
+        assertFalse(prompt.contains("Reply in Traditional Chinese"))
         assertFalse(prompt.contains("End with a short disclaimer line"))
         assertFalse(prompt.contains("include its [id:"))
+        assertFalse(prompt.contains("The app UI already shows"))
     }
 }

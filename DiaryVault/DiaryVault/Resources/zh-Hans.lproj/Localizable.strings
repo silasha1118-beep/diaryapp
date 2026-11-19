@@ -228,7 +228,6 @@
 "mirror.placeholder" = "说说此刻在想什么…";
 "mirror.send" = "发送";
 "mirror.thinking" = "正在倾听…";
-"mirror.cited" = "依据你的日记";
 "mirror.quota.remaining" = "今日镜子还剩 %d／%d 次";
 "mirror.quota.remaining.lifetime" = "镜子终身还剩 %d／%d 次";
 "mirror.quota.softReminder" = "今日镜子还剩 %d／%d 次——升级 Author Plus 可提高每日额度";
