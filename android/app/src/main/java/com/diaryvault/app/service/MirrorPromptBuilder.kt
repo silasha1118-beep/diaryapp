@@ -4,9 +4,34 @@ import com.diaryvault.app.config.AIConfig
 import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.MirrorContext
 import com.diaryvault.app.model.MirrorRole
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /** Builds the mirror-style system prompt and provider message lists (RAG-lite). */
 object MirrorPromptBuilder {
+    private val uuidRegex = Regex(
+        "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}",
+    )
+    private val idMarkerRegex = Regex(
+        "\\[id:\\s*[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\]",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Boilerplate attribution closings the model used to be forced to append. */
+    private val attributionBoilerplatePatterns = listOf(
+        Regex("""^[\s—–\-·•]*根據你寫過的內容.*$"""),
+        Regex("""^[\s—–\-·•]*根据你写过的内容.*$"""),
+        Regex("""^[\s—–\-·•]*Based on what you(?:'|’)?ve written.*$""", RegexOption.IGNORE_CASE),
+        Regex("""^[\s—–\-·•]*書いた内容に基づく.*$"""),
+        Regex("""^[\s—–\-·•]*อิงจากสิ่งที่คุณเขียน.*$"""),
+    )
+
+    private val excerptDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+        timeZone = TimeZone.getDefault()
+    }
+
     fun systemPrompt(context: MirrorContext, entries: List<DiaryEntry>): String {
         val name = context.userDisplayName.trim()
         val nameLine = if (name.isEmpty()) {
@@ -38,8 +63,10 @@ object MirrorPromptBuilder {
             entries.joinToString("\n\n") { entry ->
                 val body = truncate(entry.body, AIConfig.MAX_ENTRY_BODY_CHARS)
                 val title = entry.title.ifBlank { "(untitled)" }
+                val date = excerptDateFormat.format(Date(entry.createdAt))
                 """
                 [id: ${entry.id}]
+                date: $date
                 title: $title
                 body: $body
                 """.trimIndent()
@@ -57,9 +84,10 @@ object MirrorPromptBuilder {
             - Mirror style only: briefly reflect / restate what the author wrote or just said, then ask 1–2 guiding questions.
             - Never give coach-style prescriptions, action plans, “you should…”, or numbered “do this next” steps.
             - Stay warm, contextual, and restrained. Prefer short paragraphs.
-            - Ground claims in the diary excerpts below. When you lean on an excerpt, quote a short phrase and include its [id: …] in the reply.
+            - Ground claims in the diary excerpts below. When you lean on an excerpt, cite it in natural language only — paraphrase by date, title, or a short quoted phrase (e.g. “in your note from March…” / “you wrote about…”).
+            - Never print entry IDs, UUIDs, or `[id: …]` markers in the reply. Those markers are for your private grounding only.
             - If excerpts are thin or irrelevant, say you don’t have enough from their vault yet — do not invent facts.
-            - End with a short disclaimer line: “根據你寫過的內容” / “根据你写过的内容” / “Based on what you’ve written” matching the reply language.
+            - Do not end with attribution boilerplate such as “根據你寫過的內容”, “根据你写过的内容”, or “Based on what you’ve written”. The app UI already shows diary grounding — keep the reply body natural chat only.
 
             Diary excerpts (most recent first; RAG-lite — not fine-tuning):
             $excerpts
@@ -106,15 +134,60 @@ object MirrorPromptBuilder {
 
     fun citedIds(text: String, entries: List<DiaryEntry>): List<String> {
         val known = entries.map { it.id }.toSet()
-        val regex = Regex(
-            "[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}",
-        )
         val found = linkedSetOf<String>()
-        for (match in regex.findAll(text)) {
+        for (match in uuidRegex.findAll(text)) {
             val id = match.value
             if (id in known) found += id
         }
         return found.toList()
+    }
+
+    /** Defensive clean-up: strip leaked `[id:…]` / UUID markers and forced attribution closings. */
+    fun sanitizeAssistantText(text: String): String {
+        var result = idMarkerRegex.replace(text, "")
+        result = uuidRegex.replace(result, "")
+
+        val lines = result.split('\n')
+        val kept = lines.filter { line ->
+            val trimmed = line.trim()
+            if (trimmed.isEmpty()) return@filter true
+            attributionBoilerplatePatterns.none { it.matches(trimmed) }
+        }
+
+        val collapsed = mutableListOf<String>()
+        var pendingBlank = false
+        for (line in kept) {
+            if (line.trim().isEmpty()) {
+                pendingBlank = collapsed.isNotEmpty()
+                continue
+            }
+            if (pendingBlank) {
+                collapsed += ""
+                pendingBlank = false
+            }
+            collapsed += line.replace(Regex("""\s{2,}"""), " ").trim()
+        }
+        return collapsed.joinToString("\n").trim()
+    }
+
+    /**
+     * Parse citations from the raw model reply, sanitize display text,
+     * and fall back to context entries for the UI “依據你的日記” badge.
+     */
+    data class FinalizedReply(
+        val text: String,
+        val citedEntryIds: List<String>,
+    )
+
+    fun finalizeAssistantReply(rawText: String, contextEntries: List<DiaryEntry>): FinalizedReply {
+        val extracted = citedIds(rawText, contextEntries)
+        val cleaned = sanitizeAssistantText(rawText)
+        val cited = if (extracted.isEmpty() && contextEntries.isNotEmpty()) {
+            contextEntries.take(2).map { it.id }
+        } else {
+            extracted
+        }
+        return FinalizedReply(text = cleaned, citedEntryIds = cited)
     }
 
     private fun truncate(text: String, limit: Int): String {

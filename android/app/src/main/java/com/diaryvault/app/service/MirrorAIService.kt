@@ -68,8 +68,8 @@ class MockMirrorAIClient : MirrorAIService {
             stringLookup(R.string.mirror_mock_no_cite, null)
         }
         val question = stringLookup(R.string.mirror_mock_question, null)
-        val disclaimer = stringLookup(R.string.mirror_mock_disclaimer, null)
-        val text = listOf(reflection, "", question, "", "— $disclaimer").joinToString("\n")
+        // Attribution lives under the bubble (`mirror_cited`) — do not repeat in body.
+        val text = listOf(reflection, "", question).joinToString("\n")
 
         return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
     }
@@ -151,8 +151,13 @@ class CloudMirrorAIClient(
             if (text.isEmpty()) throw MirrorAIError.Decoding
 
             val contextEntries = context.recentEntries.take(AIConfig.maxContextEntries)
-            val cited = MirrorPromptBuilder.citedIds(text, contextEntries)
-            return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
+            val finalized = MirrorPromptBuilder.finalizeAssistantReply(text, contextEntries)
+            if (finalized.text.isEmpty()) throw MirrorAIError.Decoding
+            return MirrorMessage(
+                role = MirrorRole.Mirror,
+                text = finalized.text,
+                citedEntryIds = finalized.citedEntryIds,
+            )
         } catch (e: MirrorAIError) {
             throw e
         } catch (e: IOException) {
@@ -240,8 +245,13 @@ class AnthropicMirrorAIClient(
             if (text.isEmpty()) throw MirrorAIError.Decoding
 
             val contextEntries = context.recentEntries.take(AIConfig.maxContextEntries)
-            val cited = MirrorPromptBuilder.citedIds(text, contextEntries)
-            return MirrorMessage(role = MirrorRole.Mirror, text = text, citedEntryIds = cited)
+            val finalized = MirrorPromptBuilder.finalizeAssistantReply(text, contextEntries)
+            if (finalized.text.isEmpty()) throw MirrorAIError.Decoding
+            return MirrorMessage(
+                role = MirrorRole.Mirror,
+                text = finalized.text,
+                citedEntryIds = finalized.citedEntryIds,
+            )
         } catch (e: MirrorAIError) {
             throw e
         } catch (e: IOException) {

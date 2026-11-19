@@ -2,6 +2,30 @@ import Foundation
 
 /// Builds the mirror-style system prompt and OpenAI-compatible message list (RAG-lite).
 enum MirrorPromptBuilder {
+    private static let uuidPattern =
+        #"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"#
+    private static let idMarkerPattern =
+        #"\[id:\s*[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\]"#
+
+    /// Boilerplate attribution closings the model used to be forced to append.
+    /// The chat UI already shows “依據你的日記” under grounded bubbles — strip these from the body.
+    private static let attributionBoilerplatePatterns: [String] = [
+        #"^[\s—–\-·•]*根據你寫過的內容.*$"#,
+        #"^[\s—–\-·•]*根据你写过的内容.*$"#,
+        #"^[\s—–\-·•]*Based on what you(?:'|’)?ve written.*$"#,
+        #"^[\s—–\-·•]*書いた内容に基づく.*$"#,
+        #"^[\s—–\-·•]*อิงจากสิ่งที่คุณเขียน.*$"#,
+    ]
+
+    private static let excerptDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
     static func systemPrompt(context: MirrorContext, entries: [DiaryEntry]) -> String {
         let name = context.userDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
         let nameLine = name.isEmpty
@@ -31,8 +55,10 @@ enum MirrorPromptBuilder {
             excerpts = entries.map { entry in
                 let body = truncate(entry.body, limit: AIConfig.maxEntryBodyCharacters)
                 let title = entry.title.isEmpty ? "(untitled)" : entry.title
+                let date = excerptDateFormatter.string(from: entry.createdAt)
                 return """
                 [id: \(entry.id.uuidString)]
+                date: \(date)
                 title: \(title)
                 body: \(body)
                 """
@@ -50,9 +76,10 @@ enum MirrorPromptBuilder {
         - Mirror style only: briefly reflect / restate what the author wrote or just said, then ask 1–2 guiding questions.
         - Never give coach-style prescriptions, action plans, “you should…”, or numbered “do this next” steps.
         - Stay warm, contextual, and restrained. Prefer short paragraphs.
-        - Ground claims in the diary excerpts below. When you lean on an excerpt, quote a short phrase and include its [id: …] in the reply.
+        - Ground claims in the diary excerpts below. When you lean on an excerpt, cite it in natural language only — paraphrase by date, title, or a short quoted phrase (e.g. “in your note from March…” / “you wrote about…”).
+        - Never print entry IDs, UUIDs, or `[id: …]` markers in the reply. Those markers are for your private grounding only.
         - If excerpts are thin or irrelevant, say you don’t have enough from their vault yet — do not invent facts.
-        - End with a short disclaimer line: “根據你寫過的內容” / “根据你写过的内容” / “Based on what you’ve written” matching the reply language.
+        - Do not end with attribution boilerplate such as “根據你寫過的內容”, “根据你写过的内容”, or “Based on what you’ve written”. The app UI already shows diary grounding — keep the reply body natural chat only.
 
         Diary excerpts (most recent first; RAG-lite — not fine-tuning):
         \(excerpts)
@@ -94,13 +121,12 @@ enum MirrorPromptBuilder {
         return messages
     }
 
+    /// Extract known entry IDs mentioned in model text (before sanitizing for display).
     static func citedIDs(in text: String, from entries: [DiaryEntry]) -> [UUID] {
         let known = Set(entries.map(\.id))
         var found: [UUID] = []
         var seen = Set<UUID>()
-        // Match bare UUIDs or [id: UUID] forms present in the model reply.
-        let pattern = #"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        guard let regex = try? NSRegularExpression(pattern: uuidPattern) else { return [] }
         let range = NSRange(text.startIndex..<text.endIndex, in: text)
         regex.enumerateMatches(in: text, range: range) { match, _, _ in
             guard let match, let swiftRange = Range(match.range, in: text) else { return }
@@ -110,6 +136,63 @@ enum MirrorPromptBuilder {
             }
         }
         return found
+    }
+
+    /// Defensive clean-up: strip leaked `[id:…]` / UUID markers and forced attribution closings.
+    static func sanitizeAssistantText(_ text: String) -> String {
+        var result = text
+        if let idMarker = try? NSRegularExpression(pattern: idMarkerPattern, options: .caseInsensitive) {
+            let range = NSRange(result.startIndex..<result.endIndex, in: result)
+            result = idMarker.stringByReplacingMatches(in: result, range: range, withTemplate: "")
+        }
+        if let uuid = try? NSRegularExpression(pattern: uuidPattern, options: .caseInsensitive) {
+            let range = NSRange(result.startIndex..<result.endIndex, in: result)
+            result = uuid.stringByReplacingMatches(in: result, range: range, withTemplate: "")
+        }
+
+        let lines = result.components(separatedBy: .newlines)
+        let kept = lines.filter { line in
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { return true }
+            for pattern in attributionBoilerplatePatterns {
+                if let re = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+                   re.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)) != nil {
+                    return false
+                }
+            }
+            return true
+        }
+
+        // Collapse leftover blank runs from stripped lines / markers.
+        var collapsed: [String] = []
+        var pendingBlank = false
+        for line in kept {
+            if line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                pendingBlank = !collapsed.isEmpty
+                continue
+            }
+            if pendingBlank {
+                collapsed.append("")
+                pendingBlank = false
+            }
+            // Also tidy double-spaces left where an ID was mid-sentence.
+            let tidied = line
+                .replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+            collapsed.append(tidied)
+        }
+
+        return collapsed.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Parse citations from the raw model reply, sanitize display text, and fall back to context entries for the UI badge.
+    static func finalizeAssistantReply(rawText: String, contextEntries: [DiaryEntry]) -> (text: String, citedEntryIDs: [UUID]) {
+        let extracted = citedIDs(in: rawText, from: contextEntries)
+        let cleaned = sanitizeAssistantText(rawText)
+        let cited = extracted.isEmpty && !contextEntries.isEmpty
+            ? Array(contextEntries.prefix(2).map(\.id))
+            : extracted
+        return (cleaned, cited)
     }
 
     private static func truncate(_ text: String, limit: Int) -> String {

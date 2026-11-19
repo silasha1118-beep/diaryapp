@@ -26,9 +26,8 @@ struct MockMirrorAIClient: MirrorAIService {
         }
 
         let question = L10n.raw("mirror.mock.question", locale: context.localeIdentifier)
-        let disclaimer = L10n.raw("mirror.mock.disclaimer", locale: context.localeIdentifier)
-
-        let text = [reflection, "", question, "", "— \(disclaimer)"].joined(separator: "\n")
+        // Attribution lives under the bubble in MirrorChatView (`mirror.cited`) — do not repeat in body.
+        let text = [reflection, "", question].joined(separator: "\n")
 
         return MirrorMessage(
             role: .mirror,
