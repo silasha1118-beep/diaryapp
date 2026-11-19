@@ -335,7 +335,8 @@
 "settings.name" = "Display name";
 "settings.resetOnboarding" = "Show onboarding again";
 "settings.section.data" = "Privacy & data";
-"settings.data.export" = "Prepare vault export (JSON)";
+"settings.data.transfer" = "Export & import (JSON)";
+"settings.data.export" = "Export vault (JSON)";
 "settings.data.export.share" = "Share / save export file";
 "settings.data.export.shareSubject" = "Diary Vault export";
 "settings.data.export.shareMessage" = "My Diary Vault entries (JSON).";
@@ -355,7 +356,7 @@
 "settings.data.deleteAccount.done" = "Account and vault data deleted on this device (and cloud sync when signed in).";
 "settings.data.deleteAccount.reauth" = "Your vault on this device was cleared. Sign in once more to finish removing the cloud account, then try delete again.";
 "settings.data.deleteAccount.remoteFailed" = "Your vault and session on this device were cleared. Cloud account removal didn’t finish — try signing in again later.";
-"settings.data.footer" = "Export or import anytime (JSON). Import merges by entry ID into the signed-in account and skips duplicates. You can delete your account and vault data when signed in. Signed-in text diaries sync to the cloud; signed-out stays on this device.";
+"settings.data.footer" = "Open Export & import to share a vault JSON or merge one in by entry ID (duplicates skipped). You can delete your account and vault data when signed in. Signed-in text diaries sync to the cloud; signed-out stays on this device.";
 "settings.section.legal" = "Legal";
 "settings.legal.privacy" = "Privacy Policy";
 "settings.legal.terms" = "Terms of Use (EULA)";

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 /// Internal Settings dumps (Firebase project / Auth UID / product IDs / reset onboarding).
@@ -17,7 +18,7 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var showDeleteConfirm = false
     @State private var showPrivacySheet = false
-    @State private var exportURL: URL?
+    @State private var isDataTransferExpanded = false
     @State private var exportError: String?
     @State private var deleteOutcomeMessage: String?
     @State private var isDeleting = false
@@ -276,49 +277,45 @@ struct SettingsView: View {
 
     private var dataSection: some View {
         Section {
-            settingsActionButton(titleKey: "settings.data.export") {
-                prepareExport()
-            }
-            if let exportURL {
-                ShareLink(
-                    item: exportURL,
-                    subject: Text(localization.text("settings.data.export.shareSubject")),
-                    message: Text(localization.text("settings.data.export.shareMessage"))
-                ) {
-                    Text(localization.text("settings.data.export.share"))
+            DisclosureGroup(isExpanded: $isDataTransferExpanded) {
+                settingsActionButton(titleKey: "settings.data.export") {
+                    presentExportShareSheet()
+                }
+                if let exportError {
+                    Text(exportError)
+                        .font(.system(size: 13))
                         .foregroundStyle(VaultTheme.seal)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.borderless)
-            }
-            if let exportError {
-                Text(exportError)
-                    .font(.system(size: 13))
-                    .foregroundStyle(VaultTheme.seal)
-            }
-            if account.isSignedIn {
-                settingsActionButton(titleKey: "settings.data.import") {
-                    importError = nil
-                    importResultMessage = nil
-                    showImportConfirm = true
+                if account.isSignedIn {
+                    settingsActionButton(titleKey: "settings.data.import") {
+                        importError = nil
+                        importResultMessage = nil
+                        showImportConfirm = true
+                    }
+                    .disabled(isImporting)
+                } else {
+                    Text(localization.text("settings.data.import.signInRequired"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.inkMuted)
                 }
-                .disabled(isImporting)
-            } else {
-                Text(localization.text("settings.data.import.signInRequired"))
-                    .font(.system(size: 13))
-                    .foregroundStyle(VaultTheme.inkMuted)
+                if let importResultMessage {
+                    Text(importResultMessage)
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.inkMuted)
+                }
+                if let importError {
+                    Text(importError)
+                        .font(.system(size: 13))
+                        .foregroundStyle(VaultTheme.seal)
+                }
+            } label: {
+                Text(localization.text("settings.data.transfer"))
+                    .foregroundStyle(VaultTheme.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
             }
-            if let importResultMessage {
-                Text(importResultMessage)
-                    .font(.system(size: 13))
-                    .foregroundStyle(VaultTheme.inkMuted)
-            }
-            if let importError {
-                Text(importError)
-                    .font(.system(size: 13))
-                    .foregroundStyle(VaultTheme.seal)
-            }
+            .tint(VaultTheme.seal)
+
             if account.isSignedIn {
                 settingsActionButton(titleKey: "settings.data.deleteAccount", role: .destructive) {
                     showDeleteConfirm = true
@@ -533,14 +530,56 @@ struct SettingsView: View {
         return raw
     }
 
-    private func prepareExport() {
+    private func presentExportShareSheet() {
         exportError = nil
         do {
-            exportURL = try diaryStore.makeExportFileURL()
+            let url = try diaryStore.makeExportFileURL()
+            guard let presenter = Self.topViewController() else {
+                exportError = localization.text("settings.data.export.error")
+                return
+            }
+            let activity = UIActivityViewController(
+                activityItems: [
+                    VaultExportActivityItem(
+                        fileURL: url,
+                        subject: localization.text("settings.data.export.shareSubject")
+                    )
+                ],
+                applicationActivities: nil
+            )
+            if let popover = activity.popoverPresentationController {
+                popover.sourceView = presenter.view
+                popover.sourceRect = CGRect(
+                    x: presenter.view.bounds.midX,
+                    y: presenter.view.bounds.midY,
+                    width: 0,
+                    height: 0
+                )
+                popover.permittedArrowDirections = []
+            }
+            presenter.present(activity, animated: true)
         } catch {
-            exportURL = nil
             exportError = localization.text("settings.data.export.error")
         }
+    }
+
+    private static func topViewController(
+        base: UIViewController? = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .rootViewController
+    ) -> UIViewController? {
+        if let nav = base as? UINavigationController {
+            return topViewController(base: nav.visibleViewController)
+        }
+        if let tab = base as? UITabBarController {
+            return topViewController(base: tab.selectedViewController)
+        }
+        if let presented = base?.presentedViewController {
+            return topViewController(base: presented)
+        }
+        return base
     }
 
     private func handleImportPicker(_ result: Result<[URL], Error>) {
@@ -595,6 +634,42 @@ struct SettingsView: View {
         case .remoteFailed:
             deleteOutcomeMessage = localization.text("settings.data.deleteAccount.remoteFailed")
         }
+    }
+}
+
+/// Activity item so Mail/etc. get a subject while Files/Save get the JSON URL.
+private final class VaultExportActivityItem: NSObject, UIActivityItemSource {
+    let fileURL: URL
+    let subject: String
+
+    init(fileURL: URL, subject: String) {
+        self.fileURL = fileURL
+        self.subject = subject
+    }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        fileURL
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        itemForActivityType activityType: UIActivity.ActivityType?
+    ) -> Any? {
+        fileURL
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        subjectForActivityType activityType: UIActivity.ActivityType?
+    ) -> String {
+        subject
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        dataTypeIdentifierForActivityType activityType: UIActivity.ActivityType?
+    ) -> String {
+        "public.json"
     }
 }
 
