@@ -1,9 +1,33 @@
 /**
  * Minimal Alibaba Cloud Dysmsapi SendSms client (RPC signature v1.0).
  * AccessKey stays in Functions secrets / env — never shipped to clients.
+ *
+ * Production (PowerShell-friendly):
+ *   firebase functions:secrets:set ALIYUN_SMS_ACCESS_KEY_ID
+ *   firebase functions:secrets:set ALIYUN_SMS_ACCESS_KEY_SECRET
+ *   firebase functions:secrets:set ALIYUN_SMS_SIGN_NAME
+ *   firebase functions:secrets:set ALIYUN_SMS_TEMPLATE_CODE
+ * Then: firebase deploy --only functions
+ *
+ * Emulator: copy .env.example → .env (secrets not required locally).
  */
 
 import * as crypto from "crypto";
+import { defineSecret } from "firebase-functions/params";
+
+/** Bound via `secrets: [...]` on send/verify callables — see index.ts. */
+export const aliyunSmsAccessKeyId = defineSecret("ALIYUN_SMS_ACCESS_KEY_ID");
+export const aliyunSmsAccessKeySecret = defineSecret("ALIYUN_SMS_ACCESS_KEY_SECRET");
+export const aliyunSmsSignName = defineSecret("ALIYUN_SMS_SIGN_NAME");
+export const aliyunSmsTemplateCode = defineSecret("ALIYUN_SMS_TEMPLATE_CODE");
+
+/** Pass to `onCall({ secrets: aliyunSmsSecrets })`. */
+export const aliyunSmsSecrets = [
+  aliyunSmsAccessKeyId,
+  aliyunSmsAccessKeySecret,
+  aliyunSmsSignName,
+  aliyunSmsTemplateCode,
+] as const;
 
 export type AliyunSmsConfig = {
   accessKeyId: string;
@@ -14,11 +38,29 @@ export type AliyunSmsConfig = {
   templateParamKey: string;
 };
 
+function secretOrEnv(
+  secret: { value: () => string },
+  envName: string,
+): string {
+  try {
+    const fromSecret = secret.value();
+    if (typeof fromSecret === "string" && fromSecret.trim().length > 0) {
+      return fromSecret.trim();
+    }
+  } catch {
+    // Secret not bound (emulator without secrets) — fall through to env.
+  }
+  return (process.env[envName] || "").trim();
+}
+
 export function readAliyunSmsConfig(): AliyunSmsConfig | null {
-  const accessKeyId = (process.env.ALIYUN_SMS_ACCESS_KEY_ID || "").trim();
-  const accessKeySecret = (process.env.ALIYUN_SMS_ACCESS_KEY_SECRET || "").trim();
-  const signName = (process.env.ALIYUN_SMS_SIGN_NAME || "").trim();
-  const templateCode = (process.env.ALIYUN_SMS_TEMPLATE_CODE || "").trim();
+  const accessKeyId = secretOrEnv(aliyunSmsAccessKeyId, "ALIYUN_SMS_ACCESS_KEY_ID");
+  const accessKeySecret = secretOrEnv(
+    aliyunSmsAccessKeySecret,
+    "ALIYUN_SMS_ACCESS_KEY_SECRET",
+  );
+  const signName = secretOrEnv(aliyunSmsSignName, "ALIYUN_SMS_SIGN_NAME");
+  const templateCode = secretOrEnv(aliyunSmsTemplateCode, "ALIYUN_SMS_TEMPLATE_CODE");
   const templateParamKey =
     (process.env.ALIYUN_SMS_TEMPLATE_PARAM_KEY || "code").trim() || "code";
 

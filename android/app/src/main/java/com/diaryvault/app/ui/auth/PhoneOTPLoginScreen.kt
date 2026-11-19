@@ -55,8 +55,7 @@ import com.diaryvault.app.ui.theme.VaultColors
 import kotlinx.coroutines.delay
 
 /**
- * Phone SMS OTP gate — dial **+86** → Aliyun in release when configured;
- * **DEBUG +86** (and missing Aliyun / China CF keys) → Firebase Phone Auth (Console test numbers);
+ * Phone SMS OTP gate — dial **+86** → Aliyun when secrets are set (Firebase fallback if not);
  * other dials → Firebase Phone Auth when `google-services.json` is present, else local stub.
  * Customer UI only — no DEBUG / stub / local-session chrome (prefs: no developer chrome).
  * Mirrors iOS AuthGateView / PhoneOTPLoginForm.
@@ -74,12 +73,12 @@ fun PhoneOTPLoginScreen(viewModel: VaultViewModel) {
     val error by viewModel.authError.collectAsState()
     val sent = session != null
     // Firebase Phone Auth may open Play Integrity / reCAPTCHA; real Aliyun +86 does not.
-    // DEBUG routes +86 to Firebase so Console test numbers work.
+    // Pre-send +86 assumes Aliyun (no browser check); after send, trust session.path.
     val usesFirebaseAppVerification =
         viewModel.smsProviderKind == AuthConfig.SMSProviderKind.FIREBASE &&
             when {
                 sent -> session?.path == SmsAuthPath.FIREBASE
-                else -> dialCodeFromLabel(dialCode) != "+86" || BuildConfig.DEBUG
+                else -> dialCodeFromLabel(dialCode) != "+86"
             }
 
     var resendCooldown by remember { mutableIntStateOf(0) }

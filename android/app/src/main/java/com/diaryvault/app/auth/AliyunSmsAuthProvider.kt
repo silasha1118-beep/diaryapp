@@ -3,7 +3,6 @@ package com.diaryvault.app.auth
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
@@ -16,10 +15,10 @@ import kotlinx.coroutines.tasks.await
  *
  * No AccessKey in the APK. No Google reCAPTCHA on this path.
  *
- * **DEBUG** never calls Aliyun — Firebase Phone Auth only (Console test numbers).
- * When Functions are missing / Aliyun secrets unset / CF returns stub mode:
- * fall back to [firebaseFallback] (Firebase Phone Auth) so Firebase Console
- * **test phone numbers** (e.g. 123456) work — never a local stub OTP that
+ * Prefer Aliyun first for +86 (DEBUG and release). When Functions are missing /
+ * Aliyun secrets unset / CF returns stub mode: fall back to [firebaseFallback]
+ * (Firebase Phone Auth) so Firebase Console **test phone numbers** and the
+ * existing DEBUG fixed-code path still work — never a local stub OTP that
  * ignores Console test codes.
  */
 class AliyunSmsAuthProvider(
@@ -38,21 +37,6 @@ class AliyunSmsAuthProvider(
             !PhoneNumberNormalizer.isPlausibleE164(normalized)
         ) {
             throw SMSAuthError.InvalidPhone
-        }
-
-        // Second line of defense if RoutingSMSAuthProvider is ever constructed without
-        // preferFirebaseForChinaMainland (e.g. a future Tencent-only wiring).
-        if (BuildConfig.DEBUG) {
-            Log.i(
-                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-                "send provider=FirebasePhone (Aliyun DEBUG skip) e164=$normalized",
-            )
-            return sendViaFirebaseFallback(
-                activity,
-                normalized,
-                resend,
-                "DEBUG: skip Aliyun — Firebase Console test numbers",
-            )
         }
 
         FirebaseBootstrap.configureIfNeeded(appContext)
@@ -87,6 +71,10 @@ class AliyunSmsAuthProvider(
                     "Aliyun keys missing (CF stub mode)",
                 )
             }
+            Log.i(
+                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+                "send provider=ChinaCF/Aliyun e164=$normalized sessionLen=${sessionId.length}",
+            )
             SMSCodeSession(
                 verificationID = sessionId,
                 phoneE164 = normalized,
@@ -119,14 +107,6 @@ class AliyunSmsAuthProvider(
             // Legacy stub sessions: route to Firebase only if somehow still present —
             // local stub no longer issued on this path.
             Log.w(TAG, "Unexpected stub session on Aliyun path — trying Firebase verify")
-            return firebaseFallback.verify(trimmed, session)
-        }
-        if (BuildConfig.DEBUG) {
-            // Should not happen if send skipped Aliyun; never verify CF OTP in DEBUG.
-            Log.w(
-                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-                "DEBUG Aliyun session unexpected — verifying via Firebase Phone Auth",
-            )
             return firebaseFallback.verify(trimmed, session)
         }
         Log.i(
@@ -175,11 +155,15 @@ class AliyunSmsAuthProvider(
         reason: String?,
     ): SMSCodeSession {
         Log.w(TAG, "Aliyun path → Firebase Phone Auth fallback — $reason")
+        Log.i(
+            RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+            "send provider=FirebasePhone (+86 fallback) e164=$phoneE164 reason=$reason",
+        )
         return firebaseFallback.sendCode(activity, phoneE164, resend)
     }
 
     private fun shouldFallbackToFirebase(error: SMSAuthError): Boolean {
-        // Missing Aliyun / Functions → Firebase (Console test numbers; Aliyun still deferred).
+        // Missing Aliyun / Functions → Firebase (Console test numbers; DEBUG fixed codes).
         if (error is SMSAuthError.NotConfigured) return true
         return error is SMSAuthError.Underlying &&
             error.detail.contains("NOT_FOUND", ignoreCase = true)
