@@ -334,7 +334,8 @@
 "settings.name" = "顯示名稱";
 "settings.resetOnboarding" = "重新顯示導覽";
 "settings.section.data" = "隱私與資料";
-"settings.data.export" = "準備匯出金庫（JSON）";
+"settings.data.transfer" = "匯出與匯入（JSON）";
+"settings.data.export" = "匯出金庫（JSON）";
 "settings.data.export.share" = "分享／儲存匯出檔";
 "settings.data.export.shareSubject" = "日記金庫匯出";
 "settings.data.export.shareMessage" = "我的日記金庫條目（JSON）。";
@@ -354,7 +355,7 @@
 "settings.data.deleteAccount.done" = "已刪除此裝置上的帳號與金庫資料（已登入時含雲端同步）。";
 "settings.data.deleteAccount.reauth" = "本機金庫已清空。請再登入一次以完成刪除雲端帳號，然後重試刪除。";
 "settings.data.deleteAccount.remoteFailed" = "本機會話與金庫已清空。雲端帳號刪除未完成——請稍後再登入重試。";
-"settings.data.footer" = "可隨時匯出或匯入（JSON）。匯入依條目 ID 合併到已登入帳號並略過重複。已登入時可刪除帳號與金庫資料。已登入的文字日記會同步至雲端；未登入僅存本機。";
+"settings.data.footer" = "點開「匯出與匯入」即可匯出或匯入金庫（JSON）。匯入依條目 ID 合併到已登入帳號並略過重複。已登入時可刪除帳號與金庫資料。已登入的文字日記會同步至雲端；未登入僅存本機。";
 "settings.section.legal" = "法律資訊";
 "settings.legal.privacy" = "隱私權政策";
 "settings.legal.terms" = "使用條款（EULA）";

@@ -334,7 +334,8 @@
 "settings.name" = "表示名";
 "settings.resetOnboarding" = "オンボーディングを再表示";
 "settings.section.data" = "プライバシーとデータ";
-"settings.data.export" = "ボールト書き出しを準備（JSON）";
+"settings.data.transfer" = "書き出しと取り込み（JSON）";
+"settings.data.export" = "ボールトを書き出す（JSON）";
 "settings.data.export.share" = "書き出しファイルを共有／保存";
 "settings.data.export.shareSubject" = "Diary Vault 書き出し";
 "settings.data.export.shareMessage" = "私の Diary Vault 記録（JSON）。";
@@ -354,7 +355,7 @@
 "settings.data.deleteAccount.done" = "この端末のアカウントとボールトデータを削除しました（サインイン時はクラウド同期も含む）。";
 "settings.data.deleteAccount.reauth" = "ローカルボールトを消去しました。クラウドアカウント削除を完了するには再度サインインし、削除をやり直してください。";
 "settings.data.deleteAccount.remoteFailed" = "ローカルのボールトとセッションを消去しました。クラウドアカウント削除は完了しませんでした——後でもう一度サインインして試してください。";
-"settings.data.footer" = "いつでも書き出し／取り込みできます（JSON）。取り込みは ID でマージし重複をスキップ。サインイン中はアカウントとボールトデータを削除できます。サインイン中のテキスト日記はクラウド同期；未サインインは端末のみ。";
+"settings.data.footer" = "「書き出しと取り込み」を開いてボールトを書き出す／取り込めます（JSON）。取り込みは ID でマージし重複をスキップ。サインイン中はアカウントとボールトデータを削除できます。サインイン中のテキスト日記はクラウド同期；未サインインは端末のみ。";
 "settings.section.legal" = "法務";
 "settings.legal.privacy" = "プライバシーポリシー";
 "settings.legal.terms" = "利用規約（EULA）";

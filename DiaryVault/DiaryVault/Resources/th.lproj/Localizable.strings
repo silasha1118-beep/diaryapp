@@ -334,7 +334,8 @@
 "settings.name" = "ชื่อที่แสดง";
 "settings.resetOnboarding" = "แสดงการเริ่มต้นอีกครั้ง";
 "settings.section.data" = "ความเป็นส่วนตัวและข้อมูล";
-"settings.data.export" = "เตรียมส่งออกห้องเก็บ (JSON)";
+"settings.data.transfer" = "ส่งออกและนำเข้า (JSON)";
+"settings.data.export" = "ส่งออกห้องเก็บ (JSON)";
 "settings.data.export.share" = "แชร์ / บันทึกไฟล์ส่งออก";
 "settings.data.export.shareSubject" = "ส่งออก Diary Vault";
 "settings.data.export.shareMessage" = "บันทึก Diary Vault ของฉัน (JSON)";
@@ -354,7 +355,7 @@
 "settings.data.deleteAccount.done" = "ลบบัญชีและข้อมูลห้องเก็บบนเครื่องนี้แล้ว (รวมซิงค์คลาวด์เมื่อเข้าสู่ระบบ)";
 "settings.data.deleteAccount.reauth" = "ล้างห้องเก็บในเครื่องแล้ว เข้าสู่ระบบอีกครั้งเพื่อลบบัญชีคลาวด์ให้เสร็จ แล้วลองลบใหม่";
 "settings.data.deleteAccount.remoteFailed" = "ล้างห้องเก็บและเซสชันในเครื่องแล้ว การลบบัญชีคลาวด์ไม่เสร็จ — ลองเข้าสู่ระบบใหม่ภายหลัง";
-"settings.data.footer" = "ส่งออกหรือนำเข้าได้ทุกเมื่อ (JSON) นำเข้าผสานตาม ID และข้ามซ้ำ เมื่อเข้าสู่ระบบสามารถลบบัญชีและข้อมูลห้องเก็บได้ ไดอารี่ข้อความที่เข้าสู่ระบบจะซิงค์คลาวด์; ยังไม่เข้าจะอยู่บนเครื่อง";
+"settings.data.footer" = "เปิด ส่งออกและนำเข้า เพื่อส่งออกหรือนำเข้าห้องเก็บ (JSON) นำเข้าผสานตาม ID และข้ามซ้ำ เมื่อเข้าสู่ระบบสามารถลบบัญชีและข้อมูลห้องเก็บได้ ไดอารี่ข้อความที่เข้าสู่ระบบจะซิงค์คลาวด์; ยังไม่เข้าจะอยู่บนเครื่อง";
 "settings.section.legal" = "กฎหมาย";
 "settings.legal.privacy" = "นโยบายความเป็นส่วนตัว";
 "settings.legal.terms" = "ข้อกำหนดการใช้งาน (EULA)";
