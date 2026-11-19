@@ -136,41 +136,49 @@ struct MirrorChatView: View {
 
     private var messageList: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    ForEach(messages) { message in
-                        bubble(message)
-                            .id(message.id)
-                    }
-                    if isThinking {
-                        Text(localization.text("mirror.thinking"))
-                            .font(.system(size: 14, design: .serif))
-                            .foregroundStyle(VaultTheme.inkMuted)
-                            .italic()
-                            .padding(.horizontal, 6)
-                            .id("thinking")
-                    }
-                    if let errorText {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(errorText)
-                                .font(.system(size: 14))
-                                .foregroundStyle(VaultTheme.seal)
-                            if showQuotaUpgrade {
-                                Button {
-                                    presentUpgradeCheckout()
-                                } label: {
-                                    Text(localization.text(quotaUpgradeCTAKey))
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundStyle(VaultTheme.seal)
-                                }
-                                .buttonStyle(.plain)
-                            }
+            GeometryReader { geo in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 18) {
+                        ForEach(messages) { message in
+                            bubble(message)
+                                .id(message.id)
                         }
-                        .id("error")
+                        if isThinking {
+                            Text(localization.text("mirror.thinking"))
+                                .font(.system(size: 14, design: .serif))
+                                .foregroundStyle(VaultTheme.inkMuted)
+                                .italic()
+                                .padding(.horizontal, 6)
+                                .id("thinking")
+                        }
+                        if let errorText {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(errorText)
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(VaultTheme.seal)
+                                if showQuotaUpgrade {
+                                    Button {
+                                        presentUpgradeCheckout()
+                                    } label: {
+                                        Text(localization.text(quotaUpgradeCTAKey))
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundStyle(VaultTheme.seal)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .id("error")
+                        }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 24)
+                    // Fill viewport so blank chat chrome is hit-testable for dismiss.
+                    .frame(maxWidth: .infinity, minHeight: geo.size.height, alignment: .top)
+                    .contentShape(Rectangle())
+                    // UIKit any-tap (cancelsTouchesInView = false) — keeps send / upgrade CTAs tappable.
+                    .resignKeyboardOnAnyTap()
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
+                .scrollDismissesKeyboard(.immediately)
             }
             .onChange(of: messages.count) { _, _ in
                 if let last = messages.last {
@@ -272,6 +280,8 @@ struct MirrorChatView: View {
         draft = ""
         errorText = nil
         showQuotaUpgrade = false
+        // Free tab bar (首頁 / Vault) while Mirror awaits a reply.
+        KeyboardDismiss.resign()
         messages.append(MirrorMessage(role: .user, text: text))
         isThinking = true
 
