@@ -61,8 +61,8 @@ struct SettingsView: View {
                     #endif
                 }
                 .scrollContentBackground(.hidden)
-                // Footers removed — compact section gaps keep hierarchy without gray blurbs.
-                .listSectionSpacing(.compact)
+                // Footers removed — modest gap (between .compact and default) so sections breathe without gray blurbs.
+                .listSectionSpacing(16)
                 // numberPad has no Return — drag/scroll resigns; PhoneOTPLoginForm owns tap-to-dismiss.
                 // Do NOT attach SwiftUI simultaneousGesture TapGesture on this Form — it steals
                 // Button / Link hits (Sync / Export / Delete / Paywall / Legal all went dead).
