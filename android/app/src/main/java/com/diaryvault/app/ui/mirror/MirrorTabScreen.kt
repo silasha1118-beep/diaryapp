@@ -356,15 +356,7 @@ private fun MirrorBubble(message: MirrorMessage) {
                 ),
                 color = VaultColors.ink,
             )
-            if (!isUser && message.citedEntryIds.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = localizedString(R.string.mirror_cited),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontSize = 12.sp,
-                    color = VaultColors.inkMuted,
-                )
-            }
+            // Citation caption removed (DA-170) — diary grounding stays in the model prompt only.
         }
     }
 }
