@@ -22,6 +22,8 @@ import com.diaryvault.app.config.UploadQuotaConfig
 import com.diaryvault.app.data.AppPreferences
 import com.diaryvault.app.data.DiaryStore
 import com.diaryvault.app.data.MirrorChatStore
+import com.diaryvault.app.data.VaultJsonTransfer
+import java.io.File
 import com.diaryvault.app.model.AppLanguage
 import com.diaryvault.app.model.DiaryEntry
 import com.diaryvault.app.model.DiaryMediaAttachment
@@ -290,6 +292,16 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
     fun syncNow() {
         store.scheduleSynchronize()
     }
+
+    /** Pretty ISO-8601 vault JSON (active entries) — same shape as iOS export. */
+    fun exportVaultJsonFile(): File = store.makeExportFile()
+
+    /**
+     * Merge vault JSON by entry UUID (skip duplicates). Cloud upsert enqueue runs when
+     * Firebase Auth is signed in (same as normal creates).
+     */
+    fun importVaultJson(data: ByteArray): VaultJsonTransfer.VaultImportResult =
+        store.importVaultJSON(data)
 
     fun signOutAccount() {
         accountSession.signOut()

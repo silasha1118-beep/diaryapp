@@ -179,6 +179,67 @@ class DiaryStore(
         scheduleSynchronize()
     }
 
+    /**
+     * JSON export for the system share sheet — same shape as iOS
+     * `DiaryStore.exportJSONData` (pretty array, ISO-8601 dates, active entries only).
+     */
+    fun exportJSONBytes(): ByteArray =
+        VaultJsonTransfer.exportJSONBytes(sortedEntries)
+
+    /** Writes a temp `.json` under cache/exports for FileProvider share. */
+    fun makeExportFile(): File {
+        val data = exportJSONBytes()
+        val dir = File(appContext.cacheDir, "exports").apply { mkdirs() }
+        val file = File(dir, "DiaryVault-export-${exportStamp()}.json")
+        file.writeBytes(data)
+        return file
+    }
+
+    /**
+     * Merge a vault export JSON into the local store by entry `id`:
+     * existing IDs skipped; new IDs inserted + queued for Firestore upsert.
+     * Attachment metadata in the file is cleared (bytes are never in the JSON).
+     */
+    fun importVaultJSON(data: ByteArray): VaultJsonTransfer.VaultImportResult {
+        val parsed = VaultJsonTransfer.parseImport(data)
+        var added = 0
+        var skipped = 0
+        val knownIDs = _entries.value.map { it.id }.toMutableSet()
+        val merged = _entries.value.toMutableList()
+
+        for (raw in parsed.entries) {
+            if (raw.id in knownIDs) {
+                skipped += 1
+                continue
+            }
+            merged.add(raw)
+            knownIDs.add(raw.id)
+            added += 1
+            enqueue(PendingCloudOp.Upsert(raw.id))
+        }
+
+        if (added > 0) {
+            _entries.value = merged.sortedWith(DiaryCloudSync.chronologicalDescending)
+            save()
+            scheduleSynchronize()
+        }
+
+        return VaultJsonTransfer.VaultImportResult(
+            added = added,
+            skippedDuplicates = skipped,
+            mediaStripped = parsed.mediaStripped,
+            totalInFile = parsed.entries.size,
+        )
+    }
+
+    fun importVaultJSON(from: java.io.InputStream): VaultJsonTransfer.VaultImportResult =
+        importVaultJSON(from.readBytes())
+
+    private fun exportStamp(): String {
+        val fmt = java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US)
+        return fmt.format(java.util.Date())
+    }
+
     fun bindCloudSync() {
         scheduleSynchronize()
     }

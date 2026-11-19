@@ -35,4 +35,18 @@
     <string name="lang_en_full">English</string>
     <string name="lang_ja_full">日本語</string>
     <string name="lang_th_full">ไทย</string>
+    <string name="settings_data_transfer">ส่งออกและนำเข้า (JSON)</string>
+    <string name="settings_data_export">ส่งออกห้องเก็บ (JSON)</string>
+    <string name="settings_data_export_share_subject">ส่งออก Diary Vault</string>
+    <string name="settings_data_export_share_message">บันทึก Diary Vault ของฉัน (JSON)</string>
+    <string name="settings_data_export_error">สร้างไฟล์ส่งออกไม่ได้ ลองอีกครั้ง</string>
+    <string name="settings_data_import">นำเข้าห้องเก็บ (JSON)</string>
+    <string name="settings_data_import_confirm_title">นำเข้าห้องเก็บ?</string>
+    <string name="settings_data_import_confirm_message">รวมรายการจากไฟล์เข้าบัญชีที่เข้าสู่ระบบตาม ID ข้าม ID ซ้ำ (ไม่เขียนทับ) ไม่ล้างห้องเก็บเดิม ข้อความซิงค์คลาวด์ของบัญชีนี้ สื่อไม่อยู่ในไฟล์ JSON ส่งออก</string>
+    <string name="settings_data_import_confirm">เลือกไฟล์ JSON</string>
+    <string name="settings_data_import_sign_in_required">เข้าสู่ระบบก่อนเพื่อนำเข้า JSON ห้องเก็บเข้าบัญชีนี้</string>
+    <string name="settings_data_import_result">นำเข้าเสร็จ: เพิ่ม %1$d ข้าม %2$d (ID ซ้ำ) ในไฟล์ %3$d</string>
+    <string name="settings_data_import_media_note">ล้างเมตาดาต้าสื่อ %1$d รายการ (JSON ส่งออกเป็นข้อความเท่านั้น)</string>
+    <string name="settings_data_import_error">นำเข้าไฟล์นี้ไม่ได้ ใช้ JSON ที่ส่งออกจาก Diary Vault</string>
+    <string name="settings_legacy_stub">ตัวเลือกอนุสรณ์และมรดกจะมาในเวอร์ชันถัดไป</string>
 </resources>
