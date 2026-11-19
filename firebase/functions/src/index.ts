@@ -1,16 +1,21 @@
 /**
- * DiaryVault Cloud Functions — mainland +86 SMS via Alibaba Cloud Dysmsapi,
+ * DiaryVault Cloud Functions — mainland +86 SMS via Tencent Cloud SMS,
  * then Firebase Auth custom token so clients keep `users/{uid}` Firestore sync.
  *
- * Env / secrets (never ship to the Android APK):
- *   ALIYUN_SMS_ACCESS_KEY_ID
- *   ALIYUN_SMS_ACCESS_KEY_SECRET
- *   ALIYUN_SMS_SIGN_NAME
- *   ALIYUN_SMS_TEMPLATE_CODE
- *   ALIYUN_SMS_TEMPLATE_PARAM_KEY   (optional, default `code`)
- *   ALIYUN_SMS_ALLOW_STUB           (optional `true` — local OTP when keys missing)
+ * Secrets (never ship to the Android APK) — set before deploy:
+ *   firebase functions:secrets:set TENCENT_SMS_SECRET_ID
+ *   firebase functions:secrets:set TENCENT_SMS_SECRET_KEY
+ *   firebase functions:secrets:set TENCENT_SMS_SDK_APP_ID
+ *   firebase functions:secrets:set TENCENT_SMS_SIGN_NAME
+ *   firebase functions:secrets:set TENCENT_SMS_TEMPLATE_ID
  *
- * See ../ALIYUN_SMS.md for Silas Console setup.
+ * Optional env (not Secret Manager):
+ *   TENCENT_SMS_REGION         (default `ap-guangzhou`)
+ *   TENCENT_SMS_ALLOW_STUB     (`true` — local OTP when keys missing; never in prod)
+ *
+ * See ../TENCENT_SMS.md for Silas Console + PowerShell setup.
+ *
+ * Supersedes Aliyun Dysmsapi path (PR #87 closed, not merged).
  */
 
 import "./globalOptions";
@@ -19,10 +24,11 @@ import * as admin from "firebase-admin";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import {
-  aliyunStubAllowed,
-  readAliyunSmsConfig,
-  sendAliyunSms,
-} from "./aliyunSms";
+  readTencentSmsConfig,
+  sendTencentSms,
+  tencentSmsSecrets,
+  tencentStubAllowed,
+} from "./tencentSms";
 import { createOtpSession, generateOtpCode, verifyOtpSession } from "./otpStore";
 import { FUNCTIONS_REGION } from "./globalOptions";
 
@@ -43,7 +49,7 @@ function assertChinaMobile(phoneRaw: unknown): { e164: string; national: string 
   if (!digits.startsWith("86")) {
     throw new HttpsError(
       "invalid-argument",
-      "Aliyun SMS path only accepts mainland China +86 mobile numbers",
+      "Tencent SMS path only accepts mainland China +86 mobile numbers",
     );
   }
   const e164 = `+${digits}`;
@@ -51,7 +57,7 @@ function assertChinaMobile(phoneRaw: unknown): { e164: string; national: string 
   if (!match) {
     throw new HttpsError(
       "invalid-argument",
-      "Aliyun SMS path only accepts mainland China +86 mobile numbers",
+      "Tencent SMS path only accepts mainland China +86 mobile numbers",
     );
   }
   return { e164, national: match[1] };
@@ -62,18 +68,22 @@ function assertChinaMobile(phoneRaw: unknown): { e164: string; national: string 
  *
  * Response: `{ sessionId, stub?, stubDebugHint? }`
  */
-export const sendAliyunSmsOtp = onCall(
-  { region: FUNCTIONS_REGION, enforceAppCheck: false },
+export const sendTencentSmsOtp = onCall(
+  {
+    region: FUNCTIONS_REGION,
+    enforceAppCheck: false,
+    secrets: [...tencentSmsSecrets],
+  },
   async (request) => {
-    const { e164, national } = assertChinaMobile(request.data?.phoneE164);
-    const config = readAliyunSmsConfig();
+    const { e164 } = assertChinaMobile(request.data?.phoneE164);
+    const config = readTencentSmsConfig();
     const code = generateOtpCode();
 
     if (!config) {
-      if (!aliyunStubAllowed()) {
+      if (!tencentStubAllowed()) {
         throw new HttpsError(
           "failed-precondition",
-          "Aliyun SMS is not configured. Set ALIYUN_SMS_* env/secrets, or ALIYUN_SMS_ALLOW_STUB=true for local OTP.",
+          "Tencent SMS is not configured. Set TENCENT_SMS_* secrets, or TENCENT_SMS_ALLOW_STUB=true for local OTP.",
         );
       }
       const sessionId = await createOtpSession(e164, code, true);
@@ -85,10 +95,10 @@ export const sendAliyunSmsOtp = onCall(
     }
 
     try {
-      await sendAliyunSms(config, national, code);
+      await sendTencentSms(config, e164, code);
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
-      console.error("sendAliyunSms failed", detail);
+      console.error("sendTencentSms failed", detail);
       throw new HttpsError("internal", `SMS send failed: ${detail}`);
     }
 
@@ -101,8 +111,13 @@ export const sendAliyunSmsOtp = onCall(
  * Verify OTP and mint a Firebase Auth custom token for the phone user.
  * Creates the Auth user with `phoneNumber` when needed so Firestore identity matches Phone Auth.
  */
-export const verifyAliyunSmsOtp = onCall(
-  { region: FUNCTIONS_REGION, enforceAppCheck: false },
+export const verifyTencentSmsOtp = onCall(
+  {
+    region: FUNCTIONS_REGION,
+    enforceAppCheck: false,
+    // Bound so verify can re-read config if send ever needs parity; OTP itself is in Firestore.
+    secrets: [...tencentSmsSecrets],
+  },
   async (request) => {
     const sessionId =
       typeof request.data?.sessionId === "string" ? request.data.sessionId.trim() : "";
@@ -152,7 +167,7 @@ export const verifyAliyunSmsOtp = onCall(
     }
 
     const customToken = await auth.createCustomToken(uid, {
-      phoneAuthVia: "aliyun",
+      phoneAuthVia: "tencent",
       phoneE164,
     });
 
