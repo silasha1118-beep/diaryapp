@@ -222,6 +222,8 @@
 "mirror.mode.cloud" = "雲端鏡子";
 "mirror.mode.needsKey" = "鏡子需要 xAI 金鑰 — 設定 DIARY_AI_API_KEY（Debug：Xcode Scheme 環境變數；Archive／TestFlight：Secrets.xcconfig）後重新編譯";
 "mirror.error.notConfigured" = "雲端鏡子尚未設定。請加入 DIARY_AI_API_KEY 或 XAI_API_KEY（Debug：Xcode Scheme 環境變數；TestFlight：Secrets.xcconfig，見 Secrets.xcconfig.example）。切勿提交金鑰。";
+"mirror.error.busy" = "鏡子暫時忙，請稍後再試。";
+"mirror.error.generic" = "鏡子暫時無法回覆，請稍後再試。";
 "mirror.style.hint" = "反映 · 提問 — 非教練";
 "mirror.placeholder" = "說說此刻在想什麼…";
 "mirror.send" = "送出";

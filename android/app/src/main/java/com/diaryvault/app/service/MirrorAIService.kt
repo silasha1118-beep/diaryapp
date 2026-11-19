@@ -27,7 +27,10 @@ sealed class MirrorAIError(message: String) : Exception(message) {
     data object EmptyInput : MirrorAIError("empty")
     data object NotConfigured : MirrorAIError("not configured")
     data object Decoding : MirrorAIError("decoding")
-    class Network(detail: String) : MirrorAIError(detail)
+    /** Opaque network failure — UI must not show [detail] (may be empty). */
+    class Network(detail: String = "") : MirrorAIError(detail)
+    /** Provider capacity / rate-limit / resource-exhausted (xAI etc.). */
+    data object ProviderBusy : MirrorAIError("provider busy")
     class RateLimited(
         val limit: Int,
         val isAuthorPlus: Boolean = false,
@@ -42,6 +45,33 @@ sealed class MirrorAIError(message: String) : Exception(message) {
                 "Free Mirror lifetime limit reached ($limit). Upgrade to Author Plus to continue."
         },
     )
+
+    companion object {
+        /** Maps a non-2xx Cloud AI response without exposing raw JSON to the UI. */
+        fun fromHttp(statusCode: Int, body: String?): MirrorAIError {
+            val text = body.orEmpty()
+            return if (isProviderBusy(statusCode, text)) ProviderBusy
+            else Network("HTTP $statusCode")
+        }
+
+        fun isProviderBusy(statusCode: Int, body: String): Boolean {
+            if (statusCode == 429 || statusCode == 503) return true
+            val lowered = body.lowercase(Locale.US)
+            val markers = listOf(
+                "resource-exhausted",
+                "resource_exhausted",
+                "resourceexhausted",
+                "rate_limit",
+                "rate-limit",
+                "ratelimit",
+                "too many requests",
+                "capacity",
+                "overloaded",
+                "quota exceeded",
+            )
+            return markers.any { lowered.contains(it) }
+        }
+    }
 }
 
 /**
@@ -122,8 +152,8 @@ class CloudMirrorAIClient(
                 connectTimeout = 30_000
                 readTimeout = 90_000
             }
-        } catch (e: IOException) {
-            throw MirrorAIError.Network(e.message?.take(180) ?: "connection failed")
+        } catch (_: IOException) {
+            throw MirrorAIError.Network()
         }
 
         try {
@@ -135,8 +165,7 @@ class CloudMirrorAIClient(
                 connection.errorStream?.bufferedReader()?.readText().orEmpty()
             }
             if (code !in 200..299) {
-                val snippet = responseBody.trim().take(180).ifBlank { "HTTP $code" }
-                throw MirrorAIError.Network("Cloud AI $snippet")
+                throw MirrorAIError.fromHttp(code, responseBody)
             }
             val json = gson.fromJson(responseBody, JsonObject::class.java)
             val text = json
@@ -160,8 +189,8 @@ class CloudMirrorAIClient(
             )
         } catch (e: MirrorAIError) {
             throw e
-        } catch (e: IOException) {
-            throw MirrorAIError.Network(e.message?.take(180) ?: "network error")
+        } catch (_: IOException) {
+            throw MirrorAIError.Network()
         } finally {
             connection.disconnect()
         }
@@ -217,8 +246,8 @@ class AnthropicMirrorAIClient(
                 connectTimeout = 30_000
                 readTimeout = 90_000
             }
-        } catch (e: IOException) {
-            throw MirrorAIError.Network(e.message?.take(180) ?: "connection failed")
+        } catch (_: IOException) {
+            throw MirrorAIError.Network()
         }
 
         try {
@@ -230,8 +259,7 @@ class AnthropicMirrorAIClient(
                 connection.errorStream?.bufferedReader()?.readText().orEmpty()
             }
             if (code !in 200..299) {
-                val snippet = responseBody.trim().take(180).ifBlank { "HTTP $code" }
-                throw MirrorAIError.Network("Cloud AI $snippet")
+                throw MirrorAIError.fromHttp(code, responseBody)
             }
             val json = gson.fromJson(responseBody, JsonObject::class.java)
             val content = json.getAsJsonArray("content") ?: throw MirrorAIError.Decoding
@@ -254,8 +282,8 @@ class AnthropicMirrorAIClient(
             )
         } catch (e: MirrorAIError) {
             throw e
-        } catch (e: IOException) {
-            throw MirrorAIError.Network(e.message?.take(180) ?: "network error")
+        } catch (_: IOException) {
+            throw MirrorAIError.Network()
         } finally {
             connection.disconnect()
         }

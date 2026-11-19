@@ -542,10 +542,12 @@ class VaultViewModel(application: Application) : AndroidViewModel(application) {
                         else -> string(R.string.mirror_quota_exhausted_free, e.limit)
                     }
                     is MirrorAIError.NotConfigured -> string(R.string.mirror_error_not_configured)
-                    is MirrorAIError.Network -> string(R.string.mirror_error_network, e.message ?: "")
+                    is MirrorAIError.ProviderBusy -> string(R.string.mirror_error_busy)
+                    is MirrorAIError.Network -> string(R.string.mirror_error_generic)
                     is MirrorAIError.Decoding -> string(R.string.mirror_error_decoding)
                     is MirrorAIError.EmptyInput -> null
-                    else -> string(R.string.mirror_error_network, e.message ?: e.toString())
+                    // Never surface raw exception / Cloud AI JSON in the chat error line.
+                    else -> string(R.string.mirror_error_generic)
                 }
             } finally {
                 _mirrorThinking.value = false

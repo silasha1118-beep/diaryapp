@@ -64,7 +64,9 @@
     <string name="mirror_mock_disclaimer">根据你写过的内容 · 模拟镜子（非教练处方）</string>
     <string name="mirror_mode_needs_key">镜子需要 xAI 密钥 — 在 android/local.properties 加入 XAI_API_KEY，Sync 后重新编译</string>
     <string name="mirror_error_not_configured">云端镜子尚未配置。请在 android/local.properties 加入 XAI_API_KEY（或 DIARY_AI_API_KEY），Sync Gradle 并重新编译。切勿提交密钥。</string>
-    <string name="mirror_error_network">镜子无法连接云端 AI：%1$s</string>
+    <string name="mirror_error_busy">镜子暂时忙，请稍后再试。</string>
+    <string name="mirror_error_generic">镜子暂时无法回复，请稍后再试。</string>
+    <string name="mirror_error_network">镜子暂时无法回复，请稍后再试。</string>
     <string name="mirror_error_decoding">镜子收到异常回复。请再试一次。</string>
     <string name="mirror_error_dismiss">关闭</string>
     <string name="mirror_quota_remaining_lifetime">镜子生涯剩余 %1$d／%2$d 次</string>
