@@ -64,8 +64,9 @@ struct AnthropicMirrorAIClient: MirrorAIService {
         guard !cleaned.isEmpty else { throw MirrorAIError.decoding }
 
         let contextEntries = Array(context.recentEntries.prefix(AIConfig.maxContextEntries))
-        let cited = MirrorPromptBuilder.citedIDs(in: cleaned, from: contextEntries)
+        let finalized = MirrorPromptBuilder.finalizeAssistantReply(rawText: cleaned, contextEntries: contextEntries)
+        guard !finalized.text.isEmpty else { throw MirrorAIError.decoding }
 
-        return MirrorMessage(role: .mirror, text: cleaned, citedEntryIDs: cited)
+        return MirrorMessage(role: .mirror, text: finalized.text, citedEntryIDs: finalized.citedEntryIDs)
     }
 }
