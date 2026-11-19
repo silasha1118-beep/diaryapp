@@ -185,6 +185,7 @@ final class DiaryStore: ObservableObject {
     }
 
     /// JSON export for Share Sheet / Files — fulfills onboarding “export and leave” promise.
+    /// Shape: pretty-printed JSON array of `DiaryEntry` (ISO-8601 dates). Active entries only.
     func exportJSONData() throws -> Data {
         try encoder.encode(sortedEntries)
     }
@@ -196,6 +197,69 @@ final class DiaryStore: ObservableObject {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         try data.write(to: url, options: [.atomic])
         return url
+    }
+
+    /// Result of merging an exported vault JSON into the current local store.
+    struct VaultImportResult: Equatable {
+        var added: Int
+        var skippedDuplicates: Int
+        var mediaStripped: Int
+        var totalInFile: Int
+    }
+
+    /// Parse a vault export JSON (same shape as ``exportJSONData``) and merge into the
+    /// current account by entry `id`: existing IDs are skipped; new IDs are inserted and
+    /// queued for Firestore upsert under the signed-in uid (same path as normal creates).
+    /// Attachment bytes are not in the export file — media metadata is cleared on import.
+    @discardableResult
+    func importVaultJSON(from data: Data) throws -> VaultImportResult {
+        let incoming = try decoder.decode([DiaryEntry].self, from: data)
+        var added = 0
+        var skipped = 0
+        var mediaStripped = 0
+        var knownIDs = Set(entries.map(\.id))
+
+        for raw in incoming {
+            if knownIDs.contains(raw.id) {
+                skipped += 1
+                continue
+            }
+            var entry = raw
+            // Export is text JSON only — do not carry old-uid Storage paths or missing locals.
+            if !entry.attachments.isEmpty {
+                mediaStripped += 1
+                entry.attachments = []
+            }
+            // Soft-deleted rows in an old export stay deleted locally; Vault hides them.
+            entries.append(entry)
+            knownIDs.insert(entry.id)
+            added += 1
+            enqueue(.upsert(entry.id))
+        }
+
+        if added > 0 {
+            resortEntries()
+            save()
+            scheduleSynchronize()
+        }
+
+        return VaultImportResult(
+            added: added,
+            skippedDuplicates: skipped,
+            mediaStripped: mediaStripped,
+            totalInFile: incoming.count
+        )
+    }
+
+    /// Convenience: read a user-picked file URL (DocumentPicker / Files).
+    @discardableResult
+    func importVaultJSON(from url: URL) throws -> VaultImportResult {
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessed { url.stopAccessingSecurityScopedResource() }
+        }
+        let data = try Data(contentsOf: url)
+        return try importVaultJSON(from: data)
     }
 
     private static func exportStamp() -> String {

@@ -340,6 +340,14 @@
 "settings.data.export.shareSubject" = "Diary Vault export";
 "settings.data.export.shareMessage" = "My Diary Vault entries (JSON).";
 "settings.data.export.error" = "Could not build the export file. Try again.";
+"settings.data.import" = "Import vault (JSON)";
+"settings.data.import.confirmTitle" = "Import vault?";
+"settings.data.import.confirmMessage" = "Entries from the file are merged into this signed-in account by ID. Matching IDs are skipped (not overwritten). Your existing vault is not wiped. Text syncs to the cloud for this account; media files are not inside the JSON export.";
+"settings.data.import.confirm" = "Choose JSON file";
+"settings.data.import.signInRequired" = "Sign in to import a vault JSON into this account.";
+"settings.data.import.result" = "Import done: %d added, %d skipped (same ID), %d in file.";
+"settings.data.import.mediaNote" = "Media metadata cleared on %d entries (JSON export is text-only).";
+"settings.data.import.error" = "Could not import that file. Use a Diary Vault JSON export.";
 "settings.data.deleteAccount" = "Delete account & vault data";
 "settings.data.deleteAccount.title" = "Delete account?";
 "settings.data.deleteAccount.message" = "This permanently deletes diary entries on this device and in cloud sync (when signed in), then signs you out. Export first if you want a copy. Your subscription is managed separately in Apple ID → Subscriptions.";
@@ -347,7 +355,7 @@
 "settings.data.deleteAccount.done" = "Account and vault data deleted on this device (and cloud sync when signed in).";
 "settings.data.deleteAccount.reauth" = "Your vault on this device was cleared. Sign in once more to finish removing the cloud account, then try delete again.";
 "settings.data.deleteAccount.remoteFailed" = "Your vault and session on this device were cleared. Cloud account removal didn’t finish — try signing in again later.";
-"settings.data.footer" = "Export anytime (JSON). You can delete your account and vault data when signed in. Signed-in text diaries sync to the cloud; signed-out stays on this device.";
+"settings.data.footer" = "Export or import anytime (JSON). Import merges by entry ID into the signed-in account and skips duplicates. You can delete your account and vault data when signed in. Signed-in text diaries sync to the cloud; signed-out stays on this device.";
 "settings.section.legal" = "Legal";
 "settings.legal.privacy" = "Privacy Policy";
 "settings.legal.terms" = "Terms of Use (EULA)";
