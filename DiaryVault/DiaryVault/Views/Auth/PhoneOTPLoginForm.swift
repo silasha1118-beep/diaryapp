@@ -49,7 +49,7 @@ struct PhoneOTPLoginForm: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: chrome == .gate ? 12 : 10) {
-            // Settings link section already shows title/banner/footer — avoid duplicating login-looking chrome.
+            // Settings link section already shows title/banner — avoid duplicating login-looking chrome.
             if mode == .link && chrome != .settings {
                 Text(localization.text("settings.account.link.phone.title"))
                     .font(.system(size: chrome == .gate ? 15 : 14, weight: .semibold))

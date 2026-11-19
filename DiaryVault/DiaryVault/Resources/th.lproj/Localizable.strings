@@ -266,7 +266,6 @@
 "settings.account.link.phone.alreadyLinked" = "บัญชีนี้เชื่อมโทรศัพท์อยู่แล้ว";
 "settings.account.link.apple.title" = "เชื่อม Apple";
 "settings.account.link.apple.banner" = "คุณเข้าสู่ระบบด้วยโทรศัพท์ ลิงก์ Apple เพื่อเปิดห้องเก็บเดียวกันได้ทั้งสองทาง";
-"settings.account.link.apple.note" = "ผูก Apple กับบัญชีนี้ — ไม่สร้างบัญชีใหม่";
 "settings.account.link.apple.success" = "เชื่อม Apple กับบัญชีนี้แล้ว";
 "settings.account.link.apple.alreadyInUse" = "Apple ID นี้ผูกกับบัญชีอื่นแล้ว เขียนทับโดยตรงไม่ได้";
 "settings.account.link.apple.alreadyLinked" = "บัญชีนี้เชื่อม Apple อยู่แล้ว";
@@ -274,13 +273,9 @@
 "settings.account.link.needSignedIn" = "เข้าสู่ระบบก่อน แล้วค่อยเชื่อมวิธีอื่น";
 "settings.account.link.mergeGuidance" = "ถ้าต้องการรวมข้อมูลทั้งสองฝั่ง ให้เลือกว่าจะเก็บบัญชีไหนเป็นหลัก แล้วส่งออก/นำเข้าไดอารี่เอง แอปจะไม่เขียนทับบัญชีอื่นเงียบๆ";
 "settings.account.link.bothDone" = "โทรศัพท์และ Apple เชื่อมกับบัญชีเดียวกันแล้ว";
-"settings.account.link.footer" = "เมื่อเข้าสู่ระบบแล้ว สามารถเชื่อมวิธีที่ขาดกับบัญชีนี้ หากวิธีนั้นอยู่กับบัญชีอื่น จะแสดงข้อผิดพลาดชัดเจน";
 "settings.account.signOut" = "ออกจากระบบ";
-"settings.account.footer" = "เซสชันอยู่บนเครื่องนี้เท่านั้น เข้าสู่ระบบหลักคือ SMS OTP ทุกภูมิภาค Sign in with Apple แสดงด้านล่างเมื่อพร้อม ออกจากระบบแล้วย้อนไปเกตบัญชี";
-"settings.account.phone.footer" = "ใส่เบอร์มือถือ ส่งรหัส แล้วยืนยัน รองรับไต้หวัน ฮ่องกง จีนแผ่นดินใหญ่ มาเลเซีย สิงคโปร์ ไทย และญี่ปุ่น เมื่อยังไม่ได้เข้าสู่ระบบด้วย Apple จะมีปุ่มด้านล่าง";
 "settings.account.phone.success" = "เข้าสู่ระบบด้วยโทรศัพท์สำเร็จ";
 "settings.section.developer" = "นักพัฒนา";
-"settings.developer.footer" = "เฉพาะบิลด์ DEBUG — Release จะซ่อนทั้งหมด";
 "settings.section.cloud" = "ซิงค์";
 "settings.cloud.status" = "สถานะ";
 "settings.cloud.status.synced" = "ซิงค์แล้ว";
@@ -295,7 +290,6 @@
 "settings.cloud.uid" = "Auth UID";
 "settings.cloud.serverCount" = "จำนวนบนเซิร์ฟเวอร์";
 "settings.cloud.syncNow" = "ซิงค์ตอนนี้";
-"settings.cloud.footer" = "เมื่อเข้าสู่ระบบ ไดอารี่ข้อความจะซิงค์ หากดูล้าสมัย ให้แตะ「ซิงค์ตอนนี้」";
 "settings.section.billing" = "การสมัคร";
 "settings.billing.plan" = "แผน";
 "settings.billing.free" = "ฟรี";
@@ -304,13 +298,10 @@
 "settings.billing.product" = "สินค้า";
 "settings.billing.expires" = "สิ้นรอบ";
 "settings.billing.manage" = "ดูแผน / กู้คืน";
-"settings.billing.footer" = "ฟรี Author Plus และ Author Pro ดูแผนหรือกู้คืนการซื้อได้ที่นี่ การสมัครต่ออายุผ่าน Apple ID";
 "settings.section.language" = "ภาษา";
 "settings.language" = "ภาษาแอป";
-"settings.language.footer" = "繁中 / 簡中 / English / 日本語 / ไทย — สลับได้ทุกเมื่อ เปิดครั้งแรกตามภาษาของระบบ";
 "settings.section.advice" = "คำแนะนำ";
 "settings.reminders" = "การเตือนตามบริบทอย่างอ่อนโยน";
-"settings.reminders.footer" = "เมื่อเปิด กระจกอาจแสดงการสะท้อนอย่างนุ่มนวลในจังหวะที่เกี่ยวข้อง ไม่ดันบ่อยหรือกดดัน";
 "settings.section.ai" = "Mirror";
 "settings.ai.mode" = "ไคลเอนต์";
 "settings.ai.mock" = "จำลอง (ในเครื่อง)";
@@ -326,10 +317,8 @@
 "settings.ai.quota.exhausted.pro" = "กระจกวันนี้ใช้ครบแล้ว ลองใหม่พรุ่งนี้";
 "settings.ai.residency" = "ที่เก็บข้อมูล";
 "settings.ai.residency.value" = "ไต้หวัน";
-"settings.ai.footer" = "Mirror ตอบจากหน้าล่าสุดของคุณ โควตารายวันขึ้นกับแผน";
 "settings.section.legacy" = "มรดก";
 "settings.legacy.stub" = "ตัวเลือกอนุสรณ์และมรดกจะมาในเวอร์ชันถัดไป";
-"settings.legacy.footer" = "แผนงานเท่านั้น ละไว้ในโครง MVP นี้";
 "settings.section.vault" = "ห้องเก็บ";
 "settings.name" = "ชื่อที่แสดง";
 "settings.resetOnboarding" = "แสดงการเริ่มต้นอีกครั้ง";
@@ -355,9 +344,7 @@
 "settings.data.deleteAccount.done" = "ลบบัญชีและข้อมูลห้องเก็บบนเครื่องนี้แล้ว (รวมซิงค์คลาวด์เมื่อเข้าสู่ระบบ)";
 "settings.data.deleteAccount.reauth" = "ล้างห้องเก็บในเครื่องแล้ว เข้าสู่ระบบอีกครั้งเพื่อลบบัญชีคลาวด์ให้เสร็จ แล้วลองลบใหม่";
 "settings.data.deleteAccount.remoteFailed" = "ล้างห้องเก็บและเซสชันในเครื่องแล้ว การลบบัญชีคลาวด์ไม่เสร็จ — ลองเข้าสู่ระบบใหม่ภายหลัง";
-"settings.data.footer" = "เปิด ส่งออกและนำเข้า เพื่อส่งออกหรือนำเข้าห้องเก็บ (JSON) นำเข้าผสานตาม ID และข้ามซ้ำ เมื่อเข้าสู่ระบบสามารถลบบัญชีและข้อมูลห้องเก็บได้ ไดอารี่ข้อความที่เข้าสู่ระบบจะซิงค์คลาวด์; ยังไม่เข้าจะอยู่บนเครื่อง";
 "settings.section.legal" = "กฎหมาย";
 "settings.legal.privacy" = "นโยบายความเป็นส่วนตัว";
 "settings.legal.terms" = "ข้อกำหนดการใช้งาน (EULA)";
-"settings.legal.footer" = "โปรดอ่านนโยบายความเป็นส่วนตัวและข้อกำหนดก่อนเขียนต่อ";
 "settings.legal.privacy.stubNote" = "แทนที่ชีตนี้ด้วย URL นโยบายความเป็นส่วนตัวที่โฮสต์ (DIARY_PRIVACY_POLICY_URL) ก่อน App Review อธิบายการยืนยันด้วย SMS การเก็บไดอารีบนเครื่อง กระจก AI คลาวด์ และการซื้อ StoreKit";
