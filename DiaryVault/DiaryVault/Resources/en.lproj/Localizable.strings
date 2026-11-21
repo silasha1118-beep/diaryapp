@@ -222,6 +222,7 @@
 "mirror.mode.cloud" = "Cloud mirror";
 "mirror.mode.needsKey" = "Mirror needs an xAI key — set DIARY_AI_API_KEY (scheme env for Debug, or Secrets.xcconfig for Archive / TestFlight), then rebuild";
 "mirror.error.notConfigured" = "Cloud Mirror is not configured. Add DIARY_AI_API_KEY or XAI_API_KEY (Debug: Xcode scheme env; TestFlight: Secrets.xcconfig — see Secrets.xcconfig.example). Never commit the key.";
+"mirror.error.invalidKey" = "xAI API key rejected. Check DIARY_AI_API_KEY / XAI_API_KEY (Debug: scheme env; Archive: Secrets.xcconfig). Never commit the key.";
 "mirror.error.busy" = "The Mirror is busy right now. Please try again in a moment.";
 "mirror.error.generic" = "The Mirror couldn’t reply just now. Please try again.";
 "mirror.style.hint" = "Reflect · ask — not coach";

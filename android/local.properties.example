@@ -1,5 +1,7 @@
 ## Example only — copy keys into local.properties (gitignored). Never commit real keys.
 ## Android Studio already writes sdk.dir=… into local.properties; append AI / signing keys below it.
+## Same role as iOS Secrets.xcconfig: assemble-time bake into BuildConfig (debug + release).
+## After editing: Android Studio Sync → Rebuild (key is NOT hot-reloaded at runtime).
 
 ## Required for live Mirror (xAI Grok):
 # XAI_API_KEY=xai-...

@@ -308,6 +308,9 @@ struct MirrorChatView: View {
             case .notConfigured:
                 errorText = localization.text("mirror.error.notConfigured")
                 showQuotaUpgrade = false
+            case .invalidApiKey:
+                errorText = localization.text("mirror.error.invalidKey")
+                showQuotaUpgrade = false
             case .emptyInput, .network, .decoding:
                 // Never surface raw Cloud AI JSON / HTTP bodies in the chat error line.
                 errorText = localization.text("mirror.error.generic")

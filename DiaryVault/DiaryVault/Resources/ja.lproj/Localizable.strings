@@ -222,6 +222,7 @@
 "mirror.mode.cloud" = "クラウドミラー";
 "mirror.mode.needsKey" = "ミラーには xAI キーが必要です — DIARY_AI_API_KEY を設定（Debug: Scheme 環境変数 / Archive・TestFlight: Secrets.xcconfig）して再ビルド";
 "mirror.error.notConfigured" = "クラウドミラー未設定です。DIARY_AI_API_KEY または XAI_API_KEY を追加してください（Debug: Scheme 環境変数 / TestFlight: Secrets.xcconfig — Secrets.xcconfig.example 参照）。キーはコミットしないでください。";
+"mirror.error.invalidKey" = "xAI API キーが拒否されました。DIARY_AI_API_KEY / XAI_API_KEY を確認してください（Debug: Scheme / Archive: Secrets.xcconfig）。キーはコミットしないでください。";
 "mirror.error.busy" = "ミラーが混み合っています。しばらくしてからもう一度お試しください。";
 "mirror.error.generic" = "ミラーが応答できませんでした。もう一度お試しください。";
 "mirror.style.hint" = "映す · 問う — コーチではない";

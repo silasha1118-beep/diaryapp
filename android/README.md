@@ -189,7 +189,7 @@ XAI_API_KEY=xai-your-key-here
 3. Android Studio → **Sync Project with Gradle Files** → Run Debug（须重新编译，BuildConfig 才会带上密钥）.
 4. Open **镜子 / Mirror** → send a message. Banner should show remaining Free lifetime quota (40). Reply comes from live Grok.
 
-Without a key the app still builds; Mirror shows a clear “needs key” banner and does not invent mock replies.
+Without a key the app still builds; Mirror shows a clear “needs key” / not-configured error and does not invent mock replies. If the key is present but rejected by xAI (401/403), Mirror shows an **invalid key** message — not the generic 「無法回覆」 soft error. Same key applies to debug and release BuildConfig (both read `local.properties` at assemble time; Sync + rebuild required after edits — mirrors iOS `Secrets.xcconfig`).
 
 ### Env alternative (CI / terminal)
 
