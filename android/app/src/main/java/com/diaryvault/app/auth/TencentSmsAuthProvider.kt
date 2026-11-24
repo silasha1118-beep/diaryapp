@@ -3,7 +3,6 @@ package com.diaryvault.app.auth
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.diaryvault.app.BuildConfig
 import com.diaryvault.app.config.FirebaseBootstrap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
@@ -11,18 +10,18 @@ import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.tasks.await
 
 /**
- * Mainland +86 SMS OTP via Cloud Functions → Aliyun Dysmsapi (server-side keys),
+ * Mainland +86 SMS OTP via Cloud Functions → Tencent Cloud SMS (server-side keys),
  * then Firebase Auth **custom token** so Firestore still uses `users/{uid}`.
  *
- * No AccessKey in the APK. No Google reCAPTCHA on this path.
+ * No SecretId/SecretKey in the APK. No Google reCAPTCHA on this path.
  *
- * **DEBUG** never calls Aliyun — Firebase Phone Auth only (Console test numbers).
- * When Functions are missing / Aliyun secrets unset / CF returns stub mode:
+ * DEBUG and release both hit Tencent first so company accounts can be tested from
+ * Android Studio. When Functions are missing / secrets unset / CF returns stub mode:
  * fall back to [firebaseFallback] (Firebase Phone Auth) so Firebase Console
  * **test phone numbers** (e.g. 123456) work — never a local stub OTP that
  * ignores Console test codes.
  */
-class AliyunSmsAuthProvider(
+class TencentSmsAuthProvider(
     private val appContext: Context,
     private val firebaseFallback: SMSAuthProviding,
 ) : SMSAuthProviding {
@@ -40,33 +39,18 @@ class AliyunSmsAuthProvider(
             throw SMSAuthError.InvalidPhone
         }
 
-        // Second line of defense if RoutingSMSAuthProvider is ever constructed without
-        // preferFirebaseForChinaMainland (e.g. a future Tencent-only wiring).
-        if (BuildConfig.DEBUG) {
-            Log.i(
-                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-                "send provider=FirebasePhone (Aliyun DEBUG skip) e164=$normalized",
-            )
-            return sendViaFirebaseFallback(
-                activity,
-                normalized,
-                resend,
-                "DEBUG: skip Aliyun — Firebase Console test numbers",
-            )
-        }
-
         FirebaseBootstrap.configureIfNeeded(appContext)
         if (!FirebaseBootstrap.hasGoogleServicesJson || !FirebaseBootstrap.isConfigured) {
             return sendViaFirebaseFallback(
                 activity,
                 normalized,
                 resend,
-                "Firebase not configured for Aliyun path",
+                "Firebase not configured for Tencent path",
             )
         }
 
         return try {
-            val data = call("sendAliyunSmsOtp", mapOf("phoneE164" to normalized))
+            val data = call("sendTencentSmsOtp", mapOf("phoneE164" to normalized))
             val sessionId = data["sessionId"] as? String
             if (sessionId.isNullOrBlank()) {
                 throw SMSAuthError.EmptyVerificationId
@@ -77,22 +61,26 @@ class AliyunSmsAuthProvider(
                 // Firebase Console test numbers only work on Firebase Phone Auth.
                 Log.w(
                     TAG,
-                    "Aliyun CF returned stub mode (keys missing / ALLOW_STUB) — " +
+                    "Tencent CF returned stub mode (keys missing / ALLOW_STUB) — " +
                         "falling back to Firebase Phone Auth for Console test numbers",
                 )
                 return sendViaFirebaseFallback(
                     activity,
                     normalized,
                     resend,
-                    "Aliyun keys missing (CF stub mode)",
+                    "Tencent keys missing (CF stub mode)",
                 )
             }
+            Log.i(
+                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
+                "send provider=ChinaCF/Tencent e164=$normalized sessionLen=${sessionId.length}",
+            )
             SMSCodeSession(
                 verificationID = sessionId,
                 phoneE164 = normalized,
                 stubDebugHint = null,
                 autoVerified = false,
-                path = SmsAuthPath.ALIYUN,
+                path = SmsAuthPath.TENCENT,
             )
         } catch (e: SMSAuthError) {
             throw e
@@ -107,31 +95,21 @@ class AliyunSmsAuthProvider(
 
     override suspend fun verify(code: String, session: SMSCodeSession): SMSAuthUser {
         val trimmed = PhoneNumberNormalizer.normalizeOtpDigits(code)
-        // Stub / Firebase sessions must not hit verifyAliyunSmsOtp with a Phone Auth id.
+        // Stub / Firebase sessions must not hit verifyTencentSmsOtp with a Phone Auth id.
         if (session.path == SmsAuthPath.FIREBASE) {
             Log.i(
                 RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-                "verify provider=FirebasePhone (via Aliyun wrapper) e164=${session.phoneE164}",
+                "verify provider=FirebasePhone (via Tencent wrapper) e164=${session.phoneE164}",
             )
             return firebaseFallback.verify(trimmed, session)
         }
         if (session.path == SmsAuthPath.STUB || session.verificationID.startsWith("stub-")) {
-            // Legacy stub sessions: route to Firebase only if somehow still present —
-            // local stub no longer issued on this path.
-            Log.w(TAG, "Unexpected stub session on Aliyun path — trying Firebase verify")
-            return firebaseFallback.verify(trimmed, session)
-        }
-        if (BuildConfig.DEBUG) {
-            // Should not happen if send skipped Aliyun; never verify CF OTP in DEBUG.
-            Log.w(
-                RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-                "DEBUG Aliyun session unexpected — verifying via Firebase Phone Auth",
-            )
+            Log.w(TAG, "Unexpected stub session on Tencent path — trying Firebase verify")
             return firebaseFallback.verify(trimmed, session)
         }
         Log.i(
             RoutingSMSAuthProvider.VAULT_AUTH_TAG,
-            "verify provider=ChinaCF/Aliyun e164=${session.phoneE164} codeLen=${trimmed.length}",
+            "verify provider=ChinaCF/Tencent e164=${session.phoneE164} codeLen=${trimmed.length}",
         )
 
         FirebaseBootstrap.configureIfNeeded(appContext)
@@ -145,7 +123,7 @@ class AliyunSmsAuthProvider(
 
         return try {
             val data = call(
-                "verifyAliyunSmsOtp",
+                "verifyTencentSmsOtp",
                 mapOf(
                     "sessionId" to session.verificationID,
                     "code" to trimmed,
@@ -174,12 +152,12 @@ class AliyunSmsAuthProvider(
         resend: Boolean,
         reason: String?,
     ): SMSCodeSession {
-        Log.w(TAG, "Aliyun path → Firebase Phone Auth fallback — $reason")
+        Log.w(TAG, "Tencent path → Firebase Phone Auth fallback — $reason")
         return firebaseFallback.sendCode(activity, phoneE164, resend)
     }
 
     private fun shouldFallbackToFirebase(error: SMSAuthError): Boolean {
-        // Missing Aliyun / Functions → Firebase (Console test numbers; Aliyun still deferred).
+        // Missing Tencent / Functions → Firebase (Console test numbers).
         if (error is SMSAuthError.NotConfigured) return true
         return error is SMSAuthError.Underlying &&
             error.detail.contains("NOT_FOUND", ignoreCase = true)
@@ -206,7 +184,7 @@ class AliyunSmsAuthProvider(
                     else SMSAuthError.InvalidPhone
                 FirebaseFunctionsException.Code.RESOURCE_EXHAUSTED -> SMSAuthError.RateLimited
                 FirebaseFunctionsException.Code.FAILED_PRECONDITION ->
-                    SMSAuthError.NotConfigured(details.ifBlank { "Aliyun SMS not configured" })
+                    SMSAuthError.NotConfigured(details.ifBlank { "Tencent SMS not configured" })
                 FirebaseFunctionsException.Code.NOT_FOUND ->
                     SMSAuthError.NotConfigured(
                         "Cloud Function not deployed. From firebase/: firebase deploy --only functions",
@@ -230,11 +208,11 @@ class AliyunSmsAuthProvider(
                 "Cloud Function not deployed. From firebase/: firebase deploy --only functions",
             )
         }
-        return SMSAuthError.Underlying(msg.ifBlank { "Aliyun SMS error" })
+        return SMSAuthError.Underlying(msg.ifBlank { "Tencent SMS error" })
     }
 
     companion object {
-        private const val TAG = "AliyunSmsAuth"
+        private const val TAG = "TencentSmsAuth"
         /** Must match `setGlobalOptions({ region })` in firebase/functions. */
         const val FUNCTIONS_REGION = "asia-east1"
     }

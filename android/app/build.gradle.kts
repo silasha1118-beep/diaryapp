@@ -203,7 +203,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     // Diary media bytes — same Storage paths as iOS (`users/{uid}/entries/{entryId}/{file}`).
     implementation("com.google.firebase:firebase-storage-ktx")
-    // Callable Functions for +86 Aliyun SMS OTP (keys stay server-side).
+    // Callable Functions for +86 Tencent Cloud SMS OTP (keys stay server-side).
     implementation("com.google.firebase:firebase-functions-ktx")
     // Vault detail video playback (voice uses MediaPlayer).
     implementation("androidx.media3:media3-exoplayer:1.4.1")

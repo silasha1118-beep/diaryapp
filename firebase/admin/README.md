@@ -136,7 +136,7 @@ Confirm the published rules include `request.auth.token.vaultAdmin == true` on r
 
 ### `iam.serviceAccounts.signBlob` denied (Operator session mint failed)
 
-`createCustomToken` (used by `mintAdminVaultSession` and Aliyun OTP verify) needs the Functions **runtime** service account to sign JWTs. On Cloud Functions **Gen2** that SA is usually the default Compute Engine account:
+`createCustomToken` (used by `mintAdminVaultSession` and Tencent OTP verify) needs the Functions **runtime** service account to sign JWTs. On Cloud Functions **Gen2** that SA is usually the default Compute Engine account:
 
 `{PROJECT_NUMBER}-compute@developer.gserviceaccount.com`
 
