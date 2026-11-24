@@ -31,6 +31,11 @@ sealed class MirrorAIError(message: String) : Exception(message) {
     class Network(detail: String = "") : MirrorAIError(detail)
     /** Provider capacity / rate-limit / resource-exhausted (xAI etc.). */
     data object ProviderBusy : MirrorAIError("provider busy")
+    /**
+     * HTTP 401/403 or body markers for an invalid / expired API key.
+     * Must not map to the generic 「無法回覆」 string — point the user at local.properties.
+     */
+    data object InvalidApiKey : MirrorAIError("invalid api key")
     class RateLimited(
         val limit: Int,
         val isAuthorPlus: Boolean = false,
@@ -50,8 +55,11 @@ sealed class MirrorAIError(message: String) : Exception(message) {
         /** Maps a non-2xx Cloud AI response without exposing raw JSON to the UI. */
         fun fromHttp(statusCode: Int, body: String?): MirrorAIError {
             val text = body.orEmpty()
-            return if (isProviderBusy(statusCode, text)) ProviderBusy
-            else Network("HTTP $statusCode")
+            return when {
+                isProviderBusy(statusCode, text) -> ProviderBusy
+                isInvalidApiKey(statusCode, text) -> InvalidApiKey
+                else -> Network("HTTP $statusCode")
+            }
         }
 
         fun isProviderBusy(statusCode: Int, body: String): Boolean {
@@ -68,6 +76,21 @@ sealed class MirrorAIError(message: String) : Exception(message) {
                 "capacity",
                 "overloaded",
                 "quota exceeded",
+            )
+            return markers.any { lowered.contains(it) }
+        }
+
+        fun isInvalidApiKey(statusCode: Int, body: String): Boolean {
+            if (statusCode == 401 || statusCode == 403) return true
+            val lowered = body.lowercase(Locale.US)
+            val markers = listOf(
+                "invalid api key",
+                "incorrect api key",
+                "invalid_api_key",
+                "api key not found",
+                "unauthorized",
+                "authentication",
+                "permission denied",
             )
             return markers.any { lowered.contains(it) }
         }

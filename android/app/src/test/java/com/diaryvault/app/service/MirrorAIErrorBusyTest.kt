@@ -41,4 +41,29 @@ class MirrorAIErrorBusyTest {
         assertTrue(MirrorAIError.isProviderBusy(400, "provider capacity exceeded"))
         assertFalse(MirrorAIError.isProviderBusy(400, "invalid api key"))
     }
+
+    @Test
+    fun fromHttp_401MapsToInvalidApiKeyNotGenericNetwork() {
+        val err = MirrorAIError.fromHttp(401, """{"error":"Incorrect API key provided"}""")
+        assertTrue(err is MirrorAIError.InvalidApiKey)
+        assertFalse(err is MirrorAIError.Network)
+        assertFalse(err is MirrorAIError.ProviderBusy)
+    }
+
+    @Test
+    fun fromHttp_403MapsToInvalidApiKey() {
+        assertTrue(MirrorAIError.fromHttp(403, "") is MirrorAIError.InvalidApiKey)
+    }
+
+    @Test
+    fun fromHttp_invalidKeyBodyWithoutAuthStatus() {
+        val err = MirrorAIError.fromHttp(400, """{"error":{"message":"Invalid API Key"}}""")
+        assertTrue(err is MirrorAIError.InvalidApiKey)
+    }
+
+    @Test
+    fun isInvalidApiKey_doesNotStealBusyMarkers() {
+        assertFalse(MirrorAIError.isInvalidApiKey(429, "rate_limit"))
+        assertTrue(MirrorAIError.isProviderBusy(429, "rate_limit"))
+    }
 }

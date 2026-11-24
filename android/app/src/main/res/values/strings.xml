@@ -63,6 +63,7 @@
     <string name="mirror_mock_disclaimer">Based on what you’ve written · mock mirror (not a coach)</string>
     <string name="mirror_mode_needs_key">Mirror needs an xAI key — add XAI_API_KEY to android/local.properties, Sync, rebuild</string>
     <string name="mirror_error_not_configured">Cloud Mirror is not configured. Add XAI_API_KEY (or DIARY_AI_API_KEY) to android/local.properties, Sync Gradle, and rebuild. Never commit the key.</string>
+    <string name="mirror_error_invalid_key">xAI API key rejected. Check XAI_API_KEY in android/local.properties (like iOS Secrets.xcconfig), Sync Gradle, and rebuild Debug/Release. Never commit the key.</string>
     <string name="mirror_error_busy">The Mirror is busy right now. Please try again in a moment.</string>
     <string name="mirror_error_generic">The Mirror couldn’t reply just now. Please try again.</string>
     <string name="mirror_error_network">The Mirror couldn’t reply just now. Please try again.</string>

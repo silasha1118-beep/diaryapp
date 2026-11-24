@@ -18,6 +18,8 @@ enum MirrorAIError: LocalizedError {
     case network(String)
     /// Provider capacity / rate-limit / resource-exhausted (xAI etc.). Never carries raw body.
     case providerBusy
+    /// HTTP 401/403 or body markers for invalid / expired API key — not the generic soft error.
+    case invalidApiKey
     case decoding
     case rateLimited(limit: Int, tier: BillingConfig.Tier)
 
@@ -32,6 +34,8 @@ enum MirrorAIError: LocalizedError {
             return "Mirror could not reach the cloud AI."
         case .providerBusy:
             return "The Mirror is busy right now. Please try again in a moment."
+        case .invalidApiKey:
+            return "xAI API key rejected. Check DIARY_AI_API_KEY / XAI_API_KEY (scheme or Secrets.xcconfig)."
         case .decoding:
             return "Unexpected response from AI service."
         case .rateLimited(let limit, let tier):
@@ -52,6 +56,9 @@ enum MirrorAIError: LocalizedError {
         if isProviderBusy(statusCode: statusCode, body: text) {
             return .providerBusy
         }
+        if isInvalidApiKey(statusCode: statusCode, body: text) {
+            return .invalidApiKey
+        }
         return .network("HTTP \(statusCode)")
     }
 
@@ -71,6 +78,23 @@ enum MirrorAIError: LocalizedError {
             "capacity",
             "overloaded",
             "quota exceeded",
+        ]
+        return markers.contains { lowered.contains($0) }
+    }
+
+    static func isInvalidApiKey(statusCode: Int, body: String) -> Bool {
+        if statusCode == 401 || statusCode == 403 {
+            return true
+        }
+        let lowered = body.lowercased()
+        let markers = [
+            "invalid api key",
+            "incorrect api key",
+            "invalid_api_key",
+            "api key not found",
+            "unauthorized",
+            "authentication",
+            "permission denied",
         ]
         return markers.contains { lowered.contains($0) }
     }
