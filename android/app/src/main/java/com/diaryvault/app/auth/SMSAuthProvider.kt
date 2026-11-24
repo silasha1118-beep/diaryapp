@@ -153,10 +153,8 @@ object SMSAuthProviderFactory {
 
     /**
      * Dual SMS:
-     * - **DEBUG:** all dials (including +86) → Firebase Phone Auth so Console test numbers work
-     *   ([RoutingSMSAuthProvider] + [AliyunSmsAuthProvider] both force Firebase in DEBUG)
-     * - **Release +86:** Aliyun Cloud Functions when keys are set; if keys/Functions missing →
-     *   Firebase Phone Auth fallback (not a local stub that ignores Console codes)
+     * - **+86:** Aliyun Cloud Functions when secrets are set; if keys/Functions missing
+     *   (or CF stub mode) → Firebase Phone Auth fallback so Console / DEBUG test codes work
      * - other dials → Firebase Phone Auth (Play Integrity preferred — see #77)
      * Aliyun AccessKeys stay on the server — never in the APK.
      */
@@ -165,8 +163,6 @@ object SMSAuthProviderFactory {
         return RoutingSMSAuthProvider(
             chinaMainland = AliyunSmsAuthProvider(app, firebaseFallback = firebase),
             other = firebase,
-            // Explicit + BuildConfig.DEBUG OR inside pick() — Console +86 test codes.
-            preferFirebaseForChinaMainland = BuildConfig.DEBUG,
         )
     }
 }
