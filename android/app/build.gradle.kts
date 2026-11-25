@@ -42,13 +42,13 @@ fun escapeBuildConfigString(value: String): String =
 
 android {
     namespace = "com.silasha.diaryvault"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.silasha.diaryvault"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 3
+        targetSdk = 36
+        versionCode = 4
         versionName = "1.2.0"
         // Cloud AI — local.properties / env at assemble time; never commit real keys.
         // Working provider (product pref): xAI Grok — defaults applied in AIConfig when key is set.
