@@ -41,15 +41,15 @@ fun escapeBuildConfigString(value: String): String =
         .replace("\r", "")
 
 android {
-    namespace = "com.diaryvault.app"
+    namespace = "com.silasha.diaryvault"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.diaryvault.app"
+        applicationId = "com.silasha.diaryvault"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         // Cloud AI — local.properties / env at assemble time; never commit real keys.
         // Working provider (product pref): xAI Grok — defaults applied in AIConfig when key is set.
         buildConfigField("String", "DIARY_AI_PROVIDER", "\"${escapeBuildConfigString(diaryAiProp("DIARY_AI_PROVIDER"))}\"")
@@ -258,7 +258,7 @@ tasks.configureEach {
     if (name != "preDebugBuild") return@configureEach
     doFirst {
         val expectedProject = "diaryappsilas"
-        val expectedPackage = "com.diaryvault.app"
+        val expectedPackage = "com.silasha.diaryvault"
         val windowsPath = "C:\\dev\\diaryapp\\android\\app\\google-services.json"
         if (!googleServicesFile.exists()) {
             if (stubSmsExplicitlyAllowed()) {
